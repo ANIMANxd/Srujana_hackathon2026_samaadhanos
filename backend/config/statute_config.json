@@ -1,0 +1,134 @@
+{
+  "_comment": "Statute constants for SamadhaanOS. Every entry is {value, source_ref, verified, note}. Values are prefilled ONLY from the table in docs/architecture.md section 5; nothing here is filled from memory. The statute sheet (docs/statute-sheet/CHECKLIST.md) has captured no primary sources yet, so every verified flag is false and the engine surfaces UNVERIFIED_CONSTANT for any constant a computation actually uses. Resolve against V1-V11 before trusting a number on screen.",
+
+  "interest_multiplier": {
+    "value": 3,
+    "source_ref": "V2:s.16",
+    "verified": false,
+    "note": "Prefill per architecture.md section 5. Not yet read from the statute sheet (V2)."
+  },
+
+  "objection_window_days": {
+    "value": 15,
+    "source_ref": "V2:s.2(b)",
+    "verified": false,
+    "note": "Expected 15 days per section 5; OQ-1 still open (anchored on delivery)."
+  },
+
+  "credit_cap_days": {
+    "value": 45,
+    "source_ref": "V2:s.15 proviso",
+    "verified": false,
+    "note": "Prefill per section 5. Applies to every supply; there are no regimes (trap 2)."
+  },
+
+  "no_agreement_days": {
+    "value": 15,
+    "source_ref": "V2:s.15",
+    "verified": false,
+    "note": "Prefill per section 5. Not yet read from the statute sheet (V2)."
+  },
+
+  "bank_rate_epochs": {
+    "value": [
+      { "from": "2026-04-01", "bank_rate_pct": "5.50" },
+      { "from": "2026-10-07", "bank_rate_pct": "5.75" }
+    ],
+    "source_ref": "V1",
+    "verified": false,
+    "note": "TODO(EARLIER EPOCHS REQUIRED): 5.75% from 2026-10-07 and 5.50% in force Apr/Aug 2026 are per news reports quoted in architecture.md section 5. Earlier epochs must be filled from RBI (V1) and this note updated. The 2026-04-01 boundary is an ASSUMPTION: the document states 5.50% was in force in April 2026 but gives no change date, so the epoch starts at the start of that month to make lookup on April dates deterministic. Do NOT treat this date as sourced; correct it against V1. A delay period reaching before 2026-04-01 has no rate here and the loader raises NoEpochFound."
+  },
+
+  "size_epochs": {
+    "value": [
+      {
+        "from": "2025-04-01",
+        "micro": { "investment_cr": "2.5", "turnover_cr": "10" },
+        "small": { "investment_cr": "25", "turnover_cr": "100" },
+        "medium": { "investment_cr": "125", "turnover_cr": "500" }
+      },
+      {
+        "from": null,
+        "micro": { "investment_cr": "1", "turnover_cr": "5" },
+        "small": { "investment_cr": "10", "turnover_cr": "50" },
+        "medium": { "investment_cr": "50", "turnover_cr": "250" }
+      }
+    ],
+    "source_ref": "V6",
+    "verified": false,
+    "note": "Prefill per section 5: 2025-04-01 set is given with a date; the earlier set (1/5, 10/50, 50/250) is named but undated, so its from is null (indefinitely early) and lookups treat it as the fallback. TODO: assign the real start date from V6. Reverse graduation is expected but not implemented here."
+  },
+
+  "silpi_test_date": {
+    "value": null,
+    "source_ref": "V4",
+    "verified": false,
+    "note": "Null until read (section 5). OQ-2 open. The gate must return null plus an OPEN_QUESTION warning, never a silent default."
+  },
+
+  "trader_nic_prefixes": {
+    "value": ["45", "46", "47"],
+    "source_ref": "V5",
+    "verified": false,
+    "note": "Prefill per section 5 (NIC divisions 45, 46, 47). Not yet read from the statute sheet (V5)."
+  },
+
+  "limitation_years": {
+    "value": null,
+    "source_ref": "V7",
+    "verified": false,
+    "note": "Null until read (section 5). OQ-6 open. Limitation status is UNKNOWN until V7 is captured."
+  },
+
+  "section_43bh_first_fy": {
+    "value": "2023-24",
+    "source_ref": "V3",
+    "verified": false,
+    "note": "Prefill per section 5. The 43B(h) timing effect is never added to interest loss (trap 3)."
+  },
+
+  "rate_mode_default": {
+    "value": "FLOATING",
+    "source_ref": "open:OQ-4",
+    "verified": false,
+    "note": "Default per section 5 while OQ-4 is open. FLOATING splits at epoch boundaries; FROZEN_AT_APPOINTED_DAY holds the appointed-day rate."
+  },
+
+  "appropriation_mode_default": {
+    "value": "INTEREST_FIRST",
+    "source_ref": "open:section 5",
+    "verified": false,
+    "note": "Default per section 5. Changes the principal/interest split that feeds the 43B(h) base, not the total balance."
+  },
+
+  "payment_boundary_convention": {
+    "value": "PAYMENT_DATE_IS_REST_BOUNDARY",
+    "source_ref": "open:OQ-3",
+    "verified": false,
+    "note": "Convention per section 5 while OQ-3 is open. Shown on screen and flagged for lawyer review."
+  },
+
+  "day_count_fraction_days": {
+    "value": 365,
+    "source_ref": "convention:section 5",
+    "verified": false,
+    "note": "Convention per section 5, not a statutory figure. Used only for stub interest."
+  },
+
+  "tax_presets": {
+    "value": [
+      { "id": "company_115baa", "label": "Company (s.115BAA)", "tax_rate_pct": "25.168" },
+      { "id": "other", "label": "Other", "tax_rate_pct": "31.2" }
+    ],
+    "source_ref": "V3",
+    "verified": false,
+    "note": "UI presets per section 5. Rates given as 25.168 and 31.2; carried as decimal strings. Verify against V3 before display."
+  },
+
+  "gated_features": {
+    "value": { "gst_itc_180d": false, "msme1_return": false, "s19_deposit": false },
+    "source_ref": "V9",
+    "verified": false,
+    "note": "All gated off per section 5 and OQ-8. Emit related pressure-point rows only when a flag is true."
+  }
+}
