@@ -22,7 +22,11 @@ frontend:
 test:
 	$(PYTHON) -c "import subprocess, sys; rc = subprocess.call([sys.executable, '-m', 'pytest', 'backend/tests', '-q']); sys.exit(0 if rc in (0, 5) else rc)"
 
+# Regenerate contracts/fixtures from the real engine: every preset's request +
+# response, plus the CASE-01 artifact samples, then copy to frontend/fixtures.
+# Refuses to write while backend/tests/spec is failing (export_fixtures gate 1).
 fixtures:
+	$(PYTHON) -m backend.app.export_fixtures
 	$(PYTHON) -c "import pathlib, shutil; pathlib.Path('frontend/fixtures').mkdir(parents=True, exist_ok=True); shutil.copytree('contracts/fixtures', 'frontend/fixtures', dirs_exist_ok=True); print('fixtures copied to frontend/fixtures')"
 
 demo: fixtures
@@ -39,8 +43,9 @@ openapi:
 types:
 	$(PYTHON) -m backend.app.export_types
 
-# Regenerate contracts/fixtures/*.request.json + *.response.json from the live
-# models + placeholder builder (no hand-typed numbers; golden rule 7/12).
+# Regenerate contracts/fixtures/*.request.json + *.response.json from the real
+# engine, plus the CASE-01 artifact samples (no hand-typed numbers; golden rule
+# 7/12). Same script `make fixtures` runs, minus the frontend copy.
 contract-fixtures:
 	$(PYTHON) -m backend.app.export_fixtures
 
