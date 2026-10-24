@@ -418,6 +418,17 @@ class StatuteConfig:
             )
         return best.bank_rate_pct
 
+    def bank_rate_epochs(self) -> list[BankRateEpoch]:
+        """The Bank Rate epochs in ascending order, for splitting a delay period.
+
+        Reading them records usage, so a period that actually spanned a rate
+        change reports `bank_rate_epochs` among its unverified constants. The
+        epochs are returned as stored; `from_date` is the first day each rate
+        applies, and None marks the undated fallback.
+        """
+        self._mark_used("bank_rate_epochs")
+        return list(self._bank_rate_epochs)
+
     def statutory_rate_on(self, day: date) -> Decimal:
         """s.16 statutory rate on `day`: interest_multiplier x Bank Rate."""
         return self.interest_multiplier() * self.bank_rate_on(day)
