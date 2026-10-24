@@ -1,0 +1,7 @@
+# git commit message template for Srujana_hackathon2026_SamadhaanOS.
+#
+# Lines starting with '#' are ignored by git. Do not add Co-Authored-By or any
+# other AI co-author trailer here or in any commit: the team's convention is
+# that this project's history carries no co-author trailers.
+
+# <type>: <short imperative summary>

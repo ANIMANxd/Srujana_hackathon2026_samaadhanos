@@ -1,0 +1,14 @@
+# Local git configuration for this repository.
+#
+# Purpose: keep AI co-author trailers out of commit messages. Several harness
+# tools append a "Co-Authored-By:" trailer to every commit they create; the
+# team wants those absent from this project's history.
+#
+# commit.template points git at this file, so `git commit` (without -m) opens
+# this text as the starting message and the trailers are never introduced.
+# For `git commit -m "..."`, commit.status and the prepare-commit-msg hook in
+# .githooks/ strip any Co-Authored-By line a tool may have injected.
+#
+# Activated by running:  make git-setup
+[commit]
+	template = .gitmsg

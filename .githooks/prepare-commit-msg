@@ -1,0 +1,27 @@
+#!/bin/sh
+# prepare-commit-msg hook: drop AI co-author trailers.
+#
+# Several harness tools append a "Co-Authored-By:" line to the message they
+# pass to `git commit -m`. The team convention for this repo is that commits
+# carry no co-author trailer, so strip any such line here.
+#
+# Installed by `make git-setup`, which sets core.hooksPath to .githooks/.
+# Skips merge and squash commits, which build their message from git history.
+
+case "${1-}" in
+  *MERGE_MSG|*SQUASH_MSG)
+    exit 0
+    ;;
+esac
+
+msgfile="$1"
+[ -f "$msgfile" ] || exit 0
+
+# Remove Co-Authored-By lines (any author), then collapse the blank lines that
+# the removal can leave behind before the scissors line.
+sed -i.bak '/^Co-Authored-By:/d' "$msgfile" && rm -f "$msgfile.bak"
+
+# Drop trailing blank lines so the message ends cleanly.
+sed -i.bak -e :a -e '/^\n*$/{$d;N;};/\n$/ba' "$msgfile" && rm -f "$msgfile.bak"
+
+exit 0
