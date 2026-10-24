@@ -1,0 +1,205 @@
+@import "tailwindcss";
+
+/*
+ * SamadhaanOS design tokens. Concept: "a good accountant's ledger book".
+ * Warm paper, deep ink, one saffron accent reserved for the primary action.
+ * Ruled lines (not shadows) separate content. Money is set in a monospace
+ * face with tabular figures. Components use these tokens only.
+ */
+
+@theme {
+  /* ink: deep indigo-black for text and structure */
+  --color-ink-950: #0f1428;
+  --color-ink-900: #161c38;
+  --color-ink-800: #232b52;
+  --color-ink-700: #343d68;
+  --color-ink-600: #4a5380;
+  --color-ink-500: #636b94;
+  --color-ink-300: #a9adc6;
+  --color-ink-100: #e4e5ee;
+
+  /* paper: warm off-white surfaces */
+  --color-paper: #f6f1e7;
+  --color-paper-raised: #fffcf6;
+  --color-paper-sunk: #efe8da;
+  --color-rule: #e1d8c6;
+  --color-rule-strong: #c9bda5;
+
+  /* saffron: the one accent, for the primary action and the live figure */
+  --color-saffron-600: #c46d0c;
+  --color-saffron-500: #dd8a24;
+  --color-saffron-100: #fbe9cf;
+  --color-saffron-ink: #7a4100;
+
+  /* status: always paired with an icon and text, never colour alone */
+  --color-ok: #2c6a3c;
+  --color-ok-wash: #e2efe0;
+  --color-warn: #865500;
+  --color-warn-wash: #fbedcf;
+  --color-block: #9a2b22;
+  --color-block-wash: #f6dfda;
+  --color-info: #344a8a;
+  --color-info-wash: #e3e8f6;
+
+  --font-display: "Fraunces Variable", Georgia, "Times New Roman", serif;
+  --font-sans: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", monospace;
+
+  /* type scale: body 17px, hero 40px */
+  --text-xs: 0.8125rem;
+  --text-sm: 0.9375rem;
+  --text-base: 1.0625rem;
+  --text-lg: 1.1875rem;
+  --text-xl: 1.4375rem;
+  --text-2xl: 1.875rem;
+  --text-3xl: 2.5rem;
+  --text-4xl: 3.25rem;
+
+  --radius-sm: 3px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+
+  --animate-tick: tick 600ms ease-out;
+  --animate-drawer: drawer-in 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  --animate-fade: fade-in 180ms ease-out;
+}
+
+@keyframes tick {
+  from { color: var(--color-saffron-600); }
+  to { color: inherit; }
+}
+
+@keyframes drawer-in {
+  from { transform: translateX(24px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+html {
+  background: var(--color-paper);
+  color: var(--color-ink-900);
+  font-family: var(--font-sans);
+  font-size: 100%;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--color-paper);
+  color: var(--color-ink-900);
+  font-size: var(--text-base);
+  line-height: 1.55;
+}
+
+/* Visible, consistent focus everywhere (F0 / F9). */
+:focus-visible {
+  outline: 3px solid var(--color-saffron-500);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+@layer components {
+  /* Money and dates in tables and figures */
+  .num {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+  }
+
+  /* Ledger rule: the signature double line under section headings */
+  .ledger-rule {
+    border-bottom: 1px solid var(--color-rule-strong);
+    box-shadow: 0 3px 0 -2px var(--color-rule-strong);
+    padding-bottom: 0.5rem;
+  }
+
+  .panel {
+    background: var(--color-paper-raised);
+    border: 1px solid var(--color-rule);
+    border-radius: var(--radius-md);
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 2.75rem;
+    padding: 0.5rem 1.125rem;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    font-size: var(--text-base);
+    line-height: 1.2;
+    transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
+    cursor: pointer;
+  }
+  .btn:disabled,
+  .btn[aria-disabled="true"] {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  .btn-primary {
+    background: var(--color-saffron-500);
+    color: var(--color-ink-950);
+    border: 1px solid var(--color-saffron-600);
+  }
+  .btn-primary:hover:not(:disabled) {
+    background: var(--color-saffron-600);
+    color: var(--color-paper-raised);
+  }
+  .btn-secondary {
+    background: var(--color-paper-raised);
+    color: var(--color-ink-900);
+    border: 1px solid var(--color-rule-strong);
+  }
+  .btn-secondary:hover:not(:disabled) {
+    border-color: var(--color-ink-600);
+  }
+  .btn-quiet {
+    background: transparent;
+    color: var(--color-ink-700);
+    border: 1px solid transparent;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    padding-inline: 0.25rem;
+  }
+
+  .field-label {
+    display: block;
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: var(--color-ink-800);
+    margin-bottom: 0.25rem;
+  }
+  .field-input {
+    width: 100%;
+    min-height: 2.75rem;
+    padding: 0.5rem 0.75rem;
+    background: var(--color-paper-raised);
+    border: 1px solid var(--color-rule-strong);
+    border-radius: var(--radius-sm);
+    color: var(--color-ink-900);
+    font-size: var(--text-base);
+  }
+  .field-input[aria-invalid="true"] {
+    border-color: var(--color-block);
+  }
+}
+
+/* Print: the evidence pack downloads through the browser's print to PDF. */
+@media print {
+  .no-print { display: none !important; }
+  body { background: #ffffff; }
+  .panel { border-color: #999999; }
+}

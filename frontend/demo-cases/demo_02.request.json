@@ -1,0 +1,55 @@
+{
+  "title": "DEMO-02 — Day-9 written defect objection, resolved by replacement",
+  "note": "INPUT ONLY, synthetic (golden rule 11). Mirrors the spec's CASE-02 inputs until the backend ships its own case_02 preset. No outputs are stored here; numbers come from the engine.",
+  "request": {
+    "contract_version": "1.0",
+    "case_id": "demo_02",
+    "supplier": {
+      "name": "Sample Micro Works (synthetic)",
+      "udyam_number": "UDYAM-SYN-000000002",
+      "enterprise_class": "MICRO",
+      "activity": "MANUFACTURING",
+      "nic_codes": ["25920"],
+      "udyam_registration_date": "2022-04-01",
+      "investment_cr": "0.40",
+      "turnover_cr": "2.00"
+    },
+    "buyer": {
+      "name": "Sample Buyer Two Ltd (synthetic)",
+      "gstin": "29SYN000000002Z1",
+      "tax_rate_pct": "25.168",
+      "cost_of_capital_pct": "12.00"
+    },
+    "transaction": {
+      "contract_date": "2025-11-15",
+      "supply_date": "2025-12-01",
+      "invoice_date": "2025-12-01",
+      "delivery_date": "2025-12-01",
+      "principal": "300000.00",
+      "written_credit_days": 30,
+      "calculation_date": "2026-04-15",
+      "years_deferred": "1.00"
+    },
+    "objections": [
+      {
+        "raised_date": "2025-12-10",
+        "is_written": true,
+        "description": "Synthetic: written note that a batch was defective",
+        "resolved_date": "2025-12-28"
+      }
+    ],
+    "part_payments": [],
+    "acknowledgments": [],
+    "evidence": {
+      "items": [
+        { "kind": "PO", "present": true, "ref": "synthetic-PO-002" },
+        { "kind": "INVOICE", "present": true, "ref": "synthetic-INV-002" },
+        { "kind": "DELIVERY_PROOF", "present": true, "ref": "synthetic-CHALLAN-002" },
+        { "kind": "WHATSAPP", "present": true, "ref": "synthetic-WA-002" },
+        { "kind": "UDYAM", "present": true, "ref": "synthetic-UDYAM-002" },
+        { "kind": "GST_RETURN", "present": false, "ref": null }
+      ]
+    },
+    "config_overrides": null
+  }
+}
