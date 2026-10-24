@@ -45,6 +45,14 @@ STATUS_PRECEDENCE: tuple[str, ...] = (
     STATUS_ELIGIBLE,
 )
 
+# The statuses section 6.1 calls ineligible: these skip the interest and
+# buyer-cost blocks and carry the alternative remedy. INSUFFICIENT_DATA is
+# deliberately absent - undecided is not ineligible, and section 5 says the
+# engine keeps running and warns when a constant is missing.
+INELIGIBLE_STATUSES: frozenset[str] = frozenset(
+    {STATUS_BARRED_SILPI, STATUS_EXCLUDED_TRADER, STATUS_EXCLUDED_MEDIUM}
+)
+
 # Warning and citation codes the gate can emit.
 WARNING_OPEN_QUESTION = "OPEN_QUESTION"
 WARNING_MISSING_SUPPLY_DATE = "MISSING_SUPPLY_DATE"
@@ -699,7 +707,13 @@ def evaluate_gate(
         citations=citations,
         warnings=warnings,
         assumptions=assumptions,
-        alternative_remedy=None if eligible else ALTERNATIVE_REMEDY,
+        # Section 6.1 pairs the alternative remedy with the ineligible results
+        # that skip the money blocks. INSUFFICIENT_DATA gets neither: an
+        # undecided case is not one to which the route "does not apply", and
+        # saying so next to a computed claim would contradict the response.
+        alternative_remedy=(
+            ALTERNATIVE_REMEDY if status in INELIGIBLE_STATUSES else None
+        ),
     )
 
 
@@ -714,8 +728,9 @@ def blocked_downstream_note(result: GateResult) -> GateWarning:
         code="GATE_BLOCKED",
         severity="BLOCK",
         text=(
-            f"The eligibility gate returned {result.status}, so no interest, buyer cost "
-            "or limitation figures were computed for this case. Those blocks are empty "
-            "because no calculation ran, not because the amounts are zero."
+            f"The eligibility gate returned {result.status}, so no interest or buyer-cost "
+            "figures were computed for this case. Those blocks are empty because no "
+            "calculation ran, not because the amounts are zero. Limitation, defenses and "
+            "readiness still report what the inputs support."
         ),
     )

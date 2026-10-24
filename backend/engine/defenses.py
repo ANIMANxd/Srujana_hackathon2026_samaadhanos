@@ -28,6 +28,7 @@ from dataclasses import dataclass
 from typing import Protocol, Sequence
 
 from backend.engine.gate import GateCitation, GateWarning
+from backend.engine.text import contract_str
 
 # Statuses, matching DefenseStatus in backend/app/schemas.py.
 STATUS_STRONG = "STRONG"
@@ -226,7 +227,7 @@ def evaluate_defenses(
     """
     held: dict[str, EvidenceLike] = {}
     for item in evidence:
-        held[str(item.kind)] = item
+        held[contract_str(item.kind)] = item
 
     statuses: dict[str, str] = {}
 

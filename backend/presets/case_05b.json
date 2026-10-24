@@ -1,0 +1,49 @@
+{
+  "title": "CASE-05B — Blocked: trading NIC division, excluded at the gate",
+  "note": "INPUT ONLY, synthetic (golden rule 11): no real parties, Udyam or GSTIN numbers. No outputs are stored here; every number comes from the engine. This is a blocked preset: the gate excludes it, so interest and buyer cost must come back null with a BLOCK warning, never zero.",
+  "why_calculation_date": "Deliberate: the appointed day 2026-04-05 sits inside the configured Bank Rate epoch so that anything the timeline computes stays priceable; the money blocks are skipped anyway because the gate excludes the case. Bank Rate epochs before 2026-04-01 are not captured yet (V1 uncaptured, CR-8).",
+  "request": {
+    "contract_version": "1.0",
+    "case_id": "case_05b",
+    "supplier": {
+      "name": "Sample Trading House (synthetic)",
+      "udyam_number": "UDYAM-SYN-000000005",
+      "enterprise_class": "MICRO",
+      "activity": "TRADING",
+      "nic_codes": ["46100"],
+      "udyam_registration_date": "2024-02-01",
+      "investment_cr": "1.00",
+      "turnover_cr": "5.00"
+    },
+    "buyer": {
+      "name": "Sample Buyer Six Corp (synthetic)",
+      "gstin": "29SYN000000005Z1",
+      "tax_rate_pct": "31.20",
+      "cost_of_capital_pct": "12.00"
+    },
+    "transaction": {
+      "contract_date": "2026-02-01",
+      "supply_date": "2026-03-05",
+      "invoice_date": "2026-03-05",
+      "delivery_date": "2026-03-05",
+      "principal": "400000.00",
+      "written_credit_days": 30,
+      "calculation_date": "2026-06-15",
+      "years_deferred": "1.00"
+    },
+    "objections": [],
+    "part_payments": [],
+    "acknowledgments": [],
+    "evidence": {
+      "items": [
+        { "kind": "PO", "present": true, "ref": "synthetic-PO-005B" },
+        { "kind": "INVOICE", "present": true, "ref": "synthetic-INV-005B" },
+        { "kind": "DELIVERY_PROOF", "present": true, "ref": "synthetic-LR-005B" },
+        { "kind": "WHATSAPP", "present": false, "ref": null },
+        { "kind": "UDYAM", "present": true, "ref": "synthetic-UDYAM-005B" },
+        { "kind": "GST_RETURN", "present": true, "ref": "synthetic-GST-005B" }
+      ]
+    },
+    "config_overrides": null
+  }
+}

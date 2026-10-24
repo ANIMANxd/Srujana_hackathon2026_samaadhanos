@@ -1144,6 +1144,7 @@
       "ReadinessBand": {
         "enum": [
           "COURT_READY",
+          "EVIDENCE_COMPLETE",
           "ACTION_NEEDED",
           "BLOCKED"
         ],
@@ -1171,6 +1172,138 @@
           "text"
         ],
         "title": "ReadinessReason",
+        "type": "object"
+      },
+      "SettlementPayment": {
+        "properties": {
+          "amount": {
+            "title": "Amount",
+            "type": "string"
+          },
+          "days_from_now": {
+            "title": "Days From Now",
+            "type": "integer"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/SettlementPaymentKind"
+          }
+        },
+        "required": [
+          "kind",
+          "days_from_now",
+          "amount"
+        ],
+        "title": "SettlementPayment",
+        "type": "object"
+      },
+      "SettlementPaymentKind": {
+        "enum": [
+          "UPFRONT",
+          "SECOND"
+        ],
+        "title": "SettlementPaymentKind",
+        "type": "string"
+      },
+      "SettlementSimulationRequest": {
+        "description": "What the negotiator is proposing, plus the case to price it against.",
+        "properties": {
+          "days_to_second_payment": {
+            "title": "Days To Second Payment",
+            "type": "integer"
+          },
+          "request": {
+            "$ref": "#/components/schemas/CaseEvaluationRequest"
+          },
+          "upfront_pct": {
+            "title": "Upfront Pct",
+            "type": "string"
+          },
+          "waiver_pct": {
+            "title": "Waiver Pct",
+            "type": "string"
+          }
+        },
+        "required": [
+          "request",
+          "upfront_pct",
+          "waiver_pct",
+          "days_to_second_payment"
+        ],
+        "title": "SettlementSimulationRequest",
+        "type": "object"
+      },
+      "SettlementSimulationResponse": {
+        "properties": {
+          "assumptions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Assumptions",
+            "type": "array"
+          },
+          "contract_version": {
+            "default": "1.0",
+            "title": "Contract Version",
+            "type": "string"
+          },
+          "days_to_second_payment": {
+            "title": "Days To Second Payment",
+            "type": "integer"
+          },
+          "interest_paid": {
+            "title": "Interest Paid",
+            "type": "string"
+          },
+          "interest_waived": {
+            "title": "Interest Waived",
+            "type": "string"
+          },
+          "net_recovery": {
+            "title": "Net Recovery",
+            "type": "string"
+          },
+          "payments": {
+            "items": {
+              "$ref": "#/components/schemas/SettlementPayment"
+            },
+            "title": "Payments",
+            "type": "array"
+          },
+          "principal_paid": {
+            "title": "Principal Paid",
+            "type": "string"
+          },
+          "total_claim": {
+            "title": "Total Claim",
+            "type": "string"
+          },
+          "total_payable": {
+            "title": "Total Payable",
+            "type": "string"
+          },
+          "upfront_pct": {
+            "title": "Upfront Pct",
+            "type": "string"
+          },
+          "waiver_pct": {
+            "title": "Waiver Pct",
+            "type": "string"
+          }
+        },
+        "required": [
+          "total_claim",
+          "interest_waived",
+          "interest_paid",
+          "principal_paid",
+          "total_payable",
+          "payments",
+          "net_recovery",
+          "upfront_pct",
+          "waiver_pct",
+          "days_to_second_payment",
+          "assumptions"
+        ],
+        "title": "SettlementSimulationResponse",
         "type": "object"
       },
       "SilpiTestDate": {
@@ -1567,7 +1700,7 @@
     },
     "/api/v1/evaluate-case": {
       "post": {
-        "description": "Evaluate a case.\n\nPLACEHOLDER: the engine is not built yet, so this returns a fixed sample\nresponse flagged with a PLACEHOLDER_DATA warning. It evaluates nothing.",
+        "description": "Evaluate a case with the real engine (sections 6.1-6.6).",
         "operationId": "evaluate_case_api_v1_evaluate_case_post",
         "requestBody": {
           "content": {
@@ -1688,6 +1821,45 @@
           }
         },
         "summary": "Get Preset"
+      }
+    },
+    "/api/v1/simulate-settlement": {
+      "post": {
+        "description": "Split a settlement offer against this case's own numbers (section 8.1).\n\nThe claim is evaluated first, so the split always uses the engine's figures\ninstead of numbers the client sends (golden rule 6). Nothing is combined\nwith the buyer-cost lines, and nothing is assumed about time value.",
+        "operationId": "simulate_settlement_api_v1_simulate_settlement_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SettlementSimulationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SettlementSimulationResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Simulate Settlement"
       }
     }
   }

@@ -1,0 +1,55 @@
+{
+  "title": "CASE-04 — Part-payment mid-delay, rest cycle restarts on the payment date",
+  "note": "INPUT ONLY, synthetic (golden rule 11): no real parties, Udyam or GSTIN numbers. No outputs are stored here; every number comes from the engine. Synthesised for this repo: the spec's preset table was not available when this file was written, so this case exists to exercise a part-payment under the PAYMENT_DATE_IS_REST_BOUNDARY convention (OQ-3) rather than to mirror a spec row.",
+  "why_calculation_date": "Deliberate: the delay runs from the appointed day 2026-04-10 (delivery 2026-03-10 plus 30 agreed days) to a calculation date of 2026-08-15, entirely inside the configured 5.50% Bank Rate epoch, so the whole ledger prices at 16.50%. The part-payment falls on 2026-05-15, after the 2026-05-10 rest and before the next one, which is the shape that shows the convention working. Bank Rate epochs before 2026-04-01 are not captured yet (V1 uncaptured, CR-8).",
+  "request": {
+    "contract_version": "1.0",
+    "case_id": "case_04",
+    "supplier": {
+      "name": "Sample Fabricators Pvt Ltd (synthetic)",
+      "udyam_number": "UDYAM-SYN-000000003",
+      "enterprise_class": "SMALL",
+      "activity": "MANUFACTURING",
+      "nic_codes": ["25990"],
+      "udyam_registration_date": "2023-01-10",
+      "investment_cr": "6.00",
+      "turnover_cr": "40.00"
+    },
+    "buyer": {
+      "name": "Sample Buyer Four Ltd (synthetic)",
+      "gstin": "29SYN000000003Z1",
+      "tax_rate_pct": "31.20",
+      "cost_of_capital_pct": "12.00"
+    },
+    "transaction": {
+      "contract_date": "2026-02-15",
+      "supply_date": "2026-03-10",
+      "invoice_date": "2026-03-10",
+      "delivery_date": "2026-03-10",
+      "principal": "500000.00",
+      "written_credit_days": 30,
+      "calculation_date": "2026-08-15",
+      "years_deferred": "1.00"
+    },
+    "objections": [],
+    "part_payments": [
+      {
+        "date": "2026-05-15",
+        "amount": "150000.00",
+        "reference": "synthetic part payment against the invoice"
+      }
+    ],
+    "acknowledgments": [],
+    "evidence": {
+      "items": [
+        { "kind": "PO", "present": true, "ref": "synthetic-PO-004" },
+        { "kind": "INVOICE", "present": true, "ref": "synthetic-INV-004" },
+        { "kind": "DELIVERY_PROOF", "present": true, "ref": "synthetic-LR-004" },
+        { "kind": "WHATSAPP", "present": false, "ref": null },
+        { "kind": "UDYAM", "present": true, "ref": "synthetic-UDYAM-004" },
+        { "kind": "GST_RETURN", "present": false, "ref": null }
+      ]
+    },
+    "config_overrides": null
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "title": "CASE-03 — No written agreement, quality complaint after the window",
+  "note": "INPUT ONLY, synthetic (golden rule 11): no real parties, Udyam or GSTIN numbers. No outputs are stored here; every number comes from the engine.",
+  "why_calculation_date": "Deliberate: with no written agreement the period is the statutory one, so the delay runs from the appointed day 2026-04-05 (delivery 2026-03-20 plus 15 days) to a calculation date of 2026-07-15, entirely inside the configured 5.50% Bank Rate epoch and therefore pricing at 16.50%. The complaint on 2026-04-15 falls after the objection window closes on 2026-04-04, so it is recorded as a late complaint and does not move the clock. Bank Rate epochs before 2026-04-01 are not captured yet (V1 uncaptured, CR-8).",
+  "request": {
+    "contract_version": "1.0",
+    "case_id": "case_03",
+    "supplier": {
+      "name": "Sample Services Co (synthetic)",
+      "udyam_number": "UDYAM-SYN-000000002",
+      "enterprise_class": "MICRO",
+      "activity": "SERVICES",
+      "nic_codes": ["33120"],
+      "udyam_registration_date": "2021-09-01",
+      "investment_cr": "0.20",
+      "turnover_cr": "1.50"
+    },
+    "buyer": {
+      "name": "Sample Buyer Three Pvt Ltd (synthetic)",
+      "gstin": "29SYN000000002Z1",
+      "tax_rate_pct": "25.168",
+      "cost_of_capital_pct": "12.00"
+    },
+    "transaction": {
+      "contract_date": null,
+      "supply_date": "2026-03-20",
+      "invoice_date": "2026-03-20",
+      "delivery_date": "2026-03-20",
+      "principal": "180000.00",
+      "written_credit_days": null,
+      "calculation_date": "2026-07-15",
+      "years_deferred": "1.00"
+    },
+    "objections": [
+      {
+        "raised_date": "2026-04-15",
+        "is_written": true,
+        "description": "Synthetic: quality complaint raised after the objection window closed on 2026-04-04",
+        "resolved_date": null
+      }
+    ],
+    "part_payments": [],
+    "acknowledgments": [],
+    "evidence": {
+      "items": [
+        { "kind": "PO", "present": false, "ref": null },
+        { "kind": "INVOICE", "present": true, "ref": "synthetic-INV-003" },
+        { "kind": "DELIVERY_PROOF", "present": true, "ref": "synthetic-SIGNOFF-003" },
+        { "kind": "WHATSAPP", "present": true, "ref": "synthetic-WA-003" },
+        { "kind": "UDYAM", "present": true, "ref": "synthetic-UDYAM-003" },
+        { "kind": "GST_RETURN", "present": false, "ref": null }
+      ]
+    },
+    "config_overrides": null
+  }
+}

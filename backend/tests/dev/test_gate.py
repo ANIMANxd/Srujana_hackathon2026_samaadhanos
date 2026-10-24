@@ -196,6 +196,28 @@ def test_blocked_case_carries_the_alternative_remedy():
     assert "does not predict an outcome" in result.alternative_remedy
 
 
+def test_an_undecided_case_is_offered_no_remedy():
+    """Section 6.1 pairs the remedy with the ineligible results.
+
+    INSUFFICIENT_DATA is undecided, not ineligible: telling a case the route
+    "does not apply" while the engine goes on to compute its interest would
+    contradict the response it appears in.
+    """
+    cfg = make_config()  # silpi_test_date is null, so the gate cannot decide
+    result = run_gate(cfg)
+    assert result.status == STATUS_INSUFFICIENT_DATA
+    assert result.eligible is False
+    assert result.alternative_remedy is None
+
+
+def test_ineligible_statuses_are_exactly_the_three_that_block_the_money():
+    from backend.engine.gate import INELIGIBLE_STATUSES
+
+    assert INELIGIBLE_STATUSES == {"BARRED_SILPI", "EXCLUDED_TRADER", "EXCLUDED_MEDIUM"}
+    assert STATUS_INSUFFICIENT_DATA not in INELIGIBLE_STATUSES
+    assert STATUS_ELIGIBLE not in INELIGIBLE_STATUSES
+
+
 def test_trading_nic_is_excluded_as_trader():
     result = run_gate(nic_codes=["45200"], activity="MANUFACTURING")
     assert result.status == STATUS_EXCLUDED_TRADER

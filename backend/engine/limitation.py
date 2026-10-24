@@ -28,6 +28,7 @@ from typing import Protocol, Sequence
 from backend.engine.config import StatuteConfig
 from backend.engine.dates import add_months
 from backend.engine.gate import GateCitation, GateWarning
+from backend.engine.text import contract_str
 
 # Status bands, matching LimitationStatus in backend/app/schemas.py.
 STATUS_OK = "OK"
@@ -110,9 +111,13 @@ def _cite(config: StatuteConfig, key: str, rule: str) -> GateCitation:
     )
 
 
-def _qualifies(ack: AcknowledgmentLike) -> bool:
-    """Signed balance confirmations and part-payments only (section 6.5)."""
-    return bool(ack.is_signed) and str(ack.kind) in RESTARTING_KINDS
+def _qualifies(kind: str, is_signed: bool) -> bool:
+    """Signed balance confirmations and part-payments only (section 6.5).
+
+    `kind` must already be normalized with contract_str, because a Pydantic enum
+    would otherwise never match the RESTARTING_KINDS values.
+    """
+    return bool(is_signed) and kind in RESTARTING_KINDS
 
 
 def _band(expiry: date, calculation_date: date) -> str:
@@ -165,10 +170,11 @@ def evaluate_limitation(
     potential: list[AcknowledgmentLike] = []
 
     for ack in ordered:
-        qualifies = _qualifies(ack)
+        kind = contract_str(ack.kind)
+        qualifies = _qualifies(kind, ack.is_signed)
         restarts = False
         if not qualifies:
-            if str(ack.kind) == "WHATSAPP_PROMISE":
+            if kind == "WHATSAPP_PROMISE":
                 potential.append(ack)
         elif anchor is None:
             # No due date, so no clock is running yet: nothing to restart. The
@@ -181,7 +187,7 @@ def evaluate_limitation(
             restarts = True
             anchor = ack.date  # the clock restarts from this acknowledgment
         events.append(
-            LimitationEvent(date=ack.date, kind=str(ack.kind), restarts_clock=restarts)
+            LimitationEvent(date=ack.date, kind=kind, restarts_clock=restarts)
         )
 
     if potential:

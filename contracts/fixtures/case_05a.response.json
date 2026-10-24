@@ -1,0 +1,259 @@
+{
+  "contract_version": "1.0",
+  "case_id": "case_05a",
+  "calculation_date": "2026-06-15",
+  "jurisdiction": {
+    "status": "EXCLUDED_MEDIUM",
+    "eligible": false,
+    "checks": [
+      {
+        "id": "enterprise_class",
+        "passed": false,
+        "detail": "Measured against the ceilings in force on 2026-03-05 (investment up to 25 crore, turnover up to 100 crore): investment 300.00 crore exceeds 25 crore; turnover 800.00 crore exceeds 100 crore. This is reverse graduation: a supplier that once qualified can stop qualifying once its figures grow past the ceilings. The date the supply happened decides which ceilings apply.",
+        "rule_ref": "gate.enterprise_class"
+      },
+      {
+        "id": "silpi_chronology",
+        "passed": null,
+        "detail": "Cannot tell: whether the Silpi test runs from the contract date or the supply date is unresolved (OQ-2). This is not a pass, and no silpi bar is applied.",
+        "rule_ref": "gate.silpi_chronology"
+      },
+      {
+        "id": "trader_exclusion",
+        "passed": true,
+        "detail": "The supplier's NIC codes (25990) do not fall in a trading division (prefixes 45, 46, 47).",
+        "rule_ref": "gate.trader_exclusion"
+      },
+      {
+        "id": "activity_match",
+        "passed": true,
+        "detail": "The stated activity and the NIC codes agree. This is a risk flag only and does not affect eligibility.",
+        "rule_ref": "gate.activity_match"
+      }
+    ],
+    "alternative_remedy": "This route under the MSMED Act does not apply to this case. A civil claim for the price of goods or services remains available: a summary suit under Order XXXVII of the Code of Civil Procedure, filed in the appropriate civil court, and, where the amount or the parties place it beyond the small-cause route, the Commercial Courts Act. Take the case file to a licensed advocate before filing; this tool does not file anything and does not predict an outcome."
+  },
+  "timeline": {
+    "delivery_date": "2026-03-05",
+    "objection_window_end": "2026-03-20",
+    "objection_status": "DEEMED_ACCEPTANCE",
+    "acceptance_date": "2026-03-05",
+    "agreed_days": 30,
+    "applied_days": 30,
+    "clamped": false,
+    "due_date": "2026-04-04",
+    "appointed_day": "2026-04-05",
+    "days_overdue": 72,
+    "late_complaints": []
+  },
+  "financials": null,
+  "buyer_cost": null,
+  "limitation": {
+    "expiry": null,
+    "status": "UNKNOWN",
+    "events": []
+  },
+  "defenses": [
+    {
+      "id": "defective_goods",
+      "buyer_says": "The goods were defective, so we do not owe for them.",
+      "rule_ref": "defenses.defective_goods",
+      "status": "STRONG",
+      "evidence_have": [
+        "PO",
+        "INVOICE",
+        "DELIVERY_PROOF"
+      ],
+      "evidence_missing": []
+    },
+    {
+      "id": "never_accepted",
+      "buyer_says": "The goods were never accepted, so nothing became due.",
+      "rule_ref": "defenses.never_accepted",
+      "status": "STRONG",
+      "evidence_have": [
+        "DELIVERY_PROOF",
+        "INVOICE",
+        "PO"
+      ],
+      "evidence_missing": []
+    },
+    {
+      "id": "po_90_days",
+      "buyer_says": "Our purchase order gives us 90 days to pay.",
+      "rule_ref": "defenses.po_90_days",
+      "status": "AT_RISK",
+      "evidence_have": [
+        "PO",
+        "INVOICE"
+      ],
+      "evidence_missing": []
+    },
+    {
+      "id": "not_eligible",
+      "buyer_says": "The supplier is not a micro or small enterprise, so the Act does not apply.",
+      "rule_ref": "defenses.not_eligible",
+      "status": "AT_RISK",
+      "evidence_have": [
+        "UDYAM",
+        "GST_RETURN"
+      ],
+      "evidence_missing": []
+    },
+    {
+      "id": "arbitration_clause",
+      "buyer_says": "The contract has an arbitration clause, so this belongs in arbitration.",
+      "rule_ref": "defenses.arbitration_clause",
+      "status": "OPEN_QUESTION",
+      "evidence_have": [
+        "PO"
+      ],
+      "evidence_missing": []
+    },
+    {
+      "id": "set_off",
+      "buyer_says": "We are owed other amounts, so we will set those off against this invoice.",
+      "rule_ref": "defenses.set_off",
+      "status": "OPEN_QUESTION",
+      "evidence_have": [
+        "INVOICE",
+        "GST_RETURN"
+      ],
+      "evidence_missing": []
+    },
+    {
+      "id": "time_barred",
+      "buyer_says": "This claim is out of time.",
+      "rule_ref": "defenses.time_barred",
+      "status": "OPEN_QUESTION",
+      "evidence_have": [
+        "INVOICE",
+        "DELIVERY_PROOF"
+      ],
+      "evidence_missing": []
+    }
+  ],
+  "evidence_readiness": {
+    "score": 100,
+    "band": "BLOCKED",
+    "reasons": [
+      {
+        "code": "GATE_BLOCKED",
+        "delta": 0,
+        "text": "The gate returned EXCLUDED_MEDIUM, so the band is BLOCKED. The score still describes the evidence alone and is unchanged by this line."
+      }
+    ],
+    "missing": [],
+    "blocked_stages": [],
+    "recommended_stage": 1
+  },
+  "citations": [
+    {
+      "id": "gate.size_epochs",
+      "rule": "gate reads size_epochs from the statute config",
+      "statute_ref": "V6",
+      "config_key": "size_epochs",
+      "verified": false
+    },
+    {
+      "id": "gate.silpi_test_date",
+      "rule": "gate reads silpi_test_date from the statute config",
+      "statute_ref": "V4",
+      "config_key": "silpi_test_date",
+      "verified": false
+    },
+    {
+      "id": "gate.trader_nic_prefixes",
+      "rule": "gate reads trader_nic_prefixes from the statute config",
+      "statute_ref": "V5",
+      "config_key": "trader_nic_prefixes",
+      "verified": false
+    },
+    {
+      "id": "acceptance.credit_cap_days",
+      "rule": "a written credit period was agreed, so the statutory cap is applied to it",
+      "statute_ref": "V2:s.15 proviso",
+      "config_key": "credit_cap_days",
+      "verified": false
+    },
+    {
+      "id": "acceptance.objection_window_days",
+      "rule": "the written-objection window is measured from the delivery date",
+      "statute_ref": "V2:s.2(b)",
+      "config_key": "objection_window_days",
+      "verified": false
+    },
+    {
+      "id": "limitation.limitation_years",
+      "rule": "the limitation period for the price of goods or services",
+      "statute_ref": "V7",
+      "config_key": "limitation_years",
+      "verified": false
+    }
+  ],
+  "assumptions": [
+    "A written credit period of 30 days was supplied and is treated as a written agreement, such as a purchase order or a signed document. What counts as a written agreement is still open (OQ-5).",
+    "days_overdue counts calendar days after the due date and stays empty until the appointed day; the appointed day is the due date plus one day (section 6.2).",
+    "The expiry is the anchor date plus unknown year(s), where the anchor is the due date or, once one exists, the latest qualifying acknowledgment.",
+    "Only a signed balance confirmation or a part-payment restarts the clock, and only when its date falls on or after the current anchor, so an older signature can never shorten the period the statute allows.",
+    "Acknowledgments dated after the calculation date have not happened yet and are shown without restarting the clock.",
+    "Bands are measured in calendar months from the calculation date: the expiry date itself is still in time, and the day after it reads EXPIRED.",
+    "UNKNOWN means the inputs do not support a date, not that time remains.",
+    "A row's status answers the argument from the engine's own verdicts only; whether a document is also in the request is reported separately as evidence held or missing, so the two columns can be checked independently.",
+    "An arbitration clause and a set-off claim are always shown as an open question and are never decided here (OQ-7).",
+    "Where the engine has no verdict - no gate result, no agreed period, or an unknown limitation band - the row reads as an open question rather than guessing in either direction.",
+    "All seven rows are always returned, in the same order, so the panel can be compared between cases and the guidance card's first at-risk row is stable.",
+    "The score starts at 100 and only loses points: it is 100 plus every reason's delta, clamped between 0 and 100, so adding up the reasons reproduces it exactly.",
+    "With delivery proof missing the score is also capped at 50, which section 6.2 and 6.6 both call for. Its deduction is exactly 100 - 50, so the formula above still reproduces the capped number, and the reason says so in its own text rather than adjusting anything silently.",
+    "The band comes from the gate, not from the score: a Silpi, trader or medium block sets BLOCKED and leaves the score where it is, which is why that reason carries a delta of zero.",
+    "missing[] lists the evidence still needed for a complete pack. WhatsApp messages are treated as optional, so they are never deducted and never listed as missing.",
+    "The next stage follows structural facts only - unresolved proof, a blocked gate, no due date yet, eligibility still open, evidence complete - with no day thresholds invented: Stage 1 to cure or wait, Stage 2 to resolve eligibility, Stage 3 to settle while paperwork is outstanding, Stage 4 when everything is held."
+  ],
+  "warnings": [
+    {
+      "code": "OPEN_QUESTION",
+      "severity": "WARN",
+      "text": "Whether the Silpi works-contract test runs from the date of the contract or from the date of supply is still an open question (OQ-2, source V4). The config value silpi_test_date is null, so this check cannot decide. It is neither a pass nor a fail, and no silpi bar is being applied to this case."
+    },
+    {
+      "code": "MISSING_LIMITATION_YEARS",
+      "severity": "WARN",
+      "text": "The config has no limitation period, so no expiry date could be computed. The status below is UNKNOWN: this is an absence of a figure, not a finding that there is plenty of time left."
+    },
+    {
+      "code": "GATE_BLOCKED",
+      "severity": "BLOCK",
+      "text": "The eligibility gate returned EXCLUDED_MEDIUM, so no interest or buyer-cost figures were computed for this case. Those blocks are empty because no calculation ran, not because the amounts are zero. Limitation, defenses and readiness still report what the inputs support."
+    },
+    {
+      "code": "UNVERIFIED_CONSTANT",
+      "severity": "WARN",
+      "text": "Constant 'credit_cap_days' is not verified against the statute sheet (source 'V2:s.15 proviso'). Treat any number that depends on it as provisional until the statute sheet is captured."
+    },
+    {
+      "code": "UNVERIFIED_CONSTANT",
+      "severity": "WARN",
+      "text": "Constant 'limitation_years' is null (source 'V7'). Treat any number that depends on it as provisional until the statute sheet is captured."
+    },
+    {
+      "code": "UNVERIFIED_CONSTANT",
+      "severity": "WARN",
+      "text": "Constant 'objection_window_days' is not verified against the statute sheet (source 'V2:s.2(b)'). Treat any number that depends on it as provisional until the statute sheet is captured."
+    },
+    {
+      "code": "UNVERIFIED_CONSTANT",
+      "severity": "WARN",
+      "text": "Constant 'silpi_test_date' is null (source 'V4'). Treat any number that depends on it as provisional until the statute sheet is captured."
+    },
+    {
+      "code": "UNVERIFIED_CONSTANT",
+      "severity": "WARN",
+      "text": "Constant 'size_epochs' is not verified against the statute sheet (source 'V6'). Treat any number that depends on it as provisional until the statute sheet is captured."
+    },
+    {
+      "code": "UNVERIFIED_CONSTANT",
+      "severity": "WARN",
+      "text": "Constant 'trader_nic_prefixes' is not verified against the statute sheet (source 'V5'). Treat any number that depends on it as provisional until the statute sheet is captured."
+    }
+  ]
+}

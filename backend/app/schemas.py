@@ -118,7 +118,12 @@ class DefenseStatus(str, Enum):
 
 
 class ReadinessBand(str, Enum):
+    # COURT_READY is the name the frozen contract v1.0 shipped with. The spec
+    # renamed it EVIDENCE_COMPLETE (CR-3): "court-ready" is a legal-conclusion
+    # claim. The new member is added additively so the engine's output validates;
+    # retiring the old one is a rename and needs both humans (architecture 9.3).
     COURT_READY = "COURT_READY"
+    EVIDENCE_COMPLETE = "EVIDENCE_COMPLETE"
     ACTION_NEEDED = "ACTION_NEEDED"
     BLOCKED = "BLOCKED"
 
@@ -386,6 +391,46 @@ class CaseEvaluationResponse(ContractModel):
     citations: list[Citation]
     assumptions: list[str]
     warnings: list[Warning]
+
+
+# --------------------------------------------- 8.1 simulate-settlement ----
+# Section 8.1 lists the endpoint but 8.3 defined no schema for it (CQ-18), so
+# these are the additive models the API layer needs. No shipped field changed.
+
+
+class SettlementPaymentKind(str, Enum):
+    UPFRONT = "UPFRONT"
+    SECOND = "SECOND"
+
+
+class SettlementPayment(ContractModel):
+    kind: SettlementPaymentKind
+    days_from_now: int
+    amount: DecStr
+
+
+class SettlementSimulationRequest(ContractModel):
+    """What the negotiator is proposing, plus the case to price it against."""
+
+    request: CaseEvaluationRequest
+    upfront_pct: DecStr
+    waiver_pct: DecStr
+    days_to_second_payment: int
+
+
+class SettlementSimulationResponse(ContractModel):
+    contract_version: str = CONTRACT_VERSION
+    total_claim: DecStr
+    interest_waived: DecStr
+    interest_paid: DecStr
+    principal_paid: DecStr
+    total_payable: DecStr
+    payments: list[SettlementPayment]
+    net_recovery: DecStr
+    upfront_pct: DecStr
+    waiver_pct: DecStr
+    days_to_second_payment: int
+    assumptions: list[str]
 
 
 # ----------------------------------------------------------- error model ----

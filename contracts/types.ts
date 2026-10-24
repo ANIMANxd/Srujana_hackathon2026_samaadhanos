@@ -38,10 +38,7 @@ export interface paths {
         put?: never;
         /**
          * Evaluate Case
-         * @description Evaluate a case.
-         *
-         *     PLACEHOLDER: the engine is not built yet, so this returns a fixed sample
-         *     response flagged with a PLACEHOLDER_DATA warning. It evaluates nothing.
+         * @description Evaluate a case with the real engine (sections 6.1-6.6).
          */
         post: operations["evaluate_case_api_v1_evaluate_case_post"];
         delete?: never;
@@ -104,6 +101,30 @@ export interface paths {
         get: operations["get_preset_api_v1_presets__preset_id__get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/simulate-settlement": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Simulate Settlement
+         * @description Split a settlement offer against this case's own numbers (section 8.1).
+         *
+         *     The claim is evaluated first, so the split always uses the engine's figures
+         *     instead of numbers the client sends (golden rule 6). Nothing is combined
+         *     with the buyer-cost lines, and nothing is assumed about time value.
+         */
+        post: operations["simulate_settlement_api_v1_simulate_settlement_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -523,7 +544,7 @@ export interface components {
          * ReadinessBand
          * @enum {string}
          */
-        ReadinessBand: "COURT_READY" | "ACTION_NEEDED" | "BLOCKED";
+        ReadinessBand: "COURT_READY" | "EVIDENCE_COMPLETE" | "ACTION_NEEDED" | "BLOCKED";
         /** ReadinessReason */
         ReadinessReason: {
             /** Code */
@@ -532,6 +553,62 @@ export interface components {
             delta: number;
             /** Text */
             text: string;
+        };
+        /** SettlementPayment */
+        SettlementPayment: {
+            /** Amount */
+            amount: string;
+            /** Days From Now */
+            days_from_now: number;
+            kind: components["schemas"]["SettlementPaymentKind"];
+        };
+        /**
+         * SettlementPaymentKind
+         * @enum {string}
+         */
+        SettlementPaymentKind: "UPFRONT" | "SECOND";
+        /**
+         * SettlementSimulationRequest
+         * @description What the negotiator is proposing, plus the case to price it against.
+         */
+        SettlementSimulationRequest: {
+            /** Days To Second Payment */
+            days_to_second_payment: number;
+            request: components["schemas"]["CaseEvaluationRequest"];
+            /** Upfront Pct */
+            upfront_pct: string;
+            /** Waiver Pct */
+            waiver_pct: string;
+        };
+        /** SettlementSimulationResponse */
+        SettlementSimulationResponse: {
+            /** Assumptions */
+            assumptions: string[];
+            /**
+             * Contract Version
+             * @default 1.0
+             */
+            contract_version: string;
+            /** Days To Second Payment */
+            days_to_second_payment: number;
+            /** Interest Paid */
+            interest_paid: string;
+            /** Interest Waived */
+            interest_waived: string;
+            /** Net Recovery */
+            net_recovery: string;
+            /** Payments */
+            payments: components["schemas"]["SettlementPayment"][];
+            /** Principal Paid */
+            principal_paid: string;
+            /** Total Claim */
+            total_claim: string;
+            /** Total Payable */
+            total_payable: string;
+            /** Upfront Pct */
+            upfront_pct: string;
+            /** Waiver Pct */
+            waiver_pct: string;
         };
         /**
          * SilpiTestDate
@@ -758,6 +835,39 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    simulate_settlement_api_v1_simulate_settlement_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SettlementSimulationRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SettlementSimulationResponse"];
                 };
             };
             /** @description Validation Error */

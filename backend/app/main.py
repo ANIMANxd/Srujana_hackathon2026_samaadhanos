@@ -1,8 +1,9 @@
 """FastAPI entrypoint for SamadhaanOS — contract v1.0 (architecture.md section 8).
 
-Legal logic lives in the engine, which does not exist yet. Until it lands,
-POST /evaluate-case returns a fixed, schema-valid sample labelled with a
-PLACEHOLDER_DATA warning (golden rule 7). Nothing here computes law.
+POST /evaluate-case runs the real engine (`backend.engine.evaluate`), which
+assembles the response from the rule modules. The API layer owns the file reads,
+the schema validation and the error envelope; it computes no legal number
+itself (golden rule 6).
 """
 
 import json
@@ -14,13 +15,17 @@ from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from backend.app.config_loader import load_config
-from backend.app.placeholder import placeholder_evaluation
 from backend.app.schemas import (
     CONTRACT_VERSION,
     CaseEvaluationRequest,
     CaseEvaluationResponse,
     ErrorResponse,
+    SettlementSimulationRequest,
+    SettlementSimulationResponse,
 )
+from backend.engine.config import ConfigError, StatuteConfig
+from backend.engine.evaluate import evaluate_case as evaluate_case_engine
+from backend.engine.settlement import evaluate_settlement
 
 PRESETS_DIR = Path(__file__).resolve().parent.parent / "presets"
 
@@ -58,9 +63,10 @@ async def validation_error_handler(request: Request, exc: RequestValidationError
 
 @app.exception_handler(StarletteHTTPException)
 async def http_exception_handler(request: Request, exc: StarletteHTTPException) -> JSONResponse:
-    """Reshape raised HTTPExceptions (e.g. 404 preset) into the contract error shape."""
+    """Reshape raised HTTPExceptions into the contract error shape (section 8.1)."""
+    codes = {400: "RULE_VIOLATION", 404: "NOT_FOUND", 500: "INTERNAL_ERROR"}
     return _error(
-        code="NOT_FOUND" if exc.status_code == 404 else f"HTTP_{exc.status_code}",
+        code=codes.get(exc.status_code, f"HTTP_{exc.status_code}"),
         message=str(exc.detail),
         status=exc.status_code,
     )
@@ -113,14 +119,70 @@ def get_preset(preset_id: str) -> dict:
     return {"id": preset_id, "title": data.get("title", preset_id), "request": request}
 
 
+def _statute_config() -> StatuteConfig:
+    """Load the statute config for one request; the API owns the file read.
+
+    A config the loader cannot make sense of is a server-side problem, so it
+    fails as 500 with the error envelope rather than blaming the caller.
+    """
+    try:
+        return StatuteConfig.from_dict(load_config())
+    except ConfigError as exc:
+        raise HTTPException(
+            status_code=500,
+            detail=f"The statute config could not be loaded: {exc}",
+        ) from exc
+
+
+def _run_engine(request: CaseEvaluationRequest) -> CaseEvaluationResponse:
+    """Evaluate through the engine, mapping rule violations to 400 (section 8.1).
+
+    A null statutory constant, an uncaptured Bank Rate epoch (CR-8) or an
+    out-of-range figure means the rule cannot be applied — section 8.1's rule
+    violation — and the engine's own plain-English message is what the caller
+    reads, rather than an opaque 500.
+    """
+    try:
+        return evaluate_case_engine(_statute_config(), request)
+    except (ConfigError, ValueError) as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
 @app.post("/api/v1/evaluate-case", response_model=CaseEvaluationResponse)
 def evaluate_case(request: CaseEvaluationRequest) -> CaseEvaluationResponse:
-    """Evaluate a case.
+    """Evaluate a case with the real engine (sections 6.1-6.6)."""
+    return _run_engine(request)
 
-    PLACEHOLDER: the engine is not built yet, so this returns a fixed sample
-    response flagged with a PLACEHOLDER_DATA warning. It evaluates nothing.
+
+@app.post("/api/v1/simulate-settlement", response_model=SettlementSimulationResponse)
+def simulate_settlement(payload: SettlementSimulationRequest) -> SettlementSimulationResponse:
+    """Split a settlement offer against this case's own numbers (section 8.1).
+
+    The claim is evaluated first, so the split always uses the engine's figures
+    instead of numbers the client sends (golden rule 6). Nothing is combined
+    with the buyer-cost lines, and nothing is assumed about time value.
     """
-    return placeholder_evaluation(request)
+    evaluation = _run_engine(payload.request)
+    if evaluation.financials is None:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "This case has no computed claim to settle: the eligibility gate blocked "
+                "it, or no appointed day fixes the due date yet. Resolve the case first "
+                "and simulate again."
+            ),
+        )
+    try:
+        result = evaluate_settlement(
+            principal_outstanding=evaluation.financials.principal_outstanding,
+            interest_outstanding=evaluation.financials.interest_outstanding,
+            upfront_pct=payload.upfront_pct,
+            waiver_pct=payload.waiver_pct,
+            days_to_second_payment=payload.days_to_second_payment,
+        )
+    except ValueError as exc:  # out-of-range percentages, negative amounts
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return SettlementSimulationResponse(contract_version=CONTRACT_VERSION, **result.to_dict())
 
 
 def _read_json(path: Path) -> dict:

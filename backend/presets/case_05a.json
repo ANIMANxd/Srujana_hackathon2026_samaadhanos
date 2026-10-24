@@ -1,0 +1,49 @@
+{
+  "title": "CASE-05A — Blocked: figures past the small-enterprise ceilings (reverse graduation)",
+  "note": "INPUT ONLY, synthetic (golden rule 11): no real parties, Udyam or GSTIN numbers. No outputs are stored here; every number comes from the engine. This is a blocked preset: the gate excludes it, so interest and buyer cost must come back null with a BLOCK warning, never zero.",
+  "why_calculation_date": "Deliberate: the appointed day 2026-04-05 sits inside the configured Bank Rate epoch so that anything the timeline computes stays priceable; the money blocks are skipped anyway because the gate excludes the case. Bank Rate epochs before 2026-04-01 are not captured yet (V1 uncaptured, CR-8).",
+  "request": {
+    "contract_version": "1.0",
+    "case_id": "case_05a",
+    "supplier": {
+      "name": "Sample Grown Exports Pvt Ltd (synthetic)",
+      "udyam_number": "UDYAM-SYN-000000004",
+      "enterprise_class": "SMALL",
+      "activity": "MANUFACTURING",
+      "nic_codes": ["25990"],
+      "udyam_registration_date": "2021-05-01",
+      "investment_cr": "300.00",
+      "turnover_cr": "800.00"
+    },
+    "buyer": {
+      "name": "Sample Buyer Five Corp (synthetic)",
+      "gstin": "29SYN000000004Z1",
+      "tax_rate_pct": "31.20",
+      "cost_of_capital_pct": "12.00"
+    },
+    "transaction": {
+      "contract_date": "2026-02-01",
+      "supply_date": "2026-03-05",
+      "invoice_date": "2026-03-05",
+      "delivery_date": "2026-03-05",
+      "principal": "900000.00",
+      "written_credit_days": 30,
+      "calculation_date": "2026-06-15",
+      "years_deferred": "1.00"
+    },
+    "objections": [],
+    "part_payments": [],
+    "acknowledgments": [],
+    "evidence": {
+      "items": [
+        { "kind": "PO", "present": true, "ref": "synthetic-PO-005A" },
+        { "kind": "INVOICE", "present": true, "ref": "synthetic-INV-005A" },
+        { "kind": "DELIVERY_PROOF", "present": true, "ref": "synthetic-LR-005A" },
+        { "kind": "WHATSAPP", "present": false, "ref": null },
+        { "kind": "UDYAM", "present": true, "ref": "synthetic-UDYAM-005A" },
+        { "kind": "GST_RETURN", "present": true, "ref": "synthetic-GST-005A" }
+      ]
+    },
+    "config_overrides": null
+  }
+}

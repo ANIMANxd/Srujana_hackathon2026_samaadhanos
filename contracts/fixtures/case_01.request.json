@@ -20,10 +20,10 @@
     "cost_of_capital_pct": "12.00"
   },
   "transaction": {
-    "contract_date": "2025-11-01",
-    "supply_date": "2025-12-01",
-    "invoice_date": "2025-12-01",
-    "delivery_date": "2025-12-05",
+    "contract_date": "2026-01-15",
+    "supply_date": "2026-02-16",
+    "invoice_date": "2026-02-16",
+    "delivery_date": "2026-02-16",
     "principal": "1250000.00",
     "written_credit_days": 90,
     "calculation_date": "2026-04-15",
@@ -33,7 +33,7 @@
   "part_payments": [],
   "acknowledgments": [
     {
-      "date": "2026-03-20",
+      "date": "2026-04-10",
       "kind": "WHATSAPP_PROMISE",
       "is_signed": false,
       "source_ref": "synthetic whatsapp thread"

@@ -32,6 +32,7 @@ from datetime import date
 from typing import Protocol, Sequence
 
 from backend.engine.gate import GateCitation, GateWarning
+from backend.engine.text import contract_str
 
 # Bands, matching the names the spec renamed them to (see CR-3 in
 # frontend/CONTRACT-REQUESTS.md).
@@ -130,7 +131,7 @@ class ReadinessResult:
 
 def _held(evidence: Sequence[EvidenceLike]) -> dict[str, bool]:
     """Which evidence kinds the request reports as present."""
-    return {str(item.kind): bool(item.present) for item in evidence}
+    return {contract_str(item.kind): bool(item.present) for item in evidence}
 
 
 def _clamp(value: int) -> int:

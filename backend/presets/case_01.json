@@ -1,6 +1,7 @@
 {
-  "title": "CASE-01 — Net-90 PO, delivered, one WhatsApp promise",
-  "note": "INPUT ONLY. Synthetic data (golden rule 11): no real parties, Udyam or GSTIN numbers. The response fixture is engine-generated placeholder output.",
+  "title": "CASE-01 — Net-90 PO clamped to the 45-day cap, delay priced at 16.50%",
+  "note": "INPUT ONLY, synthetic (golden rule 11): no real parties, Udyam or GSTIN numbers. No outputs are stored here; every number comes from the engine.",
+  "why_calculation_date": "Deliberate, per architecture.md section 12: calculation_date is 2026-04-15, which sits inside the 5.50% Bank Rate epoch, so this delay must show 16.50% (3 x 5.50) and NOT the 17.25% v2 printed for the same period. Choosing a date after 2026-10-07 would show 17.25% and split the ledger across epochs instead. delivery_date is 2026-02-16 so that the appointed day (2026-04-03, i.e. delivery + 45 clamped days + 1) falls on or after 2026-04-01, the earliest epoch the config holds: Bank Rate epochs before that date are not captured yet (V1 uncaptured, CR-8), so an earlier delay cannot be priced at all.",
   "request": {
     "contract_version": "1.0",
     "case_id": "case_01",
@@ -21,10 +22,10 @@
       "cost_of_capital_pct": "12.00"
     },
     "transaction": {
-      "contract_date": "2025-11-01",
-      "supply_date": "2025-12-01",
-      "invoice_date": "2025-12-01",
-      "delivery_date": "2025-12-05",
+      "contract_date": "2026-01-15",
+      "supply_date": "2026-02-16",
+      "invoice_date": "2026-02-16",
+      "delivery_date": "2026-02-16",
       "principal": "1250000.00",
       "written_credit_days": 90,
       "calculation_date": "2026-04-15",
@@ -34,7 +35,7 @@
     "part_payments": [],
     "acknowledgments": [
       {
-        "date": "2026-03-20",
+        "date": "2026-04-10",
         "kind": "WHATSAPP_PROMISE",
         "is_signed": false,
         "source_ref": "synthetic whatsapp thread"
