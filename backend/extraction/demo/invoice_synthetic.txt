@@ -1,0 +1,15 @@
+TAX INVOICE (synthetic sample - no real parties, no real GSTINs)
+Supplier: Sample Supplies Pvt Ltd (synthetic)
+GSTIN: 29SYN000000001Z1
+Bill to: Sample Buyer Corp (synthetic)
+Bill to GSTIN: 29SYN000000000Z1
+Your PO: SYN-PO-0042
+Invoice No: SYN-INV-0042
+Date: 12/01/2026
+Delivery date: 16/01/2026
+Payment terms: Net 45 days
+Item: Fabricated component, 100 nos at 3,000.00
+Taxable value: 3,00,000.00
+CGST @ 2.5%: 7,500.00
+SGST @ 2.5%: 7,500.00
+Grand Total  Rs 3,15,000.00

@@ -1,0 +1,228 @@
+{
+  "generated_from": "po_synthetic.txt",
+  "response": {
+    "cache_hit": false,
+    "confirm_schema": [
+      {
+        "key": "supplier_name",
+        "kind": "FIELD",
+        "note": "Machine-suggested from the document header; check it against the Udyam certificate before it becomes the request's supplier name.",
+        "path": "supplier.name",
+        "required": true,
+        "type": "STRING"
+      },
+      {
+        "key": "invoice_number",
+        "kind": "FIELD",
+        "note": "The request has no invoice-number field of its own; the invoice reference sits on the INVOICE evidence item, or stays in your records.",
+        "path": "evidence.items[INVOICE].ref",
+        "required": false,
+        "type": "STRING"
+      },
+      {
+        "key": "invoice_date",
+        "kind": "FIELD",
+        "note": "Required by the request. The engine anchors nothing on it - delivery does that - but it must be the date on the document.",
+        "path": "transaction.invoice_date",
+        "required": true,
+        "type": "DATE"
+      },
+      {
+        "key": "amount",
+        "kind": "FIELD",
+        "note": "The value of the supply. Everything the engine computes runs from this figure, so confirm it against the invoice total line.",
+        "path": "transaction.principal",
+        "required": true,
+        "type": "MONEY"
+      },
+      {
+        "key": "supplier_gstin",
+        "kind": "FIELD",
+        "note": "The request has no supplier GSTIN field. Keep it in your records or on the GST_RETURN evidence reference; there is nothing to map it to.",
+        "path": null,
+        "required": false,
+        "type": "STRING"
+      },
+      {
+        "key": "buyer_gstin",
+        "kind": "FIELD",
+        "note": "Buyer GSTIN as printed on the invoice; used only to identify the buyer.",
+        "path": "buyer.gstin",
+        "required": false,
+        "type": "STRING"
+      },
+      {
+        "key": "buyer_name",
+        "kind": "FIELD",
+        "note": "Exactly the name on the invoice's bill-to line, spelling included.",
+        "path": "buyer.name",
+        "required": true,
+        "type": "STRING"
+      },
+      {
+        "key": "delivery_date",
+        "kind": "FIELD",
+        "note": "Leave null only if there is genuinely no delivery proof: a missing delivery date blocks Stage 4 and leaves acceptance unresolved (6.2).",
+        "path": "transaction.delivery_date",
+        "required": false,
+        "type": "DATE"
+      },
+      {
+        "key": "po_reference",
+        "kind": "FIELD",
+        "note": "The PO number as printed. The request records it as the PO evidence item's reference rather than as a date or an amount.",
+        "path": "evidence.items[PO].ref",
+        "required": false,
+        "type": "STRING"
+      },
+      {
+        "key": "written_credit_days",
+        "kind": "FIELD",
+        "note": "Only what a written document actually says. Null means no written agreement was supplied; what counts as one is still open (OQ-5).",
+        "path": "transaction.written_credit_days",
+        "required": false,
+        "type": "INT"
+      },
+      {
+        "key": "DELIVERY_CONFIRMATION",
+        "kind": "MESSAGE",
+        "note": "Use the message's date as delivery_date, and point the DELIVERY_PROOF evidence item's reference at this line of the chat export.",
+        "path": "transaction.delivery_date",
+        "required": false,
+        "type": "DATE"
+      },
+      {
+        "key": "DEFECT_OBJECTION",
+        "kind": "MESSAGE",
+        "note": "Add an objections[] row: raised_date = the message date, is_written = true (a chat is writing), description = the message text. The engine, not this screen, decides whether it qualifies.",
+        "path": "objections[]",
+        "required": false,
+        "type": "ROW"
+      },
+      {
+        "key": "LATE_COMPLAINT",
+        "kind": "MESSAGE",
+        "note": "Same row shape as a DEFECT_OBJECTION, but the date falls after the configured objection window, so the engine will record it as a complaint that does not move the clock rather than as a qualifying objection (6.2).",
+        "path": "objections[]",
+        "required": false,
+        "type": "ROW"
+      },
+      {
+        "key": "RESOLUTION_ACK",
+        "kind": "MESSAGE",
+        "note": "The message date becomes resolved_date on the objection it answers, which is what closes that objection for the engine.",
+        "path": "objections[].resolved_date",
+        "required": false,
+        "type": "DATE"
+      },
+      {
+        "key": "PAYMENT_PROMISE",
+        "kind": "MESSAGE",
+        "note": "Add an acknowledgments[] row: kind = WHATSAPP_PROMISE, is_signed = false, date = the message date. The engine records it as a promise that does not restart the limitation clock (6.5).",
+        "path": "acknowledgments[]",
+        "required": false,
+        "type": "ROW"
+      }
+    ],
+    "contract_version": "1.0",
+    "fields": {
+      "amount": {
+        "confidence": 0.0,
+        "line": null,
+        "machine_suggested": true,
+        "method": "missing",
+        "page": null,
+        "source_text": null,
+        "value": null
+      },
+      "buyer_gstin": {
+        "confidence": 0.0,
+        "line": null,
+        "machine_suggested": true,
+        "method": "missing",
+        "page": null,
+        "source_text": null,
+        "value": null
+      },
+      "buyer_name": {
+        "confidence": 0.88,
+        "line": 3,
+        "machine_suggested": true,
+        "method": "regex",
+        "page": null,
+        "source_text": "Buyer: Sample Buyer Corp (synthetic)",
+        "value": "Sample Buyer Corp (synthetic)"
+      },
+      "delivery_date": {
+        "confidence": 0.85,
+        "line": 6,
+        "machine_suggested": true,
+        "method": "regex",
+        "page": null,
+        "source_text": "Delivery: 04/03/2026",
+        "value": "2026-03-04"
+      },
+      "invoice_date": {
+        "confidence": 0.0,
+        "line": null,
+        "machine_suggested": true,
+        "method": "missing",
+        "page": null,
+        "source_text": null,
+        "value": null
+      },
+      "invoice_number": {
+        "confidence": 0.0,
+        "line": null,
+        "machine_suggested": true,
+        "method": "missing",
+        "page": null,
+        "source_text": null,
+        "value": null
+      },
+      "po_reference": {
+        "confidence": 0.9,
+        "line": 2,
+        "machine_suggested": true,
+        "method": "regex",
+        "page": null,
+        "source_text": "PO No: SYN-PO-0077",
+        "value": "SYN-PO-0077"
+      },
+      "supplier_gstin": {
+        "confidence": 0.0,
+        "line": null,
+        "machine_suggested": true,
+        "method": "missing",
+        "page": null,
+        "source_text": null,
+        "value": null
+      },
+      "written_credit_days": {
+        "confidence": 0.9,
+        "line": 7,
+        "machine_suggested": true,
+        "method": "regex",
+        "page": null,
+        "source_text": "Payment terms: Net 30 days from delivery",
+        "value": "30"
+      }
+    },
+    "kind": "DOCUMENT_TEXT",
+    "messages": [],
+    "supplier_name": "Sample Supplies Pvt Ltd (synthetic)",
+    "warnings": [
+      {
+        "code": "MACHINE_SUGGESTED",
+        "severity": "INFO",
+        "text": "Every value and tag in this response was suggested by a machine from the uploaded text, with a line citation and a confidence. Nothing reaches a case evaluation until a person confirms it; the engine never calls this module."
+      },
+      {
+        "code": "DATE_ORDER_ASSUMED",
+        "severity": "INFO",
+        "text": "\"Delivery: 04/03/2026\" was read as 2026-03-04 (DD/MM/YYYY, the order Indian exports use). Both parts are 12 or less, so the order cannot be told from the text - check it before you confirm."
+      }
+    ]
+  },
+  "text_sha256": "a9b629f17b14bf5db294a5c5610dd8264e20ec866d4d0f73992167ede36eca12"
+}

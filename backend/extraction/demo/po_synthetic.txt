@@ -1,0 +1,9 @@
+PURCHASE ORDER (synthetic sample - no real parties)
+PO No: SYN-PO-0077
+Buyer: Sample Buyer Corp (synthetic)
+Supplier: Sample Supplies Pvt Ltd (synthetic)
+Order date: 02/03/2026
+Delivery: 04/03/2026
+Payment terms: Net 30 days from delivery
+Total quantity: 200 nos at 3,000.00 each
+Notes: Please quote SYN-PO-0077 on the invoice.

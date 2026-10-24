@@ -154,6 +154,20 @@
         "title": "ArtifactResponse",
         "type": "object"
       },
+      "Body_extract_evidence_api_v1_extract_evidence_post": {
+        "properties": {
+          "file": {
+            "contentMediaType": "application/octet-stream",
+            "title": "File",
+            "type": "string"
+          }
+        },
+        "required": [
+          "file"
+        ],
+        "title": "Body_extract_evidence_api_v1_extract_evidence_post",
+        "type": "object"
+      },
       "Buyer": {
         "properties": {
           "cost_of_capital_pct": {
@@ -483,6 +497,69 @@
         "title": "ConfigOverrides",
         "type": "object"
       },
+      "ConfirmEntry": {
+        "description": "Where one candidate would go in a CaseEvaluationRequest, and what to check.",
+        "properties": {
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/ConfirmKind"
+          },
+          "note": {
+            "title": "Note",
+            "type": "string"
+          },
+          "path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Path"
+          },
+          "required": {
+            "title": "Required",
+            "type": "boolean"
+          },
+          "type": {
+            "$ref": "#/components/schemas/ConfirmFieldType"
+          }
+        },
+        "required": [
+          "key",
+          "path",
+          "kind",
+          "type",
+          "required",
+          "note"
+        ],
+        "title": "ConfirmEntry",
+        "type": "object"
+      },
+      "ConfirmFieldType": {
+        "enum": [
+          "DATE",
+          "MONEY",
+          "INT",
+          "STRING",
+          "ROW"
+        ],
+        "title": "ConfirmFieldType",
+        "type": "string"
+      },
+      "ConfirmKind": {
+        "enum": [
+          "FIELD",
+          "MESSAGE"
+        ],
+        "title": "ConfirmKind",
+        "type": "string"
+      },
       "Defense": {
         "properties": {
           "buyer_says": {
@@ -747,6 +824,228 @@
           "recommended_stage"
         ],
         "title": "EvidenceReadiness",
+        "type": "object"
+      },
+      "ExtractedField": {
+        "description": "One machine-suggested candidate value with its line citation.",
+        "properties": {
+          "confidence": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Confidence",
+            "type": "number"
+          },
+          "line": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Line"
+          },
+          "machine_suggested": {
+            "default": true,
+            "title": "Machine Suggested",
+            "type": "boolean"
+          },
+          "method": {
+            "$ref": "#/components/schemas/ExtractionMethod"
+          },
+          "page": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Page"
+          },
+          "source_text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Text"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          }
+        },
+        "required": [
+          "value",
+          "source_text",
+          "method",
+          "confidence"
+        ],
+        "title": "ExtractedField",
+        "type": "object"
+      },
+      "ExtractedMessage": {
+        "description": "One parsed chat message: where it is, what it says, what it reads like.",
+        "properties": {
+          "confidence": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Confidence",
+            "type": "number"
+          },
+          "days_after_delivery": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Days After Delivery"
+          },
+          "line": {
+            "title": "Line",
+            "type": "integer"
+          },
+          "machine_suggested": {
+            "default": true,
+            "title": "Machine Suggested",
+            "type": "boolean"
+          },
+          "sender": {
+            "title": "Sender",
+            "type": "string"
+          },
+          "sent": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sent"
+          },
+          "tags": {
+            "items": {
+              "$ref": "#/components/schemas/MessageTag"
+            },
+            "title": "Tags",
+            "type": "array"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          },
+          "within_objection_window": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Within Objection Window"
+          }
+        },
+        "required": [
+          "line",
+          "sender",
+          "sent",
+          "text",
+          "tags",
+          "confidence"
+        ],
+        "title": "ExtractedMessage",
+        "type": "object"
+      },
+      "ExtractionMethod": {
+        "description": "How a value was read. `missing` means no value, not a failed parse.",
+        "enum": [
+          "regex",
+          "llm",
+          "missing"
+        ],
+        "title": "ExtractionMethod",
+        "type": "string"
+      },
+      "ExtractionResponse": {
+        "properties": {
+          "cache_hit": {
+            "default": false,
+            "title": "Cache Hit",
+            "type": "boolean"
+          },
+          "confirm_schema": {
+            "items": {
+              "$ref": "#/components/schemas/ConfirmEntry"
+            },
+            "title": "Confirm Schema",
+            "type": "array"
+          },
+          "contract_version": {
+            "default": "1.0",
+            "title": "Contract Version",
+            "type": "string"
+          },
+          "fields": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ExtractedField"
+            },
+            "title": "Fields",
+            "type": "object"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/SourceKind"
+          },
+          "messages": {
+            "items": {
+              "$ref": "#/components/schemas/ExtractedMessage"
+            },
+            "title": "Messages",
+            "type": "array"
+          },
+          "supplier_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Supplier Name"
+          },
+          "warnings": {
+            "items": {
+              "$ref": "#/components/schemas/Warning"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "kind",
+          "fields"
+        ],
+        "title": "ExtractionResponse",
         "type": "object"
       },
       "Financials": {
@@ -1069,6 +1368,17 @@
           "UNKNOWN"
         ],
         "title": "LimitationStatus",
+        "type": "string"
+      },
+      "MessageTag": {
+        "enum": [
+          "DELIVERY_CONFIRMATION",
+          "DEFECT_OBJECTION",
+          "RESOLUTION_ACK",
+          "LATE_COMPLAINT",
+          "PAYMENT_PROMISE"
+        ],
+        "title": "MessageTag",
         "type": "string"
       },
       "Objection": {
@@ -1429,6 +1739,15 @@
           "SUPPLY"
         ],
         "title": "SilpiTestDate",
+        "type": "string"
+      },
+      "SourceKind": {
+        "description": "Which kind of upload the text looked like (detected, not declared).",
+        "enum": [
+          "WHATSAPP_EXPORT",
+          "DOCUMENT_TEXT"
+        ],
+        "title": "SourceKind",
         "type": "string"
       },
       "Supplier": {
@@ -1852,6 +2171,45 @@
           }
         },
         "summary": "Evaluate Case"
+      }
+    },
+    "/api/v1/extract-evidence": {
+      "post": {
+        "description": "Extract machine-suggested candidates from an uploaded text file (B9).\n\nRegex and keyword first, offline: a WhatsApp .txt export is parsed into\nmessages and tagged, invoice and PO text yields labelled fields - each with\na line citation and a confidence - and a human confirms them into a\n`CaseEvaluationRequest` before anything is evaluated (nothing here calls the\nengine, and the engine never calls this module).\n\nEnvironment flags, read per request and never at import time:\n\n- `EXTRACTION_DEMO_CACHE=1` returns the prepared result stored for that\n  exact text, with no network at all.\n- `EXTRACTION_LLM=1` plus `EXTRACTION_LLM_URL` enables the optional LLM\n  layer, which only fills fields the regex path could not read; any failure\n  falls back to the regex result untouched.\n\nThe objection window comes from the statute config (the tagger holds no\nstatutory number of its own); when it is absent, lateness is reported as\n*not assessed* rather than as \"zero days\".",
+        "operationId": "extract_evidence_api_v1_extract_evidence_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_extract_evidence_api_v1_extract_evidence_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExtractionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Extract Evidence"
       }
     },
     "/api/v1/generate-artifact": {

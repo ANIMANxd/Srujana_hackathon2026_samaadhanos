@@ -58,3 +58,20 @@ def load_config(path: Path = CONFIG_PATH) -> dict[str, Any]:
         stub["_note"] = f"statute_config.json at {path} is not a JSON object; showing stub."
         return stub
     return data
+
+
+def objection_window(config: dict[str, Any]) -> tuple[int | None, str | None, bool]:
+    """`(days, source_ref, verified)` for the objection window, or all-empty.
+
+    Extraction asks for the window instead of holding a number itself (golden
+    rule 4): the tagger needs one to say "late", and the config - not the code -
+    is where that number lives. `(None, None, False)` means *cannot be assessed*,
+    never "zero days".
+    """
+    entry = config.get("objection_window_days")
+    if isinstance(entry, dict):
+        value = entry.get("value")
+        if isinstance(value, int) and not isinstance(value, bool):
+            source = entry.get("source_ref")
+            return value, (str(source) if source else None), bool(entry.get("verified"))
+    return None, None, False

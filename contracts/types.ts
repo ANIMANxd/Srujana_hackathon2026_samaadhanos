@@ -47,6 +47,44 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/extract-evidence": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Extract Evidence
+         * @description Extract machine-suggested candidates from an uploaded text file (B9).
+         *
+         *     Regex and keyword first, offline: a WhatsApp .txt export is parsed into
+         *     messages and tagged, invoice and PO text yields labelled fields - each with
+         *     a line citation and a confidence - and a human confirms them into a
+         *     `CaseEvaluationRequest` before anything is evaluated (nothing here calls the
+         *     engine, and the engine never calls this module).
+         *
+         *     Environment flags, read per request and never at import time:
+         *
+         *     - `EXTRACTION_DEMO_CACHE=1` returns the prepared result stored for that
+         *       exact text, with no network at all.
+         *     - `EXTRACTION_LLM=1` plus `EXTRACTION_LLM_URL` enables the optional LLM
+         *       layer, which only fills fields the regex path could not read; any failure
+         *       falls back to the regex result untouched.
+         *
+         *     The objection window comes from the statute config (the tagger holds no
+         *     statutory number of its own); when it is absent, lateness is reported as
+         *     *not assessed* rather than as "zero days".
+         */
+        post: operations["extract_evidence_api_v1_extract_evidence_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/generate-artifact": {
         parameters: {
             query?: never;
@@ -221,6 +259,11 @@ export interface components {
             /** Warnings */
             warnings?: components["schemas"]["Warning"][];
         };
+        /** Body_extract_evidence_api_v1_extract_evidence_post */
+        Body_extract_evidence_api_v1_extract_evidence_post: {
+            /** File */
+            file: string;
+        };
         /** Buyer */
         Buyer: {
             /** Cost Of Capital Pct */
@@ -314,6 +357,32 @@ export interface components {
             rate_mode?: components["schemas"]["RateMode"] | null;
             silpi_test_date?: components["schemas"]["SilpiTestDate"] | null;
         };
+        /**
+         * ConfirmEntry
+         * @description Where one candidate would go in a CaseEvaluationRequest, and what to check.
+         */
+        ConfirmEntry: {
+            /** Key */
+            key: string;
+            kind: components["schemas"]["ConfirmKind"];
+            /** Note */
+            note: string;
+            /** Path */
+            path: string | null;
+            /** Required */
+            required: boolean;
+            type: components["schemas"]["ConfirmFieldType"];
+        };
+        /**
+         * ConfirmFieldType
+         * @enum {string}
+         */
+        ConfirmFieldType: "DATE" | "MONEY" | "INT" | "STRING" | "ROW";
+        /**
+         * ConfirmKind
+         * @enum {string}
+         */
+        ConfirmKind: "FIELD" | "MESSAGE";
         /** Defense */
         Defense: {
             /** Buyer Says */
@@ -407,6 +476,87 @@ export interface components {
             recommended_stage: number;
             /** Score */
             score: number;
+        };
+        /**
+         * ExtractedField
+         * @description One machine-suggested candidate value with its line citation.
+         */
+        ExtractedField: {
+            /** Confidence */
+            confidence: number;
+            /** Line */
+            line?: number | null;
+            /**
+             * Machine Suggested
+             * @default true
+             */
+            machine_suggested: boolean;
+            method: components["schemas"]["ExtractionMethod"];
+            /** Page */
+            page?: number | null;
+            /** Source Text */
+            source_text: string | null;
+            /** Value */
+            value: string | null;
+        };
+        /**
+         * ExtractedMessage
+         * @description One parsed chat message: where it is, what it says, what it reads like.
+         */
+        ExtractedMessage: {
+            /** Confidence */
+            confidence: number;
+            /** Days After Delivery */
+            days_after_delivery?: number | null;
+            /** Line */
+            line: number;
+            /**
+             * Machine Suggested
+             * @default true
+             */
+            machine_suggested: boolean;
+            /** Sender */
+            sender: string;
+            /** Sent */
+            sent: string | null;
+            /** Tags */
+            tags: components["schemas"]["MessageTag"][];
+            /** Text */
+            text: string;
+            /** Within Objection Window */
+            within_objection_window?: boolean | null;
+        };
+        /**
+         * ExtractionMethod
+         * @description How a value was read. `missing` means no value, not a failed parse.
+         * @enum {string}
+         */
+        ExtractionMethod: "regex" | "llm" | "missing";
+        /** ExtractionResponse */
+        ExtractionResponse: {
+            /**
+             * Cache Hit
+             * @default false
+             */
+            cache_hit: boolean;
+            /** Confirm Schema */
+            confirm_schema?: components["schemas"]["ConfirmEntry"][];
+            /**
+             * Contract Version
+             * @default 1.0
+             */
+            contract_version: string;
+            /** Fields */
+            fields: {
+                [key: string]: components["schemas"]["ExtractedField"];
+            };
+            kind: components["schemas"]["SourceKind"];
+            /** Messages */
+            messages?: components["schemas"]["ExtractedMessage"][];
+            /** Supplier Name */
+            supplier_name?: string | null;
+            /** Warnings */
+            warnings?: components["schemas"]["Warning"][];
         };
         /** Financials */
         Financials: {
@@ -526,6 +676,11 @@ export interface components {
          * @enum {string}
          */
         LimitationStatus: "OK" | "WARN_12M" | "WARN_6M" | "EXPIRED" | "UNKNOWN";
+        /**
+         * MessageTag
+         * @enum {string}
+         */
+        MessageTag: "DELIVERY_CONFIRMATION" | "DEFECT_OBJECTION" | "RESOLUTION_ACK" | "LATE_COMPLAINT" | "PAYMENT_PROMISE";
         /** Objection */
         Objection: {
             /** Description */
@@ -685,6 +840,12 @@ export interface components {
          * @enum {string}
          */
         SilpiTestDate: "CONTRACT" | "SUPPLY";
+        /**
+         * SourceKind
+         * @description Which kind of upload the text looked like (detected, not declared).
+         * @enum {string}
+         */
+        SourceKind: "WHATSAPP_EXPORT" | "DOCUMENT_TEXT";
         /** Supplier */
         Supplier: {
             activity: components["schemas"]["Activity"];
@@ -828,6 +989,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CaseEvaluationResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    extract_evidence_api_v1_extract_evidence_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_extract_evidence_api_v1_extract_evidence_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExtractionResponse"];
                 };
             };
             /** @description Validation Error */

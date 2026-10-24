@@ -7,14 +7,15 @@ itself (golden rule 6).
 """
 
 import json
+import os
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, File, HTTPException, Request, UploadFile
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from backend.app.config_loader import load_config
+from backend.app.config_loader import load_config, objection_window
 from backend.app.schemas import (
     CONTRACT_VERSION,
     ArtifactGenerationRequest,
@@ -22,6 +23,7 @@ from backend.app.schemas import (
     CaseEvaluationRequest,
     CaseEvaluationResponse,
     ErrorResponse,
+    ExtractionResponse,
     SettlementSimulationRequest,
     SettlementSimulationResponse,
     Warning,
@@ -30,6 +32,9 @@ from backend.artifacts.generate import build_artifact
 from backend.engine.config import ConfigError, StatuteConfig
 from backend.engine.evaluate import evaluate_case as evaluate_case_engine
 from backend.engine.settlement import evaluate_settlement
+from backend.extraction.extract import extract_evidence as run_extraction
+from backend.extraction.llm import settings_from_env
+from backend.extraction.text import ExtractionInputError
 
 PRESETS_DIR = Path(__file__).resolve().parent.parent / "presets"
 
@@ -220,6 +225,47 @@ def generate_artifact(payload: ArtifactGenerationRequest) -> ArtifactResponse:
         pdf_filename=result.pdf_filename,
         warnings=[Warning.model_validate(w) for w in result.warnings],
     )
+
+
+_TRUTHY = {"1", "true", "yes", "on"}
+
+
+@app.post("/api/v1/extract-evidence", response_model=ExtractionResponse)
+async def extract_evidence(file: UploadFile = File(...)) -> ExtractionResponse:
+    """Extract machine-suggested candidates from an uploaded text file (B9).
+
+    Regex and keyword first, offline: a WhatsApp .txt export is parsed into
+    messages and tagged, invoice and PO text yields labelled fields - each with
+    a line citation and a confidence - and a human confirms them into a
+    `CaseEvaluationRequest` before anything is evaluated (nothing here calls the
+    engine, and the engine never calls this module).
+
+    Environment flags, read per request and never at import time:
+
+    - `EXTRACTION_DEMO_CACHE=1` returns the prepared result stored for that
+      exact text, with no network at all.
+    - `EXTRACTION_LLM=1` plus `EXTRACTION_LLM_URL` enables the optional LLM
+      layer, which only fills fields the regex path could not read; any failure
+      falls back to the regex result untouched.
+
+    The objection window comes from the statute config (the tagger holds no
+    statutory number of its own); when it is absent, lateness is reported as
+    *not assessed* rather than as "zero days".
+    """
+    raw = await file.read()
+    window, window_ref, window_verified = objection_window(load_config())
+    try:
+        return run_extraction(
+            raw=raw,
+            objection_window_days=window,
+            window_source_ref=window_ref,
+            window_verified=window_verified,
+            use_cache=os.environ.get("EXTRACTION_DEMO_CACHE", "").strip().lower()
+            in _TRUTHY,
+            llm=settings_from_env(os.environ),
+        )
+    except ExtractionInputError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 def _read_json(path: Path) -> dict:

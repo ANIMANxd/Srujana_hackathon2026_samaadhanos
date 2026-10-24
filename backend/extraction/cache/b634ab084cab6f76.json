@@ -1,0 +1,325 @@
+{
+  "generated_from": "chat_defect_day9.txt",
+  "response": {
+    "cache_hit": false,
+    "confirm_schema": [
+      {
+        "key": "supplier_name",
+        "kind": "FIELD",
+        "note": "Machine-suggested from the document header; check it against the Udyam certificate before it becomes the request's supplier name.",
+        "path": "supplier.name",
+        "required": true,
+        "type": "STRING"
+      },
+      {
+        "key": "invoice_number",
+        "kind": "FIELD",
+        "note": "The request has no invoice-number field of its own; the invoice reference sits on the INVOICE evidence item, or stays in your records.",
+        "path": "evidence.items[INVOICE].ref",
+        "required": false,
+        "type": "STRING"
+      },
+      {
+        "key": "invoice_date",
+        "kind": "FIELD",
+        "note": "Required by the request. The engine anchors nothing on it - delivery does that - but it must be the date on the document.",
+        "path": "transaction.invoice_date",
+        "required": true,
+        "type": "DATE"
+      },
+      {
+        "key": "amount",
+        "kind": "FIELD",
+        "note": "The value of the supply. Everything the engine computes runs from this figure, so confirm it against the invoice total line.",
+        "path": "transaction.principal",
+        "required": true,
+        "type": "MONEY"
+      },
+      {
+        "key": "supplier_gstin",
+        "kind": "FIELD",
+        "note": "The request has no supplier GSTIN field. Keep it in your records or on the GST_RETURN evidence reference; there is nothing to map it to.",
+        "path": null,
+        "required": false,
+        "type": "STRING"
+      },
+      {
+        "key": "buyer_gstin",
+        "kind": "FIELD",
+        "note": "Buyer GSTIN as printed on the invoice; used only to identify the buyer.",
+        "path": "buyer.gstin",
+        "required": false,
+        "type": "STRING"
+      },
+      {
+        "key": "buyer_name",
+        "kind": "FIELD",
+        "note": "Exactly the name on the invoice's bill-to line, spelling included.",
+        "path": "buyer.name",
+        "required": true,
+        "type": "STRING"
+      },
+      {
+        "key": "delivery_date",
+        "kind": "FIELD",
+        "note": "Leave null only if there is genuinely no delivery proof: a missing delivery date blocks Stage 4 and leaves acceptance unresolved (6.2).",
+        "path": "transaction.delivery_date",
+        "required": false,
+        "type": "DATE"
+      },
+      {
+        "key": "po_reference",
+        "kind": "FIELD",
+        "note": "The PO number as printed. The request records it as the PO evidence item's reference rather than as a date or an amount.",
+        "path": "evidence.items[PO].ref",
+        "required": false,
+        "type": "STRING"
+      },
+      {
+        "key": "written_credit_days",
+        "kind": "FIELD",
+        "note": "Only what a written document actually says. Null means no written agreement was supplied; what counts as one is still open (OQ-5).",
+        "path": "transaction.written_credit_days",
+        "required": false,
+        "type": "INT"
+      },
+      {
+        "key": "DELIVERY_CONFIRMATION",
+        "kind": "MESSAGE",
+        "note": "Use the message's date as delivery_date, and point the DELIVERY_PROOF evidence item's reference at this line of the chat export.",
+        "path": "transaction.delivery_date",
+        "required": false,
+        "type": "DATE"
+      },
+      {
+        "key": "DEFECT_OBJECTION",
+        "kind": "MESSAGE",
+        "note": "Add an objections[] row: raised_date = the message date, is_written = true (a chat is writing), description = the message text. The engine, not this screen, decides whether it qualifies.",
+        "path": "objections[]",
+        "required": false,
+        "type": "ROW"
+      },
+      {
+        "key": "LATE_COMPLAINT",
+        "kind": "MESSAGE",
+        "note": "Same row shape as a DEFECT_OBJECTION, but the date falls after the configured objection window, so the engine will record it as a complaint that does not move the clock rather than as a qualifying objection (6.2).",
+        "path": "objections[]",
+        "required": false,
+        "type": "ROW"
+      },
+      {
+        "key": "RESOLUTION_ACK",
+        "kind": "MESSAGE",
+        "note": "The message date becomes resolved_date on the objection it answers, which is what closes that objection for the engine.",
+        "path": "objections[].resolved_date",
+        "required": false,
+        "type": "DATE"
+      },
+      {
+        "key": "PAYMENT_PROMISE",
+        "kind": "MESSAGE",
+        "note": "Add an acknowledgments[] row: kind = WHATSAPP_PROMISE, is_signed = false, date = the message date. The engine records it as a promise that does not restart the limitation clock (6.5).",
+        "path": "acknowledgments[]",
+        "required": false,
+        "type": "ROW"
+      }
+    ],
+    "contract_version": "1.0",
+    "fields": {
+      "amount": {
+        "confidence": 0.0,
+        "line": null,
+        "machine_suggested": true,
+        "method": "missing",
+        "page": null,
+        "source_text": null,
+        "value": null
+      },
+      "buyer_gstin": {
+        "confidence": 0.0,
+        "line": null,
+        "machine_suggested": true,
+        "method": "missing",
+        "page": null,
+        "source_text": null,
+        "value": null
+      },
+      "buyer_name": {
+        "confidence": 0.0,
+        "line": null,
+        "machine_suggested": true,
+        "method": "missing",
+        "page": null,
+        "source_text": null,
+        "value": null
+      },
+      "delivery_date": {
+        "confidence": 0.0,
+        "line": null,
+        "machine_suggested": true,
+        "method": "missing",
+        "page": null,
+        "source_text": null,
+        "value": null
+      },
+      "invoice_date": {
+        "confidence": 0.0,
+        "line": null,
+        "machine_suggested": true,
+        "method": "missing",
+        "page": null,
+        "source_text": null,
+        "value": null
+      },
+      "invoice_number": {
+        "confidence": 0.75,
+        "line": 4,
+        "machine_suggested": true,
+        "method": "regex",
+        "page": null,
+        "source_text": "03/02/2026, 10:05 AM - Anu (Sample Supplies Pvt Ltd): Dispatched 40 boxes against invoice SYN-INV-0042 this morning.",
+        "value": "SYN-INV-0042"
+      },
+      "po_reference": {
+        "confidence": 0.0,
+        "line": null,
+        "machine_suggested": true,
+        "method": "missing",
+        "page": null,
+        "source_text": null,
+        "value": null
+      },
+      "supplier_gstin": {
+        "confidence": 0.0,
+        "line": null,
+        "machine_suggested": true,
+        "method": "missing",
+        "page": null,
+        "source_text": null,
+        "value": null
+      },
+      "written_credit_days": {
+        "confidence": 0.0,
+        "line": null,
+        "machine_suggested": true,
+        "method": "missing",
+        "page": null,
+        "source_text": null,
+        "value": null
+      }
+    },
+    "kind": "WHATSAPP_EXPORT",
+    "messages": [
+      {
+        "confidence": 0.0,
+        "days_after_delivery": 0,
+        "line": 4,
+        "machine_suggested": true,
+        "sender": "Anu (Sample Supplies Pvt Ltd)",
+        "sent": "2026-02-03",
+        "tags": [],
+        "text": "Dispatched 40 boxes against invoice SYN-INV-0042 this morning.",
+        "within_objection_window": true
+      },
+      {
+        "confidence": 0.85,
+        "days_after_delivery": 0,
+        "line": 5,
+        "machine_suggested": true,
+        "sender": "Buyer Team (Sample Buyer Corp)",
+        "sent": "2026-02-03",
+        "tags": [
+          "DELIVERY_CONFIRMATION"
+        ],
+        "text": "We received the 40 boxes today. GRN signed, thanks.",
+        "within_objection_window": true
+      },
+      {
+        "confidence": 0.9,
+        "days_after_delivery": 9,
+        "line": 6,
+        "machine_suggested": true,
+        "sender": "Buyer Team (Sample Buyer Corp)",
+        "sent": "2026-02-12",
+        "tags": [
+          "DEFECT_OBJECTION"
+        ],
+        "text": "Day 9 of the supply - opened the boxes, 6 units are defective and 2 are cracked. We are rejecting those.",
+        "within_objection_window": true
+      },
+      {
+        "confidence": 0.9,
+        "days_after_delivery": 12,
+        "line": 7,
+        "machine_suggested": true,
+        "sender": "Anu (Sample Supplies Pvt Ltd)",
+        "sent": "2026-02-15",
+        "tags": [
+          "DEFECT_OBJECTION",
+          "RESOLUTION_ACK"
+        ],
+        "text": "Noted. Replacement for the 6 defective units is dispatched today.",
+        "within_objection_window": true
+      },
+      {
+        "confidence": 0.85,
+        "days_after_delivery": 14,
+        "line": 8,
+        "machine_suggested": true,
+        "sender": "Buyer Team (Sample Buyer Corp)",
+        "sent": "2026-02-17",
+        "tags": [
+          "RESOLUTION_ACK"
+        ],
+        "text": "Replacement received, the issue is resolved. Thanks for the quick fix.",
+        "within_objection_window": true
+      },
+      {
+        "confidence": 0.9,
+        "days_after_delivery": 24,
+        "line": 9,
+        "machine_suggested": true,
+        "sender": "Buyer Team (Sample Buyer Corp)",
+        "sent": "2026-02-27",
+        "tags": [
+          "DEFECT_OBJECTION",
+          "LATE_COMPLAINT"
+        ],
+        "text": "Day 24 - finding more damaged cartons in the same lot. This is unacceptable.",
+        "within_objection_window": false
+      },
+      {
+        "confidence": 0.8,
+        "days_after_delivery": 30,
+        "line": 10,
+        "machine_suggested": true,
+        "sender": "Buyer Team (Sample Buyer Corp)",
+        "sent": "2026-03-05",
+        "tags": [
+          "PAYMENT_PROMISE"
+        ],
+        "text": "Payment for the invoice will be released by 20 March.",
+        "within_objection_window": false
+      }
+    ],
+    "supplier_name": null,
+    "warnings": [
+      {
+        "code": "MACHINE_SUGGESTED",
+        "severity": "INFO",
+        "text": "Every value and tag in this response was suggested by a machine from the uploaded text, with a line citation and a confidence. Nothing reaches a case evaluation until a person confirms it; the engine never calls this module."
+      },
+      {
+        "code": "OBJECTION_WINDOW_APPLIED",
+        "severity": "INFO",
+        "text": "Lateness was assessed against the configured objection window of 15 days from the delivery date, and the config still marks this value unverified (OQ-1, source V2:s.2(b)). A late tag is a suggestion: the engine re-derives the same question from the confirmed request."
+      },
+      {
+        "code": "DATE_ORDER_ASSUMED",
+        "severity": "INFO",
+        "text": "Chat dates on line(s) 4, 5, 6, 10 could be read either way. Header dates are read as DD/MM/YYYY (Indian export); check those lines before confirming."
+      }
+    ]
+  },
+  "text_sha256": "b634ab084cab6f769937cb2c752fa44173ef462b7783b189e6ef155121d491c2"
+}

@@ -4,6 +4,8 @@ pydantic>=2.9
 pytest>=8.3
 python-dateutil>=2.9
 uvicorn>=0.30
+# Multipart uploads for /api/v1/extract-evidence (FastAPI File/Form support).
+python-multipart>=0.0.9
 # Pure-Python PDF rendering for /generate-artifact (backend/artifacts/pdf.py).
 # The endpoint degrades to markdown + a warning if it is missing or fails.
 reportlab>=4.0

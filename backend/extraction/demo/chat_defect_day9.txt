@@ -1,0 +1,10 @@
+Synthetic WhatsApp export for the demo and the tests (golden rule 11: no real
+parties, no real numbers). Day counts run from the delivery line on 03/02/2026.
+
+03/02/2026, 10:05 AM - Anu (Sample Supplies Pvt Ltd): Dispatched 40 boxes against invoice SYN-INV-0042 this morning.
+03/02/2026, 4:30 PM - Buyer Team (Sample Buyer Corp): We received the 40 boxes today. GRN signed, thanks.
+12/02/2026, 11:20 AM - Buyer Team (Sample Buyer Corp): Day 9 of the supply - opened the boxes, 6 units are defective and 2 are cracked. We are rejecting those.
+15/02/2026, 3:00 PM - Anu (Sample Supplies Pvt Ltd): Noted. Replacement for the 6 defective units is dispatched today.
+17/02/2026, 9:02 AM - Buyer Team (Sample Buyer Corp): Replacement received, the issue is resolved. Thanks for the quick fix.
+27/02/2026, 5:45 PM - Buyer Team (Sample Buyer Corp): Day 24 - finding more damaged cartons in the same lot. This is unacceptable.
+05/03/2026, 2:10 PM - Buyer Team (Sample Buyer Corp): Payment for the invoice will be released by 20 March.

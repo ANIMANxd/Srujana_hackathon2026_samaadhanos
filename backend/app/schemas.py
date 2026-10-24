@@ -16,6 +16,10 @@ from pydantic import BaseModel, ConfigDict, Field, PlainSerializer, WithJsonSche
 # source; schemas re-exports it as part of the contract (section 8.1).
 from backend.artifacts.kinds import ArtifactKind
 
+# Same idea for extraction: source kinds, message tags and methods are defined
+# beside the pipeline and re-exported here for the contract.
+from backend.extraction.tags import ExtractionMethod, MessageTag, SourceKind
+
 CONTRACT_VERSION = "1.0"
 
 # Decimal in Python, string in JSON and in the OpenAPI schema.
@@ -468,6 +472,79 @@ class ArtifactResponse(ContractModel):
     # failure degrades to text plus a `warnings[]` entry rather than an error.
     pdf_base64: str | None = None
     pdf_filename: str | None = None
+    warnings: list[Warning] = Field(default_factory=list)
+
+
+# --------------------------------------------- 8.1 extract-evidence ----
+# Section 8.1 lists the path but defines no body (CR-4 is still open). The
+# shape below mirrors what the frontend already expects - `{value, source_text,
+# page, method, confidence}` per key, plus the top-level `supplier_name` - and
+# adds what task B9 requires: line citations, the chat-message candidates, the
+# confirm schema, and a machine-suggested flag on every candidate.
+#
+# Two deliberate notes: `method` stays lowercase (`regex`/`llm`/`missing`)
+# because CR-4 and the shipped sample JSON use those strings; and `page` is
+# always null here, because this pipeline reads text - `line` is the citation.
+
+
+class ConfirmKind(str, Enum):
+    FIELD = "FIELD"
+    MESSAGE = "MESSAGE"
+
+
+class ConfirmFieldType(str, Enum):
+    DATE = "DATE"
+    MONEY = "MONEY"
+    INT = "INT"
+    STRING = "STRING"
+    ROW = "ROW"
+
+
+class ExtractedField(ContractModel):
+    """One machine-suggested candidate value with its line citation."""
+
+    value: str | None
+    source_text: str | None
+    page: int | None = None
+    line: int | None = None
+    method: ExtractionMethod
+    confidence: float = Field(ge=0.0, le=1.0)
+    machine_suggested: bool = True
+
+
+class ExtractedMessage(ContractModel):
+    """One parsed chat message: where it is, what it says, what it reads like."""
+
+    line: int
+    sender: str
+    sent: date | None
+    text: str
+    tags: list[MessageTag]
+    days_after_delivery: int | None = None
+    within_objection_window: bool | None = None
+    confidence: float = Field(ge=0.0, le=1.0)
+    machine_suggested: bool = True
+
+
+class ConfirmEntry(ContractModel):
+    """Where one candidate would go in a CaseEvaluationRequest, and what to check."""
+
+    key: str
+    path: str | None
+    kind: ConfirmKind
+    type: ConfirmFieldType
+    required: bool
+    note: str
+
+
+class ExtractionResponse(ContractModel):
+    contract_version: str = CONTRACT_VERSION
+    kind: SourceKind
+    fields: dict[str, ExtractedField]
+    supplier_name: str | None = None
+    messages: list[ExtractedMessage] = Field(default_factory=list)
+    confirm_schema: list[ConfirmEntry] = Field(default_factory=list)
+    cache_hit: bool = False
     warnings: list[Warning] = Field(default_factory=list)
 
 
