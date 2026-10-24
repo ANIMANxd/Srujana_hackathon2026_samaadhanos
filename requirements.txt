@@ -1,0 +1,6 @@
+# Python 3.11+. Pinned to major versions only; exact pins belong in a lockfile.
+fastapi>=0.115
+pydantic>=2.9
+pytest>=8.3
+python-dateutil>=2.9
+uvicorn>=0.30
