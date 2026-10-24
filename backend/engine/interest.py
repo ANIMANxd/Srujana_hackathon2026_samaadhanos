@@ -147,6 +147,9 @@ class InterestResult:
     citations: list[GateCitation]
     warnings: list[GateWarning]
     assumptions: list[str]
+    # Engine-internal, not part of to_dict(): (effective from date, principal
+    # bucket) ascending, used by buyer_cost for the 43B(h) checkpoints.
+    principal_timeline: list[tuple[date, Decimal]]
 
     def to_dict(self) -> dict[str, object]:
         """JSON-ready form matching the contract's `Financials` block."""
@@ -449,6 +452,12 @@ def evaluate_interest(
 
     interest_bal = Decimal("0")
     ledger: list[LedgerRow] = []
+    # Principal bucket over time, (effective from date, balance). Starts at
+    # date.min so any later date resolves to the opening principal, and gains an
+    # entry after every payment. Section 6.4 needs the principal outstanding at
+    # each 31 March, which only this walk knows; it is engine-internal and is
+    # deliberately absent from to_dict(), so the contract is untouched.
+    principal_timeline: list[tuple[date, Decimal]] = [(date.min, principal_bal)]
 
     def _balance() -> Decimal:
         return principal_bal + interest_bal
@@ -502,6 +511,7 @@ def evaluate_interest(
             )
         )
         principal_bal -= applied
+        principal_timeline.append((payment.date, principal_bal))
         if excess > 0:
             _warn_overpayment(warnings, payment, excess, balance - applied)
 
@@ -583,6 +593,7 @@ def evaluate_interest(
             principal_bal, interest_bal = _appropriate(
                 principal_bal, interest_bal, applied, appropriation_mode
             )
+            principal_timeline.append((anchor, principal_bal))
             if excess > 0:
                 _warn_overpayment(warnings, payment, excess, _balance())
             # A new rest cycle starts from the payment date.
@@ -617,6 +628,7 @@ def evaluate_interest(
         citations=citations,
         warnings=warnings,
         assumptions=assumptions,
+        principal_timeline=principal_timeline,
     )
 
 
