@@ -4,7 +4,7 @@
 # make may fall back to cmd.exe, so no sh syntax ($$, [], backslash
 # continuations) and no cmd-only syntax. Logic lives in one-line python.
 
-.PHONY: dev backend frontend test fixtures demo
+.PHONY: dev backend frontend test fixtures demo openapi types contract-fixtures contract
 
 PYTHON ?= python
 
@@ -29,3 +29,20 @@ demo: fixtures
 	@echo --- offline demo mode ---
 	@echo backend: run make backend then open http://127.0.0.1:8000/docs
 	@echo frontend: not yet implemented until F0
+
+# Regenerate contracts/openapi.json from the live FastAPI app (section 9.1).
+openapi:
+	$(PYTHON) -m backend.app.export_openapi
+
+# Regenerate contracts/types.ts from openapi.json. openapi-typescript via npx
+# is the primary path; a small python generator is the offline fallback.
+types:
+	$(PYTHON) -m backend.app.export_types
+
+# Regenerate contracts/fixtures/*.request.json + *.response.json from the live
+# models + placeholder builder (no hand-typed numbers; golden rule 7/12).
+contract-fixtures:
+	$(PYTHON) -m backend.app.export_fixtures
+
+# Rebuild the whole frozen contract: openapi.json then types.ts then fixtures.
+contract: openapi types contract-fixtures

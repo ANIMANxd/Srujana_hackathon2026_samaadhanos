@@ -1,0 +1,55 @@
+{
+  "title": "CASE-01 — Net-90 PO, delivered, one WhatsApp promise",
+  "note": "INPUT ONLY. Synthetic data (golden rule 11): no real parties, Udyam or GSTIN numbers. The response fixture is engine-generated placeholder output.",
+  "request": {
+    "contract_version": "1.0",
+    "case_id": "case_01",
+    "supplier": {
+      "name": "Sample Supplies Pvt Ltd (synthetic)",
+      "udyam_number": "UDYAM-SYN-000000000",
+      "enterprise_class": "SMALL",
+      "activity": "MANUFACTURING",
+      "nic_codes": ["25990"],
+      "udyam_registration_date": "2023-06-01",
+      "investment_cr": "1.20",
+      "turnover_cr": "8.00"
+    },
+    "buyer": {
+      "name": "Sample Buyer Corp (synthetic)",
+      "gstin": "29SYN000000000Z1",
+      "tax_rate_pct": "31.20",
+      "cost_of_capital_pct": "12.00"
+    },
+    "transaction": {
+      "contract_date": "2025-11-01",
+      "supply_date": "2025-12-01",
+      "invoice_date": "2025-12-01",
+      "delivery_date": "2025-12-05",
+      "principal": "1250000.00",
+      "written_credit_days": 90,
+      "calculation_date": "2026-04-15",
+      "years_deferred": "1.00"
+    },
+    "objections": [],
+    "part_payments": [],
+    "acknowledgments": [
+      {
+        "date": "2026-03-20",
+        "kind": "WHATSAPP_PROMISE",
+        "is_signed": false,
+        "source_ref": "synthetic whatsapp thread"
+      }
+    ],
+    "evidence": {
+      "items": [
+        { "kind": "PO", "present": true, "ref": "synthetic-PO-001" },
+        { "kind": "INVOICE", "present": true, "ref": "synthetic-INV-001" },
+        { "kind": "DELIVERY_PROOF", "present": true, "ref": "synthetic-LR-001" },
+        { "kind": "WHATSAPP", "present": true, "ref": "synthetic-WA-001" },
+        { "kind": "UDYAM", "present": true, "ref": "synthetic-UDYAM-001" },
+        { "kind": "GST_RETURN", "present": false, "ref": null }
+      ]
+    },
+    "config_overrides": null
+  }
+}

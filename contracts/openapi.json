@@ -1,0 +1,1694 @@
+{
+  "components": {
+    "schemas": {
+      "Acknowledgment": {
+        "properties": {
+          "date": {
+            "format": "date",
+            "title": "Date",
+            "type": "string"
+          },
+          "is_signed": {
+            "title": "Is Signed",
+            "type": "boolean"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/AcknowledgmentKind"
+          },
+          "source_ref": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Ref"
+          }
+        },
+        "required": [
+          "date",
+          "kind",
+          "is_signed"
+        ],
+        "title": "Acknowledgment",
+        "type": "object"
+      },
+      "AcknowledgmentKind": {
+        "enum": [
+          "SIGNED_BALANCE_CONFIRMATION",
+          "PART_PAYMENT",
+          "WHATSAPP_PROMISE"
+        ],
+        "title": "AcknowledgmentKind",
+        "type": "string"
+      },
+      "Activity": {
+        "enum": [
+          "MANUFACTURING",
+          "SERVICES",
+          "TRADING"
+        ],
+        "title": "Activity",
+        "type": "string"
+      },
+      "AppropriationMode": {
+        "enum": [
+          "INTEREST_FIRST",
+          "PRINCIPAL_FIRST"
+        ],
+        "title": "AppropriationMode",
+        "type": "string"
+      },
+      "Buyer": {
+        "properties": {
+          "cost_of_capital_pct": {
+            "title": "Cost Of Capital Pct",
+            "type": "string"
+          },
+          "gstin": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gstin"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "tax_rate_pct": {
+            "title": "Tax Rate Pct",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "tax_rate_pct",
+          "cost_of_capital_pct"
+        ],
+        "title": "Buyer",
+        "type": "object"
+      },
+      "BuyerCost": {
+        "properties": {
+          "deferral": {
+            "$ref": "#/components/schemas/Deferral"
+          },
+          "disclosure_flags": {
+            "items": {
+              "$ref": "#/components/schemas/DisclosureFlag"
+            },
+            "title": "Disclosure Flags",
+            "type": "array"
+          },
+          "other_pressure_points": {
+            "items": {
+              "$ref": "#/components/schemas/OtherPressurePoint"
+            },
+            "title": "Other Pressure Points",
+            "type": "array"
+          },
+          "permanent_loss": {
+            "$ref": "#/components/schemas/PermanentLoss"
+          }
+        },
+        "required": [
+          "permanent_loss",
+          "deferral",
+          "disclosure_flags",
+          "other_pressure_points"
+        ],
+        "title": "BuyerCost",
+        "type": "object"
+      },
+      "CaseEvaluationRequest": {
+        "properties": {
+          "acknowledgments": {
+            "items": {
+              "$ref": "#/components/schemas/Acknowledgment"
+            },
+            "title": "Acknowledgments",
+            "type": "array"
+          },
+          "buyer": {
+            "$ref": "#/components/schemas/Buyer"
+          },
+          "case_id": {
+            "title": "Case Id",
+            "type": "string"
+          },
+          "config_overrides": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ConfigOverrides"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "contract_version": {
+            "default": "1.0",
+            "title": "Contract Version",
+            "type": "string"
+          },
+          "evidence": {
+            "$ref": "#/components/schemas/Evidence"
+          },
+          "objections": {
+            "items": {
+              "$ref": "#/components/schemas/Objection"
+            },
+            "title": "Objections",
+            "type": "array"
+          },
+          "part_payments": {
+            "items": {
+              "$ref": "#/components/schemas/PartPayment"
+            },
+            "title": "Part Payments",
+            "type": "array"
+          },
+          "supplier": {
+            "$ref": "#/components/schemas/Supplier"
+          },
+          "transaction": {
+            "$ref": "#/components/schemas/Transaction"
+          }
+        },
+        "required": [
+          "case_id",
+          "supplier",
+          "buyer",
+          "transaction",
+          "evidence"
+        ],
+        "title": "CaseEvaluationRequest",
+        "type": "object"
+      },
+      "CaseEvaluationResponse": {
+        "properties": {
+          "assumptions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Assumptions",
+            "type": "array"
+          },
+          "buyer_cost": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BuyerCost"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "calculation_date": {
+            "format": "date",
+            "title": "Calculation Date",
+            "type": "string"
+          },
+          "case_id": {
+            "title": "Case Id",
+            "type": "string"
+          },
+          "citations": {
+            "items": {
+              "$ref": "#/components/schemas/Citation"
+            },
+            "title": "Citations",
+            "type": "array"
+          },
+          "contract_version": {
+            "default": "1.0",
+            "title": "Contract Version",
+            "type": "string"
+          },
+          "defenses": {
+            "items": {
+              "$ref": "#/components/schemas/Defense"
+            },
+            "title": "Defenses",
+            "type": "array"
+          },
+          "evidence_readiness": {
+            "$ref": "#/components/schemas/EvidenceReadiness"
+          },
+          "financials": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Financials"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "jurisdiction": {
+            "$ref": "#/components/schemas/Jurisdiction"
+          },
+          "limitation": {
+            "$ref": "#/components/schemas/Limitation"
+          },
+          "timeline": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Timeline"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "warnings": {
+            "items": {
+              "$ref": "#/components/schemas/Warning"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "case_id",
+          "calculation_date",
+          "jurisdiction",
+          "timeline",
+          "financials",
+          "buyer_cost",
+          "limitation",
+          "defenses",
+          "evidence_readiness",
+          "citations",
+          "assumptions",
+          "warnings"
+        ],
+        "title": "CaseEvaluationResponse",
+        "type": "object"
+      },
+      "Citation": {
+        "properties": {
+          "config_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Config Key"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "rule": {
+            "title": "Rule",
+            "type": "string"
+          },
+          "statute_ref": {
+            "title": "Statute Ref",
+            "type": "string"
+          },
+          "verified": {
+            "title": "Verified",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "rule",
+          "statute_ref",
+          "verified"
+        ],
+        "title": "Citation",
+        "type": "object"
+      },
+      "ConfigOverrides": {
+        "properties": {
+          "appropriation_mode": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AppropriationMode"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "bank_rate_pct": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bank Rate Pct"
+          },
+          "objection_window_days": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Objection Window Days"
+          },
+          "rate_mode": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RateMode"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "silpi_test_date": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SilpiTestDate"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "title": "ConfigOverrides",
+        "type": "object"
+      },
+      "Defense": {
+        "properties": {
+          "buyer_says": {
+            "title": "Buyer Says",
+            "type": "string"
+          },
+          "evidence_have": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Evidence Have",
+            "type": "array"
+          },
+          "evidence_missing": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Evidence Missing",
+            "type": "array"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "rule_ref": {
+            "title": "Rule Ref",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/DefenseStatus"
+          }
+        },
+        "required": [
+          "id",
+          "buyer_says",
+          "rule_ref",
+          "status",
+          "evidence_have",
+          "evidence_missing"
+        ],
+        "title": "Defense",
+        "type": "object"
+      },
+      "DefenseStatus": {
+        "enum": [
+          "STRONG",
+          "AT_RISK",
+          "OPEN_QUESTION"
+        ],
+        "title": "DefenseStatus",
+        "type": "string"
+      },
+      "Deferral": {
+        "properties": {
+          "applies": {
+            "title": "Applies",
+            "type": "boolean"
+          },
+          "checkpoints": {
+            "items": {
+              "$ref": "#/components/schemas/DeferralCheckpoint"
+            },
+            "title": "Checkpoints",
+            "type": "array"
+          },
+          "deferral_cost": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deferral Cost"
+          },
+          "inputs": {
+            "$ref": "#/components/schemas/DeferralInputs"
+          }
+        },
+        "required": [
+          "applies",
+          "checkpoints",
+          "deferral_cost",
+          "inputs"
+        ],
+        "title": "Deferral",
+        "type": "object"
+      },
+      "DeferralCheckpoint": {
+        "properties": {
+          "fy_end": {
+            "format": "date",
+            "title": "Fy End",
+            "type": "string"
+          },
+          "tax_timing_effect": {
+            "title": "Tax Timing Effect",
+            "type": "string"
+          },
+          "unpaid_principal": {
+            "title": "Unpaid Principal",
+            "type": "string"
+          }
+        },
+        "required": [
+          "fy_end",
+          "unpaid_principal",
+          "tax_timing_effect"
+        ],
+        "title": "DeferralCheckpoint",
+        "type": "object"
+      },
+      "DeferralInputs": {
+        "properties": {
+          "cost_of_capital_pct": {
+            "title": "Cost Of Capital Pct",
+            "type": "string"
+          },
+          "years_deferred": {
+            "title": "Years Deferred",
+            "type": "string"
+          }
+        },
+        "required": [
+          "cost_of_capital_pct",
+          "years_deferred"
+        ],
+        "title": "DeferralInputs",
+        "type": "object"
+      },
+      "DisclosureFlag": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          },
+          "verified": {
+            "title": "Verified",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "text",
+          "verified"
+        ],
+        "title": "DisclosureFlag",
+        "type": "object"
+      },
+      "EnterpriseClass": {
+        "enum": [
+          "MICRO",
+          "SMALL",
+          "MEDIUM",
+          "UNKNOWN"
+        ],
+        "title": "EnterpriseClass",
+        "type": "string"
+      },
+      "Evidence": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/EvidenceItem"
+            },
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "title": "Evidence",
+        "type": "object"
+      },
+      "EvidenceItem": {
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/EvidenceKind"
+          },
+          "present": {
+            "title": "Present",
+            "type": "boolean"
+          },
+          "ref": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ref"
+          }
+        },
+        "required": [
+          "kind",
+          "present"
+        ],
+        "title": "EvidenceItem",
+        "type": "object"
+      },
+      "EvidenceKind": {
+        "enum": [
+          "PO",
+          "INVOICE",
+          "DELIVERY_PROOF",
+          "WHATSAPP",
+          "UDYAM",
+          "GST_RETURN"
+        ],
+        "title": "EvidenceKind",
+        "type": "string"
+      },
+      "EvidenceReadiness": {
+        "properties": {
+          "band": {
+            "$ref": "#/components/schemas/ReadinessBand"
+          },
+          "blocked_stages": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Blocked Stages",
+            "type": "array"
+          },
+          "missing": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Missing",
+            "type": "array"
+          },
+          "reasons": {
+            "items": {
+              "$ref": "#/components/schemas/ReadinessReason"
+            },
+            "title": "Reasons",
+            "type": "array"
+          },
+          "recommended_stage": {
+            "title": "Recommended Stage",
+            "type": "integer"
+          },
+          "score": {
+            "title": "Score",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "score",
+          "band",
+          "reasons",
+          "missing",
+          "blocked_stages",
+          "recommended_stage"
+        ],
+        "title": "EvidenceReadiness",
+        "type": "object"
+      },
+      "Financials": {
+        "properties": {
+          "appropriation_mode": {
+            "$ref": "#/components/schemas/AppropriationMode"
+          },
+          "daily_accrual": {
+            "title": "Daily Accrual",
+            "type": "string"
+          },
+          "interest_outstanding": {
+            "title": "Interest Outstanding",
+            "type": "string"
+          },
+          "interest_total": {
+            "title": "Interest Total",
+            "type": "string"
+          },
+          "ledger": {
+            "items": {
+              "$ref": "#/components/schemas/LedgerRow"
+            },
+            "title": "Ledger",
+            "type": "array"
+          },
+          "payment_boundary_convention": {
+            "$ref": "#/components/schemas/PaymentBoundaryConvention"
+          },
+          "principal_outstanding": {
+            "title": "Principal Outstanding",
+            "type": "string"
+          },
+          "rate_mode": {
+            "$ref": "#/components/schemas/RateMode"
+          },
+          "rate_segments": {
+            "items": {
+              "$ref": "#/components/schemas/RateSegment"
+            },
+            "title": "Rate Segments",
+            "type": "array"
+          },
+          "total_claim": {
+            "title": "Total Claim",
+            "type": "string"
+          }
+        },
+        "required": [
+          "rate_mode",
+          "appropriation_mode",
+          "payment_boundary_convention",
+          "rate_segments",
+          "ledger",
+          "interest_total",
+          "principal_outstanding",
+          "interest_outstanding",
+          "total_claim",
+          "daily_accrual"
+        ],
+        "title": "Financials",
+        "type": "object"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "Jurisdiction": {
+        "properties": {
+          "alternative_remedy": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Alternative Remedy"
+          },
+          "checks": {
+            "items": {
+              "$ref": "#/components/schemas/JurisdictionCheck"
+            },
+            "title": "Checks",
+            "type": "array"
+          },
+          "eligible": {
+            "title": "Eligible",
+            "type": "boolean"
+          },
+          "status": {
+            "$ref": "#/components/schemas/JurisdictionStatus"
+          }
+        },
+        "required": [
+          "status",
+          "eligible",
+          "checks"
+        ],
+        "title": "Jurisdiction",
+        "type": "object"
+      },
+      "JurisdictionCheck": {
+        "properties": {
+          "detail": {
+            "title": "Detail",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "passed": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Passed"
+          },
+          "rule_ref": {
+            "title": "Rule Ref",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "passed",
+          "detail",
+          "rule_ref"
+        ],
+        "title": "JurisdictionCheck",
+        "type": "object"
+      },
+      "JurisdictionStatus": {
+        "enum": [
+          "ELIGIBLE",
+          "BARRED_SILPI",
+          "EXCLUDED_TRADER",
+          "EXCLUDED_MEDIUM",
+          "INSUFFICIENT_DATA"
+        ],
+        "title": "JurisdictionStatus",
+        "type": "string"
+      },
+      "LateComplaint": {
+        "properties": {
+          "date": {
+            "format": "date",
+            "title": "Date",
+            "type": "string"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "date",
+          "reason"
+        ],
+        "title": "LateComplaint",
+        "type": "object"
+      },
+      "LedgerKind": {
+        "enum": [
+          "REST",
+          "PAYMENT",
+          "STUB"
+        ],
+        "title": "LedgerKind",
+        "type": "string"
+      },
+      "LedgerRow": {
+        "properties": {
+          "closing": {
+            "title": "Closing",
+            "type": "string"
+          },
+          "from": {
+            "format": "date",
+            "title": "From",
+            "type": "string"
+          },
+          "interest": {
+            "title": "Interest",
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/LedgerKind"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "opening": {
+            "title": "Opening",
+            "type": "string"
+          },
+          "payment": {
+            "title": "Payment",
+            "type": "string"
+          },
+          "rate_pct": {
+            "title": "Rate Pct",
+            "type": "string"
+          },
+          "to": {
+            "format": "date",
+            "title": "To",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "from",
+          "to",
+          "opening",
+          "interest",
+          "payment",
+          "closing",
+          "rate_pct"
+        ],
+        "title": "LedgerRow",
+        "type": "object"
+      },
+      "Limitation": {
+        "properties": {
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/LimitationEvent"
+            },
+            "title": "Events",
+            "type": "array"
+          },
+          "expiry": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expiry"
+          },
+          "status": {
+            "$ref": "#/components/schemas/LimitationStatus"
+          }
+        },
+        "required": [
+          "expiry",
+          "status",
+          "events"
+        ],
+        "title": "Limitation",
+        "type": "object"
+      },
+      "LimitationEvent": {
+        "properties": {
+          "date": {
+            "format": "date",
+            "title": "Date",
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/AcknowledgmentKind"
+          },
+          "restarts_clock": {
+            "title": "Restarts Clock",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "date",
+          "kind",
+          "restarts_clock"
+        ],
+        "title": "LimitationEvent",
+        "type": "object"
+      },
+      "LimitationStatus": {
+        "enum": [
+          "OK",
+          "WARN_12M",
+          "WARN_6M",
+          "EXPIRED",
+          "UNKNOWN"
+        ],
+        "title": "LimitationStatus",
+        "type": "string"
+      },
+      "Objection": {
+        "properties": {
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "is_written": {
+            "title": "Is Written",
+            "type": "boolean"
+          },
+          "raised_date": {
+            "format": "date",
+            "title": "Raised Date",
+            "type": "string"
+          },
+          "resolved_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resolved Date"
+          }
+        },
+        "required": [
+          "raised_date",
+          "is_written"
+        ],
+        "title": "Objection",
+        "type": "object"
+      },
+      "ObjectionStatus": {
+        "enum": [
+          "DEEMED_ACCEPTANCE",
+          "PENDING_RESOLUTION",
+          "RESOLVED",
+          "NO_DELIVERY_PROOF"
+        ],
+        "title": "ObjectionStatus",
+        "type": "string"
+      },
+      "OtherPressurePoint": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "text"
+        ],
+        "title": "OtherPressurePoint",
+        "type": "object"
+      },
+      "PartPayment": {
+        "properties": {
+          "amount": {
+            "title": "Amount",
+            "type": "string"
+          },
+          "date": {
+            "format": "date",
+            "title": "Date",
+            "type": "string"
+          },
+          "reference": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reference"
+          }
+        },
+        "required": [
+          "date",
+          "amount"
+        ],
+        "title": "PartPayment",
+        "type": "object"
+      },
+      "PaymentBoundaryConvention": {
+        "enum": [
+          "PAYMENT_DATE_IS_REST_BOUNDARY"
+        ],
+        "title": "PaymentBoundaryConvention",
+        "type": "string"
+      },
+      "PermanentLoss": {
+        "properties": {
+          "interest_non_deductible": {
+            "title": "Interest Non Deductible",
+            "type": "string"
+          },
+          "pretax_equivalent_rate_pct": {
+            "title": "Pretax Equivalent Rate Pct",
+            "type": "string"
+          }
+        },
+        "required": [
+          "interest_non_deductible",
+          "pretax_equivalent_rate_pct"
+        ],
+        "title": "PermanentLoss",
+        "type": "object"
+      },
+      "RateMode": {
+        "enum": [
+          "FLOATING",
+          "FROZEN_AT_APPOINTED_DAY"
+        ],
+        "title": "RateMode",
+        "type": "string"
+      },
+      "RateSegment": {
+        "properties": {
+          "bank_rate_pct": {
+            "title": "Bank Rate Pct",
+            "type": "string"
+          },
+          "from": {
+            "format": "date",
+            "title": "From",
+            "type": "string"
+          },
+          "statutory_rate_pct": {
+            "title": "Statutory Rate Pct",
+            "type": "string"
+          },
+          "to": {
+            "format": "date",
+            "title": "To",
+            "type": "string"
+          }
+        },
+        "required": [
+          "from",
+          "to",
+          "bank_rate_pct",
+          "statutory_rate_pct"
+        ],
+        "title": "RateSegment",
+        "type": "object"
+      },
+      "ReadinessBand": {
+        "enum": [
+          "COURT_READY",
+          "ACTION_NEEDED",
+          "BLOCKED"
+        ],
+        "title": "ReadinessBand",
+        "type": "string"
+      },
+      "ReadinessReason": {
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "delta": {
+            "title": "Delta",
+            "type": "integer"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "delta",
+          "text"
+        ],
+        "title": "ReadinessReason",
+        "type": "object"
+      },
+      "SilpiTestDate": {
+        "enum": [
+          "CONTRACT",
+          "SUPPLY"
+        ],
+        "title": "SilpiTestDate",
+        "type": "string"
+      },
+      "Supplier": {
+        "properties": {
+          "activity": {
+            "$ref": "#/components/schemas/Activity"
+          },
+          "enterprise_class": {
+            "$ref": "#/components/schemas/EnterpriseClass"
+          },
+          "investment_cr": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Investment Cr"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "nic_codes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Nic Codes",
+            "type": "array"
+          },
+          "turnover_cr": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Turnover Cr"
+          },
+          "udyam_number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Udyam Number"
+          },
+          "udyam_registration_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Udyam Registration Date"
+          }
+        },
+        "required": [
+          "name",
+          "enterprise_class",
+          "activity",
+          "nic_codes"
+        ],
+        "title": "Supplier",
+        "type": "object"
+      },
+      "Timeline": {
+        "properties": {
+          "acceptance_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Acceptance Date"
+          },
+          "agreed_days": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Agreed Days"
+          },
+          "applied_days": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Applied Days"
+          },
+          "appointed_day": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Appointed Day"
+          },
+          "clamped": {
+            "title": "Clamped",
+            "type": "boolean"
+          },
+          "days_overdue": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Days Overdue"
+          },
+          "delivery_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Delivery Date"
+          },
+          "due_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Due Date"
+          },
+          "late_complaints": {
+            "items": {
+              "$ref": "#/components/schemas/LateComplaint"
+            },
+            "title": "Late Complaints",
+            "type": "array"
+          },
+          "objection_status": {
+            "$ref": "#/components/schemas/ObjectionStatus"
+          },
+          "objection_window_end": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Objection Window End"
+          }
+        },
+        "required": [
+          "delivery_date",
+          "objection_window_end",
+          "objection_status",
+          "acceptance_date",
+          "agreed_days",
+          "applied_days",
+          "clamped",
+          "due_date",
+          "appointed_day",
+          "days_overdue",
+          "late_complaints"
+        ],
+        "title": "Timeline",
+        "type": "object"
+      },
+      "Transaction": {
+        "properties": {
+          "calculation_date": {
+            "format": "date",
+            "title": "Calculation Date",
+            "type": "string"
+          },
+          "contract_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contract Date"
+          },
+          "delivery_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Delivery Date"
+          },
+          "invoice_date": {
+            "format": "date",
+            "title": "Invoice Date",
+            "type": "string"
+          },
+          "principal": {
+            "title": "Principal",
+            "type": "string"
+          },
+          "supply_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Supply Date"
+          },
+          "written_credit_days": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Written Credit Days"
+          },
+          "years_deferred": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Years Deferred"
+          }
+        },
+        "required": [
+          "invoice_date",
+          "principal",
+          "calculation_date"
+        ],
+        "title": "Transaction",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      },
+      "Warning": {
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "severity": {
+            "$ref": "#/components/schemas/WarningSeverity"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "severity",
+          "text"
+        ],
+        "title": "Warning",
+        "type": "object"
+      },
+      "WarningSeverity": {
+        "enum": [
+          "INFO",
+          "WARN",
+          "BLOCK"
+        ],
+        "title": "WarningSeverity",
+        "type": "string"
+      }
+    }
+  },
+  "info": {
+    "description": "MSME payment-rights evaluation API. Contract v1.0; frozen and additive-only after the contract-v1 tag (architecture.md section 9).",
+    "title": "SamadhaanOS API",
+    "version": "1.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/api/v1/config": {
+      "get": {
+        "description": "The statute config with its verified flags, for the assumptions drawer.\n\nReturns a labelled stub when statute_config.json is absent so the offline\ndemo still runs. No value here is treated as statutory by the API.",
+        "operationId": "get_config_api_v1_config_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Get Config Api V1 Config Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Config"
+      }
+    },
+    "/api/v1/evaluate-case": {
+      "post": {
+        "description": "Evaluate a case.\n\nPLACEHOLDER: the engine is not built yet, so this returns a fixed sample\nresponse flagged with a PLACEHOLDER_DATA warning. It evaluates nothing.",
+        "operationId": "evaluate_case_api_v1_evaluate_case_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CaseEvaluationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaseEvaluationResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Evaluate Case"
+      }
+    },
+    "/api/v1/health": {
+      "get": {
+        "description": "Liveness plus config load status (section 8.1).",
+        "operationId": "health_api_v1_health_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Health Api V1 Health Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Health"
+      }
+    },
+    "/api/v1/presets": {
+      "get": {
+        "description": "List preset ids and titles (input-only files; section 8.1).",
+        "operationId": "list_presets_api_v1_presets_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response List Presets Api V1 Presets Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Presets"
+      }
+    },
+    "/api/v1/presets/{preset_id}": {
+      "get": {
+        "description": "Return a preset's request (input only). 404 if it does not exist.",
+        "operationId": "get_preset_api_v1_presets__preset_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "preset_id",
+            "required": true,
+            "schema": {
+              "title": "Preset Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Get Preset Api V1 Presets  Preset Id  Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Preset"
+      }
+    }
+  }
+}

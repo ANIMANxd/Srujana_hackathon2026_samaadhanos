@@ -1,0 +1,141 @@
+{
+  "contract_version": "1.0",
+  "case_id": "case_01",
+  "calculation_date": "2026-04-15",
+  "jurisdiction": {
+    "status": "INSUFFICIENT_DATA",
+    "eligible": false,
+    "checks": [
+      {
+        "id": "enterprise_class",
+        "passed": null,
+        "detail": "PLACEHOLDER: the engine has not run, so no check has passed.",
+        "rule_ref": "gate.enterprise_class"
+      },
+      {
+        "id": "silpi_chronology",
+        "passed": null,
+        "detail": "PLACEHOLDER: the engine has not run, so no check has passed.",
+        "rule_ref": "gate.silpi_chronology"
+      }
+    ],
+    "alternative_remedy": null
+  },
+  "timeline": {
+    "delivery_date": "2026-01-10",
+    "objection_window_end": "2026-01-25",
+    "objection_status": "DEEMED_ACCEPTANCE",
+    "acceptance_date": "2026-01-10",
+    "agreed_days": 30,
+    "applied_days": 30,
+    "clamped": false,
+    "due_date": "2026-02-09",
+    "appointed_day": "2026-02-10",
+    "days_overdue": 40,
+    "late_complaints": []
+  },
+  "financials": {
+    "rate_mode": "FLOATING",
+    "appropriation_mode": "INTEREST_FIRST",
+    "payment_boundary_convention": "PAYMENT_DATE_IS_REST_BOUNDARY",
+    "rate_segments": [
+      {
+        "from": "2026-02-10",
+        "to": "2026-03-21",
+        "bank_rate_pct": "5.50",
+        "statutory_rate_pct": "16.50"
+      }
+    ],
+    "ledger": [
+      {
+        "kind": "STUB",
+        "from": "2026-02-10",
+        "to": "2026-03-21",
+        "opening": "100000.00",
+        "interest": "1471.23",
+        "payment": "0.00",
+        "closing": "101471.23",
+        "rate_pct": "16.50",
+        "note": "PLACEHOLDER row, not engine output."
+      }
+    ],
+    "interest_total": "1471.23",
+    "principal_outstanding": "100000.00",
+    "interest_outstanding": "1471.23",
+    "total_claim": "101471.23",
+    "daily_accrual": "45.29"
+  },
+  "buyer_cost": {
+    "permanent_loss": {
+      "interest_non_deductible": "1471.23",
+      "pretax_equivalent_rate_pct": "23.98"
+    },
+    "deferral": {
+      "applies": false,
+      "checkpoints": [],
+      "deferral_cost": null,
+      "inputs": {
+        "cost_of_capital_pct": "12.00",
+        "years_deferred": "1.00"
+      }
+    },
+    "disclosure_flags": [
+      {
+        "id": "s22_disclosure",
+        "text": "PLACEHOLDER: s.22 audited-accounts disclosure flag.",
+        "verified": false
+      }
+    ],
+    "other_pressure_points": []
+  },
+  "limitation": {
+    "expiry": null,
+    "status": "UNKNOWN",
+    "events": []
+  },
+  "defenses": [
+    {
+      "id": "placeholder_defense",
+      "buyer_says": "PLACEHOLDER: a sample buyer argument.",
+      "rule_ref": "defenses.placeholder",
+      "status": "OPEN_QUESTION",
+      "evidence_have": [],
+      "evidence_missing": []
+    }
+  ],
+  "evidence_readiness": {
+    "score": 40,
+    "band": "ACTION_NEEDED",
+    "reasons": [
+      {
+        "code": "PLACEHOLDER",
+        "delta": 0,
+        "text": "PLACEHOLDER: the engine has not scored this case."
+      }
+    ],
+    "missing": [],
+    "blocked_stages": [
+      4
+    ],
+    "recommended_stage": 1
+  },
+  "citations": [
+    {
+      "id": "placeholder_citation",
+      "rule": "PLACEHOLDER: no rule has been applied.",
+      "statute_ref": "none",
+      "config_key": null,
+      "verified": false
+    }
+  ],
+  "assumptions": [
+    "PLACEHOLDER: this entire response is synthetic sample data from the contract scaffold, not engine output. No number here is legal advice."
+  ],
+  "warnings": [
+    {
+      "code": "PLACEHOLDER_DATA",
+      "severity": "WARN",
+      "text": "This response is a fixed placeholder from the contract scaffold, not the engine. Every number, date and status below is a hand-set synthetic sample and must not be relied on. It will be replaced by engine output."
+    }
+  ]
+}
