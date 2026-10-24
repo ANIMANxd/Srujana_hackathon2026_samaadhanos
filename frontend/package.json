@@ -11,7 +11,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "pretypecheck": "node scripts/sync-contracts.mjs",
+    "pretypecheck": "node scripts/sync-contracts.mjs && next typegen",
     "typecheck": "tsc --noEmit",
     "smoke": "node scripts/smoke.mjs",
     "check": "npm run typecheck && npm run lint && npm run build"
