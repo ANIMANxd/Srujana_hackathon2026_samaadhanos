@@ -17,12 +17,16 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from backend.app.config_loader import load_config
 from backend.app.schemas import (
     CONTRACT_VERSION,
+    ArtifactGenerationRequest,
+    ArtifactResponse,
     CaseEvaluationRequest,
     CaseEvaluationResponse,
     ErrorResponse,
     SettlementSimulationRequest,
     SettlementSimulationResponse,
+    Warning,
 )
+from backend.artifacts.generate import build_artifact
 from backend.engine.config import ConfigError, StatuteConfig
 from backend.engine.evaluate import evaluate_case as evaluate_case_engine
 from backend.engine.settlement import evaluate_settlement
@@ -183,6 +187,39 @@ def simulate_settlement(payload: SettlementSimulationRequest) -> SettlementSimul
     except ValueError as exc:  # out-of-range percentages, negative amounts
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     return SettlementSimulationResponse(contract_version=CONTRACT_VERSION, **result.to_dict())
+
+
+@app.post("/api/v1/generate-artifact", response_model=ArtifactResponse)
+def generate_artifact(payload: ArtifactGenerationRequest) -> ArtifactResponse:
+    """Draft one artifact for this case (section 8.1).
+
+    The case is evaluated first, so the draft is filled from the engine's own
+    figures rather than from anything the client sends (golden rule 7). When the
+    stage cannot be produced - the gate stopped the case, or a figure the draft
+    needs was never computed - the response still carries markdown: an honest
+    note saying why that stage is unavailable, never a half-filled document.
+    Nothing is sent anywhere; the PDF is optional and its failure degrades to
+    markdown plus a `warnings[]` entry rather than an error.
+    """
+    evaluation = _run_engine(payload.request)
+    try:
+        result = build_artifact(
+            kind=payload.kind,
+            request=payload.request,
+            evaluation=evaluation,
+            settlement=payload.settlement,
+        )
+    except (ConfigError, ValueError) as exc:  # out-of-range settlement terms
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return ArtifactResponse(
+        contract_version=CONTRACT_VERSION,
+        kind=payload.kind,
+        filename=result.filename,
+        markdown=result.markdown,
+        pdf_base64=result.pdf_base64,
+        pdf_filename=result.pdf_filename,
+        warnings=[Warning.model_validate(w) for w in result.warnings],
+    )
 
 
 def _read_json(path: Path) -> dict:

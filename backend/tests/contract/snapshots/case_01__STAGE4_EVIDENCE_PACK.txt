@@ -1,0 +1,142 @@
+# DRAFT — case_##: evidence pack (Stage #)
+
+> **DRAFT** — prepared in SamadhaanOS from your case inputs and your case's own calculation.
+> Nothing is sent from here: review it, edit it and approve it before you use it.
+> Case case_## · figures as on ####-##-##
+> Prepared as a checklist and evidence bundle. Not a government form, and no portal field is asserted before V## is captured.
+
+## Portal fields
+
+The V## capture - the portal's own field list - is not in this repo's statute sheet yet, so no field name, order or format is asserted here.
+
+- [ ] The portal's field list, order and format - to be confirmed against the live portal
+- [ ] Which value from this pack belongs in which field - to be confirmed against the live portal
+- [ ] Any document the portal asks you to attach - to be confirmed against the live portal
+- [ ] The portal's own instructions for this form - to be confirmed against the live portal
+
+## Evidence in date order
+
+| Date | Event | Where it comes from |
+| --- | --- | --- |
+| ####-##-## | PO / agreement date | synthetic-PO-### |
+| ####-##-## | Supply date | — |
+| ####-##-## | Invoice issued | synthetic-INV-### |
+| ####-##-## | Delivered | synthetic-LR-### |
+| ####-##-## | Acceptance date used by the calculation | status: DEEMED_ACCEPTANCE |
+| ####-##-## | Last day to raise a written objection | from this case's calculation |
+| ####-##-## | Payment due | from this case's calculation |
+| ####-##-## | Appointed day (the due date plus one) | from this case's calculation |
+| ####-##-## | WhatsApp promise | not signed · synthetic whatsapp thread |
+| ####-##-## | Calculation date for this pack | all figures are as on this date |
+
+### Documents in this case
+
+| Document | Reference | Status |
+| --- | --- | --- |
+| Purchase order | synthetic-PO-### | held |
+| GST invoice | synthetic-INV-### | held |
+| Delivery proof | synthetic-LR-### | held |
+| WhatsApp messages | synthetic-WA-### | held |
+| Udyam certificate | synthetic-UDYAM-### | held |
+| GST return evidence | — | not in this case |
+
+## Interest calculation sheet
+
+### How the calculation was run
+
+- Rate mode: FLOATING
+- Appropriation of payments: INTEREST_FIRST
+- Part-payments: PAYMENT_DATE_IS_REST_BOUNDARY
+- Every figure below is as on ####-##-##.
+
+### Rate segments
+
+| From | To | Bank Rate | Rate applied |
+| --- | --- | --- | --- |
+| ####-##-## | ####-##-## | #.##% | ##.##% |
+
+### Ledger
+
+| Row | From | To | Opening | Interest | Payment | Closing | Rate | Note |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| STUB | ####-##-## | ####-##-## | ₹##,##,###.## | ₹#,###.## | ₹#.## | ₹##,##,###.## | ##.##% | Interest accrued from the last rest to the calculation date; not capitalised further. |
+
+### Totals
+
+| Total | Amount |
+| --- | --- |
+| Interest accrued across the rows | ₹#,###.## |
+| Principal outstanding | ₹##,##,###.## |
+| Interest still outstanding | ₹#,###.## |
+| Total claim | ₹##,##,###.## |
+| Movement on this balance per day | ₹###.## |
+
+Each ledger row is rounded to #.## (half-up) by the engine as it computes it; the totals above are the engine's own totals.
+
+## Certificate for electronic records (BSA s.##) — TEMPLATE
+
+**TEMPLATE.** To be completed and signed by the person responsible for the computer or device that holds these records. This is a blank template, not an issued certificate, and nothing has been signed. Check the wording against the primary source before use: that capture is not in this repo's statute sheet yet.
+
+I, [full name], [role] of Sample Supplies Pvt Ltd (synthetic), state that the electronic records listed in this pack were produced from [device / system] in the ordinary course of business, and that the device was operating properly at the relevant time.
+
+Records covered by this certificate: [list or annexure reference]
+
+Name and designation: ______________________________
+
+Signature: ______________________________    Date: ______________________________
+
+## Assumptions this draft was made under
+
+- Every date, amount and rate in this pack comes from your case inputs and this case's calculation as on ####-##-##; nothing is worked out here.
+- The portal section names no field until the V## capture exists, so each row asks for confirmation against the live portal instead.
+- The certificate section is a blank template to complete and sign; its wording still has to be checked against the primary source.
+- Documents the case does not hold are listed as missing rather than left out, so the pack shows the gaps as well as the evidence.
+- A written credit period of ## days was supplied and is treated as a written agreement, such as a purchase order or a signed document. What counts as a written agreement is still open (OQ-#).
+- days_overdue counts calendar days after the due date and stays empty until the appointed day; the appointed day is the due date plus one day (section #.#).
+- Part-payments follow PAYMENT_DATE_IS_REST_BOUNDARY: interest accrues to the payment date, is capitalised, the payment is applied, and the monthly rest cycle restarts from that date. The convention is shown on screen and is flagged for lawyer review (OQ-#).
+- Rate mode FLOATING: the rate changes at each Bank Rate epoch boundary inside the delay, so a mid-delay change is split across rate segments (OQ-#).
+- Appropriation mode INTEREST_FIRST changes only how a payment is split between principal and interest; the total balance is the same either way. The split feeds the ##B(h) base, it is not added to interest loss.
+- rate_segments cover [from, to): `from` is the first day at that rate and `to` is the exclusive end, so segment days sum to the delay length.
+- The three buyer-cost lines are reported separately and are never added into one number: what the buyer loses permanently, what it defers, and what it must disclose are different things.
+- The interest figure is interest only. The s.##B(h) tax timing effect is reported on the deferral line and is never added to interest (trap #).
+- pretax_equivalent_rate_pct = statutory rate / (# - buyer tax rate), rounded half-up to #.##: ##.## / (# - #.###) = ##.##.
+- Each deferral checkpoint is a ## March in [due_date, calculation_date] on or after section_##bh_first_fy; its cost is rounded to #.## first and the line total is their sum, matching the ledger's per-row rounding.
+- Checkpoint figures use the request's cost_of_capital_pct and years_deferred as given; the engine does not pick those defaults.
+- Deferral does not apply here because no qualifying ## March checkpoint fell in the window with principal still unpaid.
+- The expiry is the anchor date plus unknown year(s), where the anchor is the due date or, once one exists, the latest qualifying acknowledgment.
+- Only a signed balance confirmation or a part-payment restarts the clock, and only when its date falls on or after the current anchor, so an older signature can never shorten the period the statute allows.
+- Acknowledgments dated after the calculation date have not happened yet and are shown without restarting the clock.
+- Bands are measured in calendar months from the calculation date: the expiry date itself is still in time, and the day after it reads EXPIRED.
+- UNKNOWN means the inputs do not support a date, not that time remains.
+- A row's status answers the argument from the engine's own verdicts only; whether a document is also in the request is reported separately as evidence held or missing, so the two columns can be checked independently.
+- An arbitration clause and a set-off claim are always shown as an open question and are never decided here (OQ-#).
+- Where the engine has no verdict - no gate result, no agreed period, or an unknown limitation band - the row reads as an open question rather than guessing in either direction.
+- All seven rows are always returned, in the same order, so the panel can be compared between cases and the guidance card's first at-risk row is stable.
+- The score starts at ### and only loses points: it is ### plus every reason's delta, clamped between # and ###, so adding up the reasons reproduces it exactly.
+- With delivery proof missing the score is also capped at ##, which section #.# and #.# both call for. Its deduction is exactly ### - ##, so the formula above still reproduces the capped number, and the reason says so in its own text rather than adjusting anything silently.
+- The band comes from the gate, not from the score: a Silpi, trader or medium block sets BLOCKED and leaves the score where it is, which is why that reason carries a delta of zero.
+- missing[] lists the evidence still needed for a complete pack. WhatsApp messages are treated as optional, so they are never deducted and never listed as missing.
+- The next stage follows structural facts only - unresolved proof, a blocked gate, no due date yet, eligibility still open, evidence complete - with no day thresholds invented: Stage # to cure or wait, Stage # to resolve eligibility, Stage # to settle while paperwork is outstanding, Stage # when everything is held.
+
+## Open points from this calculation
+
+- Whether the Silpi works-contract test runs from the date of the contract or from the date of supply is still an open question (OQ-#, source V#). The config value silpi_test_date is null, so this check cannot decide. It is neither a pass nor a fail, and no silpi bar is being applied to this case.
+- These promises to pay are recorded as potential acknowledgments but do not restart the limitation clock (####-##-##). A promise in a chat thread is not a signed balance confirmation or a part-payment; only those two move the date shown here.
+- The config has no limitation period, so no expiry date could be computed. The status below is UNKNOWN: this is an absence of a figure, not a finding that there is plenty of time left.
+- Constant 'appropriation_mode_default' is not verified against the statute sheet (source 'open:section #'). Treat any number that depends on it as provisional until the statute sheet is captured.
+- Constant 'bank_rate_epochs' is not verified against the statute sheet (source 'V#'). Treat any number that depends on it as provisional until the statute sheet is captured.
+- Constant 'credit_cap_days' is not verified against the statute sheet (source 'V#:s.## proviso'). Treat any number that depends on it as provisional until the statute sheet is captured.
+- Constant 'day_count_fraction_days' is not verified against the statute sheet (source 'convention:section #'). Treat any number that depends on it as provisional until the statute sheet is captured.
+- Constant 'gated_features' is not verified against the statute sheet (source 'V#'). Treat any number that depends on it as provisional until the statute sheet is captured.
+- Constant 'interest_multiplier' is not verified against the statute sheet (source 'V#:s.##'). Treat any number that depends on it as provisional until the statute sheet is captured.
+- Constant 'limitation_years' is null (source 'V#'). Treat any number that depends on it as provisional until the statute sheet is captured.
+- Constant 'objection_window_days' is not verified against the statute sheet (source 'V#:s.#(b)'). Treat any number that depends on it as provisional until the statute sheet is captured.
+- Constant 'payment_boundary_convention' is not verified against the statute sheet (source 'open:OQ-#'). Treat any number that depends on it as provisional until the statute sheet is captured.
+- Constant 'rate_mode_default' is not verified against the statute sheet (source 'open:OQ-#'). Treat any number that depends on it as provisional until the statute sheet is captured.
+- Constant 'silpi_test_date' is null (source 'V#'). Treat any number that depends on it as provisional until the statute sheet is captured.
+- Constant 'size_epochs' is not verified against the statute sheet (source 'V#'). Treat any number that depends on it as provisional until the statute sheet is captured.
+- Constant 'trader_nic_prefixes' is not verified against the statute sheet (source 'V#'). Treat any number that depends on it as provisional until the statute sheet is captured.
+
+---
+
+*Not legal advice. This draft was generated by SamadhaanOS from the data entered for case_## and the figures the engine returned as on ####-##-##. It is decision support, not a lawyer's opinion, not a filing, and not a government form. Nothing is sent automatically: the owner reviews, edits and approves every draft.*

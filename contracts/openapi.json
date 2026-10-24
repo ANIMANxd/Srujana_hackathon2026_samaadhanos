@@ -61,6 +61,99 @@
         "title": "AppropriationMode",
         "type": "string"
       },
+      "ArtifactGenerationRequest": {
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/ArtifactKind"
+          },
+          "request": {
+            "$ref": "#/components/schemas/CaseEvaluationRequest"
+          },
+          "settlement": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SettlementTerms"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "kind",
+          "request"
+        ],
+        "title": "ArtifactGenerationRequest",
+        "type": "object"
+      },
+      "ArtifactKind": {
+        "enum": [
+          "STAGE1_ACCEPTANCE_NOTE",
+          "STAGE1_BALANCE_CONFIRMATION",
+          "STAGE2_CFO_MEMO",
+          "STAGE3_SETTLEMENT_TERMSHEET",
+          "STAGE4_EVIDENCE_PACK"
+        ],
+        "title": "ArtifactKind",
+        "type": "string"
+      },
+      "ArtifactResponse": {
+        "properties": {
+          "contract_version": {
+            "default": "1.0",
+            "title": "Contract Version",
+            "type": "string"
+          },
+          "filename": {
+            "title": "Filename",
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/ArtifactKind"
+          },
+          "markdown": {
+            "title": "Markdown",
+            "type": "string"
+          },
+          "pdf_base64": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pdf Base64"
+          },
+          "pdf_filename": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pdf Filename"
+          },
+          "warnings": {
+            "items": {
+              "$ref": "#/components/schemas/Warning"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "kind",
+          "filename",
+          "markdown"
+        ],
+        "title": "ArtifactResponse",
+        "type": "object"
+      },
       "Buyer": {
         "properties": {
           "cost_of_capital_pct": {
@@ -1306,6 +1399,30 @@
         "title": "SettlementSimulationResponse",
         "type": "object"
       },
+      "SettlementTerms": {
+        "description": "The offer a Stage 3 term sheet prices: what the negotiator is proposing.",
+        "properties": {
+          "days_to_second_payment": {
+            "title": "Days To Second Payment",
+            "type": "integer"
+          },
+          "upfront_pct": {
+            "title": "Upfront Pct",
+            "type": "string"
+          },
+          "waiver_pct": {
+            "title": "Waiver Pct",
+            "type": "string"
+          }
+        },
+        "required": [
+          "upfront_pct",
+          "waiver_pct",
+          "days_to_second_payment"
+        ],
+        "title": "SettlementTerms",
+        "type": "object"
+      },
       "SilpiTestDate": {
         "enum": [
           "CONTRACT",
@@ -1735,6 +1852,45 @@
           }
         },
         "summary": "Evaluate Case"
+      }
+    },
+    "/api/v1/generate-artifact": {
+      "post": {
+        "description": "Draft one artifact for this case (section 8.1).\n\nThe case is evaluated first, so the draft is filled from the engine's own\nfigures rather than from anything the client sends (golden rule 7). When the\nstage cannot be produced - the gate stopped the case, or a figure the draft\nneeds was never computed - the response still carries markdown: an honest\nnote saying why that stage is unavailable, never a half-filled document.\nNothing is sent anywhere; the PDF is optional and its failure degrades to\nmarkdown plus a `warnings[]` entry rather than an error.",
+        "operationId": "generate_artifact_api_v1_generate_artifact_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ArtifactGenerationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArtifactResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Generate Artifact"
       }
     },
     "/api/v1/health": {

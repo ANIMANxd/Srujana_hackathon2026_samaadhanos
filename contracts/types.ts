@@ -47,6 +47,34 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/generate-artifact": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Generate Artifact
+         * @description Draft one artifact for this case (section 8.1).
+         *
+         *     The case is evaluated first, so the draft is filled from the engine's own
+         *     figures rather than from anything the client sends (golden rule 7). When the
+         *     stage cannot be produced - the gate stopped the case, or a figure the draft
+         *     needs was never computed - the response still carries markdown: an honest
+         *     note saying why that stage is unavailable, never a half-filled document.
+         *     Nothing is sent anywhere; the PDF is optional and its failure degrades to
+         *     markdown plus a `warnings[]` entry rather than an error.
+         */
+        post: operations["generate_artifact_api_v1_generate_artifact_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/health": {
         parameters: {
             query?: never;
@@ -163,6 +191,36 @@ export interface components {
          * @enum {string}
          */
         AppropriationMode: "INTEREST_FIRST" | "PRINCIPAL_FIRST";
+        /** ArtifactGenerationRequest */
+        ArtifactGenerationRequest: {
+            kind: components["schemas"]["ArtifactKind"];
+            request: components["schemas"]["CaseEvaluationRequest"];
+            settlement?: components["schemas"]["SettlementTerms"] | null;
+        };
+        /**
+         * ArtifactKind
+         * @enum {string}
+         */
+        ArtifactKind: "STAGE1_ACCEPTANCE_NOTE" | "STAGE1_BALANCE_CONFIRMATION" | "STAGE2_CFO_MEMO" | "STAGE3_SETTLEMENT_TERMSHEET" | "STAGE4_EVIDENCE_PACK";
+        /** ArtifactResponse */
+        ArtifactResponse: {
+            /**
+             * Contract Version
+             * @default 1.0
+             */
+            contract_version: string;
+            /** Filename */
+            filename: string;
+            kind: components["schemas"]["ArtifactKind"];
+            /** Markdown */
+            markdown: string;
+            /** Pdf Base64 */
+            pdf_base64?: string | null;
+            /** Pdf Filename */
+            pdf_filename?: string | null;
+            /** Warnings */
+            warnings?: components["schemas"]["Warning"][];
+        };
         /** Buyer */
         Buyer: {
             /** Cost Of Capital Pct */
@@ -611,6 +669,18 @@ export interface components {
             waiver_pct: string;
         };
         /**
+         * SettlementTerms
+         * @description The offer a Stage 3 term sheet prices: what the negotiator is proposing.
+         */
+        SettlementTerms: {
+            /** Days To Second Payment */
+            days_to_second_payment: number;
+            /** Upfront Pct */
+            upfront_pct: string;
+            /** Waiver Pct */
+            waiver_pct: string;
+        };
+        /**
          * SilpiTestDate
          * @enum {string}
          */
@@ -758,6 +828,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CaseEvaluationResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    generate_artifact_api_v1_generate_artifact_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ArtifactGenerationRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ArtifactResponse"];
                 };
             };
             /** @description Validation Error */

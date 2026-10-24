@@ -12,6 +12,10 @@ from typing import Annotated
 
 from pydantic import BaseModel, ConfigDict, Field, PlainSerializer, WithJsonSchema
 
+# The kind list lives with the templates so the route and the templates read one
+# source; schemas re-exports it as part of the contract (section 8.1).
+from backend.artifacts.kinds import ArtifactKind
+
 CONTRACT_VERSION = "1.0"
 
 # Decimal in Python, string in JSON and in the OpenAPI schema.
@@ -431,6 +435,40 @@ class SettlementSimulationResponse(ContractModel):
     waiver_pct: DecStr
     days_to_second_payment: int
     assumptions: list[str]
+
+
+# --------------------------------------------- 8.1 generate-artifact ----
+# Section 8.1 gives this endpoint's shapes as one-liners (`{kind, request}` in,
+# `{filename, markdown, pdf_base64?}` out). These are the additive models behind
+# them: no shipped field changed, so the contract stays 1.0 (CQ-35's reading of
+# section 9). `settlement` is optional and only Stage 3 reads it; when it is
+# absent, the draft states the neutral starting terms it was made with.
+
+
+class SettlementTerms(ContractModel):
+    """The offer a Stage 3 term sheet prices: what the negotiator is proposing."""
+
+    upfront_pct: DecStr
+    waiver_pct: DecStr
+    days_to_second_payment: int
+
+
+class ArtifactGenerationRequest(ContractModel):
+    kind: ArtifactKind
+    request: CaseEvaluationRequest
+    settlement: SettlementTerms | None = None
+
+
+class ArtifactResponse(ContractModel):
+    contract_version: str = CONTRACT_VERSION
+    kind: ArtifactKind
+    filename: str
+    markdown: str
+    # Present only when the PDF rendered; markdown is always present, so a PDF
+    # failure degrades to text plus a `warnings[]` entry rather than an error.
+    pdf_base64: str | None = None
+    pdf_filename: str | None = None
+    warnings: list[Warning] = Field(default_factory=list)
 
 
 # ----------------------------------------------------------- error model ----
