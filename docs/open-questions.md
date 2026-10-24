@@ -34,6 +34,9 @@ the `contract-v1` tag is an additive-only or human-approved change (section 9).
 | CQ-7 | Error shape on 422 and 404 | `{error: {code, message, field?}}`; 422 → `VALIDATION_ERROR`, 404 → `NOT_FOUND` | Section 8.1 defines the error envelope; codes follow the UPPER_SNAKE enum rule |
 | CQ-8 | `contract_version` on request | Optional, defaults to `"1.0"` | Doc lists it as a field but not required; defaulting keeps hand-built requests valid |
 | CQ-9 | `/evaluate-case` placeholder | Returns a fixed sample; echoes only `case_id` and `calculation_date` from the request | Neither echo is legal math; everything else is a labelled constant (golden rule 7) |
+| CQ-10 | `days_overdue` counting (6.2 says only "vs calculation_date, null if not yet appointed") | Counts calendar days after `due_date`, starting at 1 on the appointed day; null while `calculation_date < appointed_day` | Appointed day is due date + 1, so "days overdue" runs from the due date; this makes the value start at 1 rather than 0 on the first overdue day and never show 0 |
+| CQ-11 | Several qualifying objections, 6.2 describes one | Acceptance is the **latest** `resolved_date`; any one still unresolved leaves acceptance null with a `PENDING_RESOLUTION` warning | The clock cannot resume until the last objection inside the window clears; guessing an earlier date would understate the delay |
+| CQ-12 | What `invoice_date` is for in 6.2 | Accepted as an input, never used to anchor anything; kept in the signature so "anchor on delivery" is testable rather than prose | Section 7 makes delivery the anchor, so the invoice date must demonstrably not move the clock |
 
 ## New entries
 
