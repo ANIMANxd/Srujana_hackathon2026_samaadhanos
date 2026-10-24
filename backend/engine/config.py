@@ -119,6 +119,16 @@ class TaxPreset:
     tax_rate_pct: Decimal
 
 
+@dataclass(frozen=True)
+class ConfigEntry:
+    """One config entry as stored: value, source, verified flag, note (section 5)."""
+
+    value: Any
+    source_ref: str
+    verified: bool
+    note: str
+
+
 # ------------------------------------------------------------------ loader ----
 
 
@@ -359,6 +369,18 @@ class StatuteConfig:
 
     def payment_boundary_convention(self) -> str | None:
         return self._require_value("payment_boundary_convention")
+
+    def entry(self, key: str) -> ConfigEntry:
+        """The full {value, source_ref, verified, note} entry for `key`.
+
+        Marks the key as used, so a citation built from it also puts the key in
+        the UNVERIFIED_CONSTANT warnings. Use this when a rule reads a constant
+        to cite it, not just to compute with it.
+        """
+        if key not in self._entries:
+            raise ConfigError(f"statute config is missing required key {key!r}")
+        self._mark_used(key)
+        return ConfigEntry(**self._entries[key])
 
     def silpi_test_date(self) -> str | None:
         return self._require_value("silpi_test_date")
