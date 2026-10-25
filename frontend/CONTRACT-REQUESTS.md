@@ -22,6 +22,7 @@ Status key: **open** = not done yet. **done** = shipped by the backend and used 
 | CR-8 | Bank-rate epochs before 2026-04-01, or preset dates inside the covered epochs | `bank_rate_on` raised `NoEpochFound` for older delays | Presets are now dated inside the configured epochs. Edited dates outside them show the engine's 400 message and keep the last good result | done |
 | CR-9 | Buyer grouping by PAN (B11), or portfolio totals per buyer group | Dues summary ("total overdue across buyers") | Counts only, with a note. Adding money in the browser would be legal math (golden rule 6) | open |
 | CR-10 | `POST /api/v1/simulate-settlement` | Stage 3 settlement numbers | Endpoint shipped. The Stage 3 draft from `generate-artifact` already carries the split; a dedicated simulator UI is not built yet | done (UI optional) |
+| CR-12 | Makefile: wire the frontend targets now that F0 has landed. Suggested recipes (no sh syntax, per the Makefile header): `frontend:` → `npm --prefix frontend run dev`; `dev:` → start `backend` and `frontend` (two terminals is fine); `demo:` → `npm --prefix frontend run dev` after `fixtures` | F0 acceptance says `make dev` shows the shell; the Makefile is outside the frontend boundary | Run `npm run dev` inside `frontend/` (README) | open |
 | CR-11 | Spec findings F1–F7 in `docs/test-oracles.md` (e.g. F1 rest-day payment dropped, F3 Silpi date never compared) | Judge manipulations 4 and 5 show engine output as-is | Nothing to change in the UI; it shows whatever the engine returns | open (engine) |
 
 ## Notes for running together

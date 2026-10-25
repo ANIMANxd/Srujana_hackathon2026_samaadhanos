@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 // Fonts are bundled from npm (not fetched from Google) so the demo runs offline.
 import "@fontsource-variable/geist";
 import "@fontsource-variable/geist-mono";
+import "@fontsource-variable/noto-sans-kannada";
 import "./globals.css";
 import { en } from "@/lib/i18n/en";
 

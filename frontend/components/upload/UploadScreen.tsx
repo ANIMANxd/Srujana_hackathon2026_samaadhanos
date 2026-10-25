@@ -204,7 +204,7 @@ function Review({ result, onCancel }: { result: Result; onCancel: () => void }) 
                   aria-invalid={!valid}
                   onFocus={() => setSelected(k)}
                   onChange={(e) => setField(k, e.target.value.trim())}
-                  placeholder={FIELD_PATTERN[k] === DATE ? "YYYY-MM-DD" : undefined}
+                  placeholder={FIELD_PATTERN[k] === DATE ? t("common.date_format") : undefined}
                 />
               </li>
             );
@@ -298,7 +298,7 @@ function Review({ result, onCancel }: { result: Result; onCancel: () => void }) 
           </label>
           <label>
             <span className="field-label">{t("upload.field.udyam_date")}</span>
-            <input className="field-input num" placeholder="YYYY-MM-DD" value={udyamDate} aria-invalid={udyamDate !== "" && !DATE.test(udyamDate)} onChange={(e) => setUdyamDate(e.target.value.trim())} />
+            <input className="field-input num" placeholder={t("common.date_format")} value={udyamDate} aria-invalid={udyamDate !== "" && !DATE.test(udyamDate)} onChange={(e) => setUdyamDate(e.target.value.trim())} />
           </label>
           <label>
             <span className="field-label">{t("upload.field.calculation_date")}</span>

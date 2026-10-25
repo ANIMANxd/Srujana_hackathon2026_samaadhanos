@@ -17,6 +17,11 @@ export const en = {
   "nav.main": "Main",
   "nav.judge": "Judge console",
   "nav.breadcrumb": "Breadcrumb",
+  "nav.language": "Language",
+  "lang.en": "English",
+  "lang.kn": "ಕನ್ನಡ",
+  "lang.en_short": "EN",
+  "lang.kn_short": "ಕ",
 
   "conn.live": "Engine live",
   "conn.offline": "Offline · saved results",
@@ -52,6 +57,7 @@ export const en = {
   "common.unknown": "Not known",
   "common.why": "Why?",
   "common.hide": "Hide",
+  "common.date_format": "YYYY-MM-DD",
 
   // ----------------------------------------------------------- dues ----
   "dues.title": "Dues",
@@ -434,6 +440,7 @@ export const en = {
   // ----------------------------------------------------------- judge ----
   "judge.title": "Judge console",
   "judge.hint": "Ctrl+J opens or closes this panel.",
+  "judge.kbd": "⌃J",
   "judge.presets": "Presets",
   "judge.load": "Load",
   "judge.edit": "Live edit",

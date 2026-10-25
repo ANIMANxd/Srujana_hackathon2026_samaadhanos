@@ -43,9 +43,13 @@
   --color-info: #475467;
   --color-info-wash: #f2f4f6;
 
-  --font-display: "Geist Variable", "Segoe UI", system-ui, sans-serif;
-  --font-sans: "Geist Variable", "Segoe UI", system-ui, sans-serif;
-  --font-mono: "Geist Mono Variable", ui-monospace, "Cascadia Mono", monospace;
+  /* Kannada glyphs fall through Geist to the bundled Noto Sans Kannada. */
+  --font-display: "Geist Variable", "Noto Sans Kannada Variable", "Segoe UI", system-ui, sans-serif;
+  --font-sans: "Geist Variable", "Noto Sans Kannada Variable", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "Geist Mono Variable", "Noto Sans Kannada Variable", ui-monospace, "Cascadia Mono", monospace;
+
+  /* spacing: 4px base unit; components use 8px steps for groups */
+  --spacing: 0.25rem;
 
   /* type scale: body 16px, hero figure 44px */
   --text-xs: 0.75rem;
@@ -69,6 +73,26 @@
   --animate-pulse-dot: pulse-dot 2s ease-in-out infinite;
 }
 
+/*
+ * Persona tones (architecture §10: "contrast checked for both persona themes").
+ * Supplier workspace = the @theme defaults above: warm, calm, plain.
+ * Buyer CFO view = [data-tone="cfo"]: a cooler advisory surface whose accent is
+ * a calm slate blue instead of saffron. Token NAMES stay the same so every
+ * component re-tones without changes; "saffron" means "the tone's accent".
+ * Text contrast on white: accent-600 ≥ 6:1, accent-ink ≥ 9:1; the accent-500
+ * is used for non-text marks and focus only (≥ 3:1 against the canvas).
+ */
+[data-tone="cfo"] {
+  --color-paper: #f5f6f8;
+  --color-paper-sunk: #eef0f3;
+  --color-rule: #e4e7eb;
+  --color-rule-strong: #d3d8de;
+  --color-saffron-600: #2c5a85;
+  --color-saffron-500: #4a78a6;
+  --color-saffron-100: #eaf1f8;
+  --color-saffron-ink: #1d4064;
+}
+
 @keyframes tick {
   from { color: var(--color-saffron-600); }
   to { color: inherit; }
@@ -85,8 +109,8 @@
 }
 
 @keyframes pulse-dot {
-  0%, 100% { box-shadow: 0 0 0 0 rgb(217 115 13 / 0.45); }
-  50% { box-shadow: 0 0 0 5px rgb(217 115 13 / 0); }
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-saffron-500) 45%, transparent); }
+  50% { box-shadow: 0 0 0 5px transparent; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -120,7 +144,7 @@ body {
 
 /* Visible, consistent focus everywhere (F0 / F9). */
 :focus-visible {
-  outline: 2px solid var(--color-saffron-500);
+  outline: 2px solid var(--color-saffron-600);
   outline-offset: 2px;
   border-radius: var(--radius-sm);
 }

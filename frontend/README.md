@@ -48,7 +48,8 @@ samples show the extractor's saved results, and edited or uploaded cases say
 | `/eligibility/[id]` | Does the law cover me? (shown instead of the case when the gate blocks) |
 
 Judge console: **Ctrl+J**, or `?judge=1`. Presets plus a live edit form.
-URL params: `?view=supplier|cfo`, `?lang=en|kn` (Kannada is a stretch goal; it falls back to English).
+URL params: `?view=supplier|cfo`, `?lang=en|kn`. The EN / ಕ toggle in the top bar sets `lang`; `kn.ts` covers the shell and the main case card (legal terms kept in English in brackets, native-speaker review still needed) and every missing key falls back to English.
+`?view=` also sets the persona tone: the supplier workspace is warm with a saffron accent, and the buyer CFO view is cooler with a slate-blue accent (`[data-tone]` in `app/globals.css`).
 
 ## Layout
 
