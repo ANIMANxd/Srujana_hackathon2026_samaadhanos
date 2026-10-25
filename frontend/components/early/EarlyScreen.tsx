@@ -41,6 +41,7 @@ export function EarlyScreen({ caseId }: { caseId: string }) {
   const ev = useEvaluation(caseId);
   const tracking = ev.tracking;
   const [signOpen, setSignOpen] = useState(false);
+  const [signedWaiting, setSignedWaiting] = useState(false);
 
   const detail = tracking?.caseDetail ?? null;
   const track = tracking?.track ?? null;
@@ -161,8 +162,13 @@ export function EarlyScreen({ caseId }: { caseId: string }) {
       return (
         <div className="flex flex-col gap-3">
           <p className="text-sm text-ink-700">{t("early.sign.intro")}</p>
+          {signedWaiting && (
+            <div role="status" aria-live="polite">
+              <StatusIcon tone="info" icon="clock" label={t("early.sign.waiting")} />
+            </div>
+          )}
           <div className="flex flex-wrap items-start gap-3">
-            <button type="button" className="btn btn-primary" onClick={() => setSignOpen(true)}>
+            <button type="button" className="btn btn-primary" disabled={signedWaiting} onClick={() => setSignOpen(true)}>
               {t("early.sign.open")}
             </button>
             {actions.includes("cancel_financing") && (
@@ -263,6 +269,12 @@ export function EarlyScreen({ caseId }: { caseId: string }) {
         <ESignModal
           open={signOpen}
           onClose={() => setSignOpen(false)}
+          onSigned={() => {
+            setSignOpen(false);
+            setSignedWaiting(true);
+          }}
+          supplierName={ev.request?.supplier.name ?? ""}
+          buyerName={ev.request?.buyer.name ?? ""}
           caseId={caseId}
           invoiceNo={invoiceNo}
           acceptedAmount={detail.case.accepted_amount}

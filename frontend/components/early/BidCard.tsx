@@ -1,39 +1,12 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
 import type { MutationOptions } from "@/lib/api";
 import { date as fmtDate, money, pct } from "@/lib/format";
 import { useT } from "@/lib/i18n";
 import type { Bid } from "@/lib/types";
+import { timeLeft, useNow } from "@/lib/useNow";
 import { IdempotentButton } from "../common/IdempotentButton";
 import { StatusIcon } from "../common/StatusIcon";
-
-const TICK_MS = 30_000;
-
-function subscribe(onChange: () => void): () => void {
-  const id = setInterval(onChange, TICK_MS);
-  return () => clearInterval(id);
-}
-
-/** Wall-clock time in 30 s steps. 0 on the server, so nothing time-based is rendered until the browser has it. */
-function useNow(): number {
-  return useSyncExternalStore(
-    subscribe,
-    () => Math.floor(Date.now() / TICK_MS) * TICK_MS,
-    () => 0,
-  );
-}
-
-/** "23h 41m" / "12m". Display only: the server decides whether a bid is still valid. */
-function timeLeft(validUntil: string, now: number): { text: string; expired: boolean } | null {
-  if (now === 0) return null;
-  const ms = Date.parse(validUntil) - now;
-  if (Number.isNaN(ms)) return null;
-  if (ms <= 0) return { text: "", expired: true };
-  const mins = Math.floor(ms / 60_000);
-  const h = Math.floor(mins / 60);
-  return { text: h > 0 ? `${h}h ${mins % 60}m` : `${Math.max(mins, 1)}m`, expired: false };
-}
 
 /**
  * One financier's offer. Every figure is the server's. There is no "best" mark:

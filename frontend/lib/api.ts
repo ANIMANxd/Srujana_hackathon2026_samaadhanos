@@ -296,6 +296,11 @@ export function getEsignSession(id: string): Promise<Sourced<ESignSession>> {
   return readOrSample(() => call<ESignSession>(`${caseUrl(id)}/financing/esign`), offlineEsign);
 }
 
+/** The TEMPLATE PDF the signature is for (assumed route; opened in a new tab, never fetched here). */
+export function esignTemplateUrl(id: string): string {
+  return `${BASE}${caseUrl(id)}/financing/esign/template.pdf`;
+}
+
 /** Submit the demo OTP. No Aadhaar field exists anywhere in this call. */
 export function submitEsignOtp(id: string, otp: string, opts: MutationOptions): Promise<ESignSession> {
   return mutate<ESignSession>(`${caseUrl(id)}/financing/esign/otp`, opts, { otp });
