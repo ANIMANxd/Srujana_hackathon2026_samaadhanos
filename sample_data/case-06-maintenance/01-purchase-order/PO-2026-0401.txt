@@ -1,0 +1,31 @@
+SPECIMEN - SYNTHETIC DATA - NOT A REAL DOCUMENT
+Generated for the SamadhaanOS sample corpus - every party, GSTIN and amount is fictional.
+
+Sample Buyer Seven Pvt Ltd (synthetic)
+PURCHASE ORDER
+SYNTHETIC SPECIMEN
+Plot 21, Fictional Trade Centre
+Sample Nagar, Karnataka 560000, India
+GSTIN: 29SYN000000006Z1
+Email: purchase@example.invalid
+
+Buyer: Sample Buyer Seven Pvt Ltd (synthetic)   GSTIN: 29SYN000000006Z1
+Plot 21, Fictional Trade Centre, Sample Nagar, Karnataka 560000, India
+
+Supplier: Sample Maintenance Services (synthetic)   GSTIN: 29SYN000000013Z1
+Unit 2, Fictional Trade Centre, Sample Nagar, Karnataka 560000, India
+
+PO No: PO-2026-0401
+Order date: 20/03/2026
+Delivery date: 01/04/2026
+Payment terms: Net 30 days from delivery
+Delivery instructions: Fictional Industrial Estate stores, gate 2
+Description  HSN/SAC  Qty  Rate  Basic value
+Annual maintenance visit - HVAC, April to September 2026  998719  1  2,11,000.00  2,11,000.00
+Freight and packing (reimbursement)  9965  1  864.41  864.41
+Basic value: 2,11,864.41
+GST: 18.00% extra as applicable
+Estimated total: Rs 2,50,000.00
+Notes: The estimated total is inclusive of GST at 18.00%. Please quote PO-2026-0401 on your invoice. Deliver in one lot. Order quantity: 1 units.
+
+SYNTHETIC SAMPLE - generated for the SamadhaanOS demo. Not a real purchase order. The Net-90 term is a demo of a contractual term that does not move the statutory clock; the engine decides that, not this page.

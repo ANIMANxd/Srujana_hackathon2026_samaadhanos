@@ -1,0 +1,31 @@
+SPECIMEN - SYNTHETIC DATA - NOT A REAL DOCUMENT
+Generated for the SamadhaanOS sample corpus - every party, GSTIN and amount is fictional.
+
+Sample Buyer Corp (synthetic)
+PURCHASE ORDER
+SYNTHETIC SPECIMEN
+Plot 9, Fictional Trade Centre
+Sample Nagar, Karnataka 560000, India
+GSTIN: 29SYN000000000Z1
+Email: purchase@example.invalid
+
+Buyer: Sample Buyer Corp (synthetic)   GSTIN: 29SYN000000000Z1
+Plot 9, Fictional Trade Centre, Sample Nagar, Karnataka 560000, India
+
+Supplier: Sample Supplies Pvt Ltd (synthetic)   GSTIN: 29SYN000000010Z1
+Plot 14, Fictional Industrial Estate, Sample Nagar, Karnataka 560000, India
+
+PO No: PO-2026-0114
+Order date: 15/01/2026
+Delivery date: 16/02/2026
+Payment terms: Net 90 days from delivery
+Delivery instructions: Fictional Industrial Estate stores, gate 2
+Description  HSN/SAC  Qty  Rate  Basic value
+Fabricated component, MS bracket, 12 mm  7308  100  10,593.22  10,59,322.00
+Freight and packing (reimbursement)  9965  1  0.00  0.00
+Basic value: 10,59,322.00
+GST: 18.00% extra as applicable
+Estimated total: Rs 12,50,000.00
+Notes: The estimated total is inclusive of GST at 18.00%. Please quote PO-2026-0114 on your invoice. Deliver in one lot. Order quantity: 100 units.
+
+SYNTHETIC SAMPLE - generated for the SamadhaanOS demo. Not a real purchase order. The Net-90 term is a demo of a contractual term that does not move the statutory clock; the engine decides that, not this page.

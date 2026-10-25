@@ -1,0 +1,25 @@
+SPECIMEN - SYNTHETIC DATA - NOT A REAL DOCUMENT
+Generated for the SamadhaanOS sample corpus - every party, GSTIN and amount is fictional.
+
+Sample Supplies Pvt Ltd (synthetic)
+GST RETURN - GSTR-3B
+SYNTHETIC EXTRACT
+Plot 14, Fictional Industrial Estate
+Sample Nagar, Karnataka 560000, India
+Email: accounts@example.invalid
+
+Summary of outward taxable supplies for the period, as a supplier would export it. This is not a GST portal document and it is not a filing. Every figure is synthetic.
+GSTIN: 29SYN000000010Z1
+Legal name: Sample Supplies Pvt Ltd (synthetic)
+Return form: GSTR-3B
+Return period: February 2026
+Filed on: 20/03/2026
+Status: Filed (synthetic)
+Invoice No: INV-2026-0042
+Invoice date: 16/02/2026
+Tax head  Amount
+Taxable value  10,59,322.00
+CGST  95,338.98
+SGST  95,338.98
+Invoice value  Rs 12,50,000.00
+A return extract shows what was declared. It does not prove payment, acceptance, or the buyer's position.

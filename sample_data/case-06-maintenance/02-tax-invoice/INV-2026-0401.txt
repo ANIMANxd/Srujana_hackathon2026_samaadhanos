@@ -1,0 +1,35 @@
+SPECIMEN - SYNTHETIC DATA - NOT A REAL DOCUMENT
+Generated for the SamadhaanOS sample corpus - every party, GSTIN and amount is fictional.
+
+Sample Maintenance Services (synthetic)
+TAX INVOICE
+ORIGINAL FOR RECIPIENT
+Unit 2, Fictional Trade Centre
+Sample Nagar, Karnataka 560000, India
+GSTIN: 29SYN000000013Z1
+Email: accounts@example.invalid
+
+Supplier: Sample Maintenance Services (synthetic)   GSTIN: 29SYN000000013Z1
+Bill to: Sample Buyer Seven Pvt Ltd (synthetic)   GSTIN: 29SYN000000006Z1
+Unit 2, Fictional Trade Centre, Sample Nagar, Karnataka 560000, India
+Plot 21, Fictional Trade Centre, Sample Nagar, Karnataka 560000, India
+
+Tax Invoice No: INV-2026-0401
+Date: 01/04/2026
+Your PO: PO-2026-0401
+Payment terms: Net 30 days
+Place of supply: Karnataka (29)
+Description  HSN/SAC  Qty  Rate  Amount
+Annual maintenance visit - HVAC, April to September 2026  998719  1  2,11,000.00  2,11,000.00
+Freight and packing (reimbursement)  9965  1  864.41  864.41
+Taxable value: 2,11,864.41
+CGST @ 9%: 19,067.80
+SGST @ 9%: 19,067.80
+Round off: -0.01
+Grand Total: Rs 2,50,000.00
+Amount in words: Rupees Two Lakh Fifty Thousand Only
+Bank details: Fictional Bank A, A/c 000000000000, IFSC FICT0000001 (fictional, for layout only).
+
+SYNTHETIC SAMPLE - generated for the SamadhaanOS demo. Not a real tax invoice. No real party, GSTIN or supply is represented.
+For Sample Maintenance Services (synthetic)
+Authorised signatory (fictional)

@@ -1,0 +1,24 @@
+SPECIMEN - SYNTHETIC DATA - NOT A REAL DOCUMENT
+Generated for the SamadhaanOS sample corpus - every party, GSTIN and amount is fictional.
+
+Sample Micro Works (synthetic)
+UDYAM REGISTRATION
+DATA EXTRACT - NOT A CERTIFICATE
+Shed 3, Fictional Industrial Estate
+Sample Nagar, Karnataka 560000, India
+Email: accounts@example.invalid
+
+NOT AN UDYAM REGISTRATION CERTIFICATE. This page is a synthetic transcription of the fields a supplier reads from their own certificate, for OCR testing. It is not issued by any authority, has no legal effect, and SamadhaanOS never generates government documents (AGENTS.md golden rules 9 and 17).
+Udyam Registration Number: UDYAM-SYN-000000001
+Name of Enterprise: Sample Micro Works (synthetic)
+Enterprise Type: Micro
+Major Activity: Manufacturing
+NIC Code: 25920
+Registered on: 01/04/2022
+Social Category: General
+Unit Address: Shed 3, Fictional Industrial Estate, Sample Nagar, Karnataka 560000, India
+District / State: Sample Nagar / Karnataka
+Investment in Plant and Machinery: Rs 40,00,000
+Annual Turnover: Rs 2,00,00,000
+GSTIN: 29SYN000000011Z1
+The page states the enterprise's own declared particulars. Whether the supplier qualifies under the Act is decided by the engine from the case input, not from this page.

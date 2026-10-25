@@ -1,0 +1,9 @@
+SPECIMEN - SYNTHETIC DATA - NOT A REAL DOCUMENT
+Synthetic WhatsApp export for the SamadhaanOS demo. Knock-off names, no real people.
+
+15/03/2026, 10:05 AM - Anu (fictional): Dispatched 300 units against invoice INV-2026-0209 this morning.
+15/03/2026, 4:30 PM - Buyer Stores (fictional): We received the 300 units today. GRN signed, thanks.
+24/03/2026, 11:20 AM - Buyer Stores (fictional): Day 9 after delivery: 18 bushes are defective and 4 are cracked. We are rejecting those 22 pieces.
+27/03/2026, 3:00 PM - Anu (fictional): Noted. Replacement for the 22 rejected pieces is dispatched today.
+02/04/2026, 9:02 AM - Buyer Stores (fictional): Replacement received, the issue is resolved. Thanks for the quick fix.
+09/04/2026, 5:45 PM - Buyer Accounts (fictional): We are waiting for the credit note for the rejected pieces.

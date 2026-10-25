@@ -1,0 +1,36 @@
+SPECIMEN - SYNTHETIC DATA - NOT A REAL DOCUMENT
+Generated for the SamadhaanOS sample corpus - every party, GSTIN and amount is fictional.
+
+Sample Micro Works (synthetic)
+TAX INVOICE
+ORIGINAL FOR RECIPIENT
+Shed 3, Fictional Industrial Estate
+Sample Nagar, Karnataka 560000, India
+GSTIN: 29SYN000000011Z1
+Email: accounts@example.invalid
+
+Supplier: Sample Micro Works (synthetic)   GSTIN: 29SYN000000011Z1
+Bill to: Sample Buyer Two Ltd (synthetic)   GSTIN: 29SYN000000001Z1
+Shed 3, Fictional Industrial Estate, Sample Nagar, Karnataka 560000, India
+Tower B, Fictional Trade Centre, Sample Nagar, Karnataka 560000, India
+
+Tax Invoice No: INV-2026-0209
+Date: 15/03/2026
+Your PO: PO-2026-0209
+Delivery date: 15/03/2026
+Payment terms: Net 30 days
+Place of supply: Karnataka (29)
+Description  HSN/SAC  Qty  Rate  Amount
+Machined bush, zinc plated, 25 mm  7318  300  845.00  2,53,500.00
+Freight and packing (reimbursement)  9965  1  737.29  737.29
+Taxable value: 2,54,237.29
+CGST @ 9%: 22,881.36
+SGST @ 9%: 22,881.36
+Round off: -0.01
+Grand Total: Rs 3,00,000.00
+Amount in words: Rupees Three Lakh Only
+Bank details: Fictional Bank A, A/c 000000000000, IFSC FICT0000001 (fictional, for layout only).
+
+SYNTHETIC SAMPLE - generated for the SamadhaanOS demo. Not a real tax invoice. No real party, GSTIN or supply is represented.
+For Sample Micro Works (synthetic)
+Authorised signatory (fictional)

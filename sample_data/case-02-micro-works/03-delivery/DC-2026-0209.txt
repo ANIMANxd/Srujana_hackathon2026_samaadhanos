@@ -1,0 +1,29 @@
+SPECIMEN - SYNTHETIC DATA - NOT A REAL DOCUMENT
+Generated for the SamadhaanOS sample corpus - every party, GSTIN and amount is fictional.
+
+Sample Micro Works (synthetic)
+DELIVERY CHALLAN
+NOT A TAX INVOICE
+Shed 3, Fictional Industrial Estate
+Sample Nagar, Karnataka 560000, India
+GSTIN: 29SYN000000011Z1
+Email: accounts@example.invalid
+
+Consignor: Sample Micro Works (synthetic)   GSTIN: 29SYN000000011Z1
+Shed 3, Fictional Industrial Estate, Sample Nagar, Karnataka 560000, India
+Consignee: Sample Buyer Two Ltd (synthetic)   GSTIN: 29SYN000000001Z1
+Tower B, Fictional Trade Centre, Sample Nagar, Karnataka 560000, India
+
+Challan No: DC-2026-0209
+Challan date: 15/03/2026
+Against Invoice No: INV-2026-0209
+Your PO: PO-2026-0209
+LR / Docket No: LR-SYN-0212
+Vehicle No: KA-00-SYN-0001
+Description  HSN/SAC  Qty  Remarks
+Machined bush, zinc plated, 25 mm  7318  300  Delivered in good condition
+Received the quantity shown above in good condition.
+
+For Sample Buyer Two Ltd (synthetic)
+Stores in-charge (fictional)
+SYNTHETIC SAMPLE - generated for the SamadhaanOS demo. Not a real delivery challan and not evidence of any real supply.

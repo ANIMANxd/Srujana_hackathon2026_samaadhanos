@@ -1,0 +1,29 @@
+SPECIMEN - SYNTHETIC DATA - NOT A REAL DOCUMENT
+Generated for the SamadhaanOS sample corpus - every party, GSTIN and amount is fictional.
+
+Sample Supplies Pvt Ltd (synthetic)
+DELIVERY CHALLAN
+NOT A TAX INVOICE
+Plot 14, Fictional Industrial Estate
+Sample Nagar, Karnataka 560000, India
+GSTIN: 29SYN000000010Z1
+Email: accounts@example.invalid
+
+Consignor: Sample Supplies Pvt Ltd (synthetic)   GSTIN: 29SYN000000010Z1
+Plot 14, Fictional Industrial Estate, Sample Nagar, Karnataka 560000, India
+Consignee: Sample Buyer Corp (synthetic)   GSTIN: 29SYN000000000Z1
+Plot 9, Fictional Trade Centre, Sample Nagar, Karnataka 560000, India
+
+Challan No: DC-2026-0088
+Challan date: 16/02/2026
+Against Invoice No: INV-2026-0042
+Your PO: PO-2026-0114
+LR / Docket No: LR-SYN-0091
+Vehicle No: KA-00-SYN-0000
+Description  HSN/SAC  Qty  Remarks
+Fabricated component, MS bracket, 12 mm  7308  100  Delivered in good condition
+Received the quantity shown above in good condition.
+
+For Sample Buyer Corp (synthetic)
+Stores in-charge (fictional)
+SYNTHETIC SAMPLE - generated for the SamadhaanOS demo. Not a real delivery challan and not evidence of any real supply.

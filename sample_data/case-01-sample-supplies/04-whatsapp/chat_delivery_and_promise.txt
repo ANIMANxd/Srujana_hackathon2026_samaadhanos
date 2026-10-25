@@ -1,0 +1,7 @@
+SPECIMEN - SYNTHETIC DATA - NOT A REAL DOCUMENT
+Synthetic WhatsApp export for the SamadhaanOS demo. Fictional parties, fictional numbers.
+
+16/02/2026, 9:40 AM - Anu (fictional): Vehicle left our works this morning with 100 units against invoice INV-2026-0042.
+16/02/2026, 4:30 PM - Buyer Stores (fictional): We received the 100 units today. GRN signed, no shortage.
+18/02/2026, 11:05 AM - Anu (fictional): Thanks. The PO says Net 90 days from delivery, so we were expecting payment by mid-May.
+10/04/2026, 5:45 PM - Buyer Accounts (fictional): Payment for the invoice will be released by 30 April.

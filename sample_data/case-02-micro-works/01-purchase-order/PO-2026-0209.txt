@@ -1,0 +1,31 @@
+SPECIMEN - SYNTHETIC DATA - NOT A REAL DOCUMENT
+Generated for the SamadhaanOS sample corpus - every party, GSTIN and amount is fictional.
+
+Sample Buyer Two Ltd (synthetic)
+PURCHASE ORDER
+SYNTHETIC SPECIMEN
+Tower B, Fictional Trade Centre
+Sample Nagar, Karnataka 560000, India
+GSTIN: 29SYN000000001Z1
+Email: purchase@example.invalid
+
+Buyer: Sample Buyer Two Ltd (synthetic)   GSTIN: 29SYN000000001Z1
+Tower B, Fictional Trade Centre, Sample Nagar, Karnataka 560000, India
+
+Supplier: Sample Micro Works (synthetic)   GSTIN: 29SYN000000011Z1
+Shed 3, Fictional Industrial Estate, Sample Nagar, Karnataka 560000, India
+
+PO No: PO-2026-0209
+Order date: 01/03/2026
+Delivery date: 15/03/2026
+Payment terms: Net 30 days from delivery
+Delivery instructions: Fictional Industrial Estate stores, gate 2
+Description  HSN/SAC  Qty  Rate  Basic value
+Machined bush, zinc plated, 25 mm  7318  300  845.00  2,53,500.00
+Freight and packing (reimbursement)  9965  1  737.29  737.29
+Basic value: 2,54,237.29
+GST: 18.00% extra as applicable
+Estimated total: Rs 3,00,000.00
+Notes: The estimated total is inclusive of GST at 18.00%. Please quote PO-2026-0209 on your invoice. Deliver in one lot. Order quantity: 300 units.
+
+SYNTHETIC SAMPLE - generated for the SamadhaanOS demo. Not a real purchase order. The Net-90 term is a demo of a contractual term that does not move the statutory clock; the engine decides that, not this page.

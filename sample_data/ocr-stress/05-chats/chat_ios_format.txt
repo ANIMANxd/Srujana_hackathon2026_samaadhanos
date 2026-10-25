@@ -1,0 +1,5 @@
+SPECIMEN - SYNTHETIC DATA - NOT A REAL DOCUMENT
+Synthetic iOS-format export ([date, time] Sender: text).
+
+[12/02/2026, 9:15:12 PM] Buyer Stores (fictional): We received the goods today. Challan signed.
+[20/02/2026, 10:02:44 AM] Anu (fictional): Thanks. Payment is due next week.

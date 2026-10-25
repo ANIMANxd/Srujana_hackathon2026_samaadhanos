@@ -1,0 +1,1811 @@
+{
+  "corpus": "SamadhaanOS synthetic sample documents",
+  "version": "1.0",
+  "generated_by": "sample_data/generate_samples.py",
+  "synthetic_only": true,
+  "statement": "Every party, GSTIN, amount and transaction in this corpus is fictional. No page is a real tax invoice, purchase order, government certificate, notice or filing. The Udyam page is a data extract, not a certificate. Nothing here is legal advice.",
+  "field_keys": [
+    "invoice_number",
+    "invoice_date",
+    "amount",
+    "supplier_gstin",
+    "buyer_gstin",
+    "buyer_name",
+    "delivery_date",
+    "po_reference",
+    "written_credit_days",
+    "supplier_name"
+  ],
+  "cases": [
+    {
+      "id": "case-01-sample-supplies",
+      "preset": "case_01",
+      "story": "Overdue invoice, Net-90 term, delivery proof, WhatsApp promise."
+    },
+    {
+      "id": "case-02-micro-works",
+      "preset": "case_02",
+      "story": "Micro enterprise, written objection on day 9, resolved on day 18."
+    },
+    {
+      "id": "case-04-fabricators",
+      "preset": "case_04",
+      "story": "Ambiguous date, part payment of 1,50,000 on 15/05/2026."
+    },
+    {
+      "id": "case-06-maintenance",
+      "preset": "case_06",
+      "story": "Service invoice with no delivery date and no delivery proof."
+    }
+  ],
+  "files": [
+    {
+      "file": "case-01-sample-supplies/01-purchase-order/PO-2026-0114.pdf",
+      "role": "document",
+      "doc_type": "PURCHASE_ORDER",
+      "evidence_kind": "PO",
+      "case": "case-01-sample-supplies",
+      "render": "digital",
+      "text_layer": true,
+      "pages": 1,
+      "expected": {
+        "invoice_number": null,
+        "invoice_date": null,
+        "amount": "1250000.00",
+        "supplier_gstin": "29SYN000000010Z1",
+        "buyer_gstin": "29SYN000000000Z1",
+        "buyer_name": "Sample Buyer Corp (synthetic)",
+        "supplier_name": "Sample Supplies Pvt Ltd (synthetic)",
+        "delivery_date": "2026-02-16",
+        "po_reference": "PO-2026-0114",
+        "written_credit_days": "90"
+      },
+      "text_layer_must_contain": [
+        "PO-2026-0114",
+        "Net 90 days"
+      ],
+      "notes": "A PO is not an invoice: invoice_number and invoice_date are expected to be missing, and the user confirms the rest. The Net-90 term is the demo's 'a contract cannot move the statutory clock' case."
+    },
+    {
+      "file": "case-01-sample-supplies/01-purchase-order/PO-2026-0114.txt",
+      "role": "text_twin",
+      "doc_type": "PURCHASE_ORDER",
+      "evidence_kind": "PO",
+      "case": "case-01-sample-supplies",
+      "render": "text",
+      "text_layer": null,
+      "pages": null,
+      "expected": {
+        "invoice_number": null,
+        "invoice_date": null,
+        "amount": "1250000.00",
+        "supplier_gstin": "29SYN000000010Z1",
+        "buyer_gstin": "29SYN000000000Z1",
+        "buyer_name": "Sample Buyer Corp (synthetic)",
+        "supplier_name": "Sample Supplies Pvt Ltd (synthetic)",
+        "delivery_date": "2026-02-16",
+        "po_reference": "PO-2026-0114",
+        "written_credit_days": "90"
+      },
+      "expect_kind": "DOCUMENT_TEXT",
+      "expected_warnings": [
+        "MACHINE_SUGGESTED"
+      ],
+      "not_expected_warnings": [],
+      "expected_messages": [],
+      "notes": "A PO is not an invoice: invoice_number and invoice_date are expected to be missing, and the user confirms the rest. The Net-90 term is the demo's 'a contract cannot move the statutory clock' case."
+    },
+    {
+      "file": "case-01-sample-supplies/02-tax-invoice/INV-2026-0042.pdf",
+      "role": "document",
+      "doc_type": "TAX_INVOICE",
+      "evidence_kind": "INVOICE",
+      "case": "case-01-sample-supplies",
+      "render": "digital",
+      "text_layer": true,
+      "pages": 1,
+      "expected": {
+        "invoice_number": "INV-2026-0042",
+        "invoice_date": "2026-02-16",
+        "amount": "1250000.00",
+        "supplier_gstin": "29SYN000000010Z1",
+        "buyer_gstin": "29SYN000000000Z1",
+        "buyer_name": "Sample Buyer Corp (synthetic)",
+        "supplier_name": "Sample Supplies Pvt Ltd (synthetic)",
+        "delivery_date": "2026-02-16",
+        "po_reference": "PO-2026-0114",
+        "written_credit_days": "90"
+      },
+      "text_layer_must_contain": [
+        "INV-2026-0042",
+        "12,50,000.00",
+        "Sample Buyer Corp (synthetic)"
+      ],
+      "notes": "Golden-path invoice. Taxable 10,59,322.00 + 9% CGST + 9% SGST + 0.04 round-off = 12,50,000.00, the preset case_01 principal."
+    },
+    {
+      "file": "case-01-sample-supplies/02-tax-invoice/INV-2026-0042.txt",
+      "role": "text_twin",
+      "doc_type": "TAX_INVOICE",
+      "evidence_kind": "INVOICE",
+      "case": "case-01-sample-supplies",
+      "render": "text",
+      "text_layer": null,
+      "pages": null,
+      "expected": {
+        "invoice_number": "INV-2026-0042",
+        "invoice_date": "2026-02-16",
+        "amount": "1250000.00",
+        "supplier_gstin": "29SYN000000010Z1",
+        "buyer_gstin": "29SYN000000000Z1",
+        "buyer_name": "Sample Buyer Corp (synthetic)",
+        "supplier_name": "Sample Supplies Pvt Ltd (synthetic)",
+        "delivery_date": "2026-02-16",
+        "po_reference": "PO-2026-0114",
+        "written_credit_days": "90"
+      },
+      "expect_kind": "DOCUMENT_TEXT",
+      "expected_warnings": [
+        "MACHINE_SUGGESTED"
+      ],
+      "not_expected_warnings": [],
+      "expected_messages": [],
+      "notes": "Golden-path invoice. Taxable 10,59,322.00 + 9% CGST + 9% SGST + 0.04 round-off = 12,50,000.00, the preset case_01 principal."
+    },
+    {
+      "file": "case-01-sample-supplies/03-delivery/DC-2026-0088.pdf",
+      "role": "document",
+      "doc_type": "DELIVERY_CHALLAN",
+      "evidence_kind": "DELIVERY_PROOF",
+      "case": "case-01-sample-supplies",
+      "render": "digital",
+      "text_layer": true,
+      "pages": 1,
+      "expected": {
+        "invoice_number": "INV-2026-0042",
+        "invoice_date": null,
+        "amount": null,
+        "supplier_gstin": "29SYN000000010Z1",
+        "buyer_gstin": "29SYN000000000Z1",
+        "buyer_name": "Sample Buyer Corp (synthetic)",
+        "supplier_name": "Sample Supplies Pvt Ltd (synthetic)",
+        "delivery_date": "2026-02-16",
+        "po_reference": "PO-2026-0114",
+        "written_credit_days": null
+      },
+      "text_layer_must_contain": [
+        "DC-2026-0088",
+        "LR-SYN-0091"
+      ],
+      "notes": "A challan proves delivery, not the invoice date or amount: both are expected to be missing. 'Challan date' is what the delivery-date rule anchors on."
+    },
+    {
+      "file": "case-01-sample-supplies/03-delivery/DC-2026-0088.txt",
+      "role": "text_twin",
+      "doc_type": "DELIVERY_CHALLAN",
+      "evidence_kind": "DELIVERY_PROOF",
+      "case": "case-01-sample-supplies",
+      "render": "text",
+      "text_layer": null,
+      "pages": null,
+      "expected": {
+        "invoice_number": "INV-2026-0042",
+        "invoice_date": null,
+        "amount": null,
+        "supplier_gstin": "29SYN000000010Z1",
+        "buyer_gstin": "29SYN000000000Z1",
+        "buyer_name": "Sample Buyer Corp (synthetic)",
+        "supplier_name": "Sample Supplies Pvt Ltd (synthetic)",
+        "delivery_date": "2026-02-16",
+        "po_reference": "PO-2026-0114",
+        "written_credit_days": null
+      },
+      "expect_kind": "DOCUMENT_TEXT",
+      "expected_warnings": [
+        "MACHINE_SUGGESTED"
+      ],
+      "not_expected_warnings": [],
+      "expected_messages": [],
+      "notes": "A challan proves delivery, not the invoice date or amount: both are expected to be missing. 'Challan date' is what the delivery-date rule anchors on."
+    },
+    {
+      "file": "case-01-sample-supplies/03-delivery/GRN-2026-0088.pdf",
+      "role": "document",
+      "doc_type": "GOODS_RECEIPT_NOTE",
+      "evidence_kind": "DELIVERY_PROOF",
+      "case": "case-01-sample-supplies",
+      "render": "digital",
+      "text_layer": true,
+      "pages": 1,
+      "expected": {
+        "invoice_number": "INV-2026-0042",
+        "invoice_date": null,
+        "amount": null,
+        "supplier_gstin": "29SYN000000010Z1",
+        "buyer_gstin": "29SYN000000000Z1",
+        "buyer_name": "Sample Buyer Corp (synthetic)",
+        "supplier_name": "Sample Supplies Pvt Ltd (synthetic)",
+        "delivery_date": "2026-02-16",
+        "po_reference": "PO-2026-0114",
+        "written_credit_days": null
+      },
+      "text_layer_must_contain": [
+        "GRN-2026-0088",
+        "16/02/2026"
+      ],
+      "notes": "A GRN is the buyer's own receipt. This one is a clean receipt with no rejection, because case_01 has no objection."
+    },
+    {
+      "file": "case-01-sample-supplies/03-delivery/GRN-2026-0088.txt",
+      "role": "text_twin",
+      "doc_type": "GOODS_RECEIPT_NOTE",
+      "evidence_kind": "DELIVERY_PROOF",
+      "case": "case-01-sample-supplies",
+      "render": "text",
+      "text_layer": null,
+      "pages": null,
+      "expected": {
+        "invoice_number": "INV-2026-0042",
+        "invoice_date": null,
+        "amount": null,
+        "supplier_gstin": "29SYN000000010Z1",
+        "buyer_gstin": "29SYN000000000Z1",
+        "buyer_name": "Sample Buyer Corp (synthetic)",
+        "supplier_name": "Sample Supplies Pvt Ltd (synthetic)",
+        "delivery_date": "2026-02-16",
+        "po_reference": "PO-2026-0114",
+        "written_credit_days": null
+      },
+      "expect_kind": "DOCUMENT_TEXT",
+      "expected_warnings": [
+        "MACHINE_SUGGESTED"
+      ],
+      "not_expected_warnings": [],
+      "expected_messages": [],
+      "notes": "A GRN is the buyer's own receipt. This one is a clean receipt with no rejection, because case_01 has no objection."
+    },
+    {
+      "file": "case-01-sample-supplies/04-whatsapp/chat_delivery_and_promise.png",
+      "role": "chat_render",
+      "doc_type": "CHAT_SCREENSHOT",
+      "evidence_kind": "WHATSAPP",
+      "case": "case-01-sample-supplies",
+      "render": "raster",
+      "text_layer": false,
+      "pages": 1,
+      "expected": {},
+      "notes": "Neutral transcript image rendered from chat_delivery_and_promise.txt. No platform logo or page styling."
+    },
+    {
+      "file": "case-01-sample-supplies/04-whatsapp/chat_delivery_and_promise.txt",
+      "role": "chat_export",
+      "doc_type": "WHATSAPP_EXPORT",
+      "evidence_kind": "WHATSAPP",
+      "case": "case-01-sample-supplies",
+      "render": "text",
+      "text_layer": null,
+      "pages": null,
+      "expected": {
+        "invoice_number": "INV-2026-0042",
+        "invoice_date": null,
+        "amount": null,
+        "supplier_gstin": null,
+        "buyer_gstin": null,
+        "buyer_name": null,
+        "supplier_name": null,
+        "delivery_date": null,
+        "po_reference": null,
+        "written_credit_days": "90"
+      },
+      "expect_kind": "WHATSAPP_EXPORT",
+      "expected_warnings": [
+        "MACHINE_SUGGESTED",
+        "OBJECTION_WINDOW_APPLIED"
+      ],
+      "not_expected_warnings": [
+        "DELIVERY_ANCHOR_MISSING"
+      ],
+      "expected_messages": [
+        {
+          "contains": "We received the 100 units",
+          "tags": [
+            "DELIVERY_CONFIRMATION"
+          ]
+        },
+        {
+          "contains": "will be released by 30 April",
+          "tags": [
+            "PAYMENT_PROMISE"
+          ],
+          "days_after_delivery": 53
+        }
+      ],
+      "notes": "The delivery line on 16/02/2026 is the anchor (day 0). The promise on 10/04/2026 is 53 days later, which is the preset's acknowledgment date."
+    },
+    {
+      "file": "case-02-micro-works/01-purchase-order/PO-2026-0209.pdf",
+      "role": "document",
+      "doc_type": "PURCHASE_ORDER",
+      "evidence_kind": "PO",
+      "case": "case-02-micro-works",
+      "render": "digital",
+      "text_layer": true,
+      "pages": 1,
+      "expected": {
+        "invoice_number": null,
+        "invoice_date": null,
+        "amount": "300000.00",
+        "supplier_gstin": "29SYN000000011Z1",
+        "buyer_gstin": "29SYN000000001Z1",
+        "buyer_name": "Sample Buyer Two Ltd (synthetic)",
+        "supplier_name": "Sample Micro Works (synthetic)",
+        "delivery_date": "2026-03-15",
+        "po_reference": "PO-2026-0209",
+        "written_credit_days": "30"
+      },
+      "text_layer_must_contain": [
+        "PO-2026-0209",
+        "Net 30 days"
+      ],
+      "notes": "Micro enterprise, Net 30, with a freight line so the total is exact."
+    },
+    {
+      "file": "case-02-micro-works/01-purchase-order/PO-2026-0209.txt",
+      "role": "text_twin",
+      "doc_type": "PURCHASE_ORDER",
+      "evidence_kind": "PO",
+      "case": "case-02-micro-works",
+      "render": "text",
+      "text_layer": null,
+      "pages": null,
+      "expected": {
+        "invoice_number": null,
+        "invoice_date": null,
+        "amount": "300000.00",
+        "supplier_gstin": "29SYN000000011Z1",
+        "buyer_gstin": "29SYN000000001Z1",
+        "buyer_name": "Sample Buyer Two Ltd (synthetic)",
+        "supplier_name": "Sample Micro Works (synthetic)",
+        "delivery_date": "2026-03-15",
+        "po_reference": "PO-2026-0209",
+        "written_credit_days": "30"
+      },
+      "expect_kind": "DOCUMENT_TEXT",
+      "expected_warnings": [
+        "MACHINE_SUGGESTED"
+      ],
+      "not_expected_warnings": [],
+      "expected_messages": [],
+      "notes": "Micro enterprise, Net 30, with a freight line so the total is exact."
+    },
+    {
+      "file": "case-02-micro-works/02-tax-invoice/INV-2026-0209.pdf",
+      "role": "document",
+      "doc_type": "TAX_INVOICE",
+      "evidence_kind": "INVOICE",
+      "case": "case-02-micro-works",
+      "render": "digital",
+      "text_layer": true,
+      "pages": 1,
+      "expected": {
+        "invoice_number": "INV-2026-0209",
+        "invoice_date": "2026-03-15",
+        "amount": "300000.00",
+        "supplier_gstin": "29SYN000000011Z1",
+        "buyer_gstin": "29SYN000000001Z1",
+        "buyer_name": "Sample Buyer Two Ltd (synthetic)",
+        "supplier_name": "Sample Micro Works (synthetic)",
+        "delivery_date": "2026-03-15",
+        "po_reference": "PO-2026-0209",
+        "written_credit_days": "30"
+      },
+      "text_layer_must_contain": [
+        "INV-2026-0209",
+        "3,00,000.00"
+      ],
+      "notes": "Overdue case with a written objection nine days after delivery."
+    },
+    {
+      "file": "case-02-micro-works/02-tax-invoice/INV-2026-0209.txt",
+      "role": "text_twin",
+      "doc_type": "TAX_INVOICE",
+      "evidence_kind": "INVOICE",
+      "case": "case-02-micro-works",
+      "render": "text",
+      "text_layer": null,
+      "pages": null,
+      "expected": {
+        "invoice_number": "INV-2026-0209",
+        "invoice_date": "2026-03-15",
+        "amount": "300000.00",
+        "supplier_gstin": "29SYN000000011Z1",
+        "buyer_gstin": "29SYN000000001Z1",
+        "buyer_name": "Sample Buyer Two Ltd (synthetic)",
+        "supplier_name": "Sample Micro Works (synthetic)",
+        "delivery_date": "2026-03-15",
+        "po_reference": "PO-2026-0209",
+        "written_credit_days": "30"
+      },
+      "expect_kind": "DOCUMENT_TEXT",
+      "expected_warnings": [
+        "MACHINE_SUGGESTED"
+      ],
+      "not_expected_warnings": [],
+      "expected_messages": [],
+      "notes": "Overdue case with a written objection nine days after delivery."
+    },
+    {
+      "file": "case-02-micro-works/03-delivery/DC-2026-0209.pdf",
+      "role": "document",
+      "doc_type": "DELIVERY_CHALLAN",
+      "evidence_kind": "DELIVERY_PROOF",
+      "case": "case-02-micro-works",
+      "render": "digital",
+      "text_layer": true,
+      "pages": 1,
+      "expected": {
+        "invoice_number": "INV-2026-0209",
+        "invoice_date": null,
+        "amount": null,
+        "supplier_gstin": "29SYN000000011Z1",
+        "buyer_gstin": "29SYN000000001Z1",
+        "buyer_name": "Sample Buyer Two Ltd (synthetic)",
+        "supplier_name": "Sample Micro Works (synthetic)",
+        "delivery_date": "2026-03-15",
+        "po_reference": "PO-2026-0209",
+        "written_credit_days": null
+      },
+      "text_layer_must_contain": [
+        "DC-2026-0209",
+        "LR-SYN-0212"
+      ],
+      "notes": "Delivery proof for the case that ends in a written objection."
+    },
+    {
+      "file": "case-02-micro-works/03-delivery/DC-2026-0209.txt",
+      "role": "text_twin",
+      "doc_type": "DELIVERY_CHALLAN",
+      "evidence_kind": "DELIVERY_PROOF",
+      "case": "case-02-micro-works",
+      "render": "text",
+      "text_layer": null,
+      "pages": null,
+      "expected": {
+        "invoice_number": "INV-2026-0209",
+        "invoice_date": null,
+        "amount": null,
+        "supplier_gstin": "29SYN000000011Z1",
+        "buyer_gstin": "29SYN000000001Z1",
+        "buyer_name": "Sample Buyer Two Ltd (synthetic)",
+        "supplier_name": "Sample Micro Works (synthetic)",
+        "delivery_date": "2026-03-15",
+        "po_reference": "PO-2026-0209",
+        "written_credit_days": null
+      },
+      "expect_kind": "DOCUMENT_TEXT",
+      "expected_warnings": [
+        "MACHINE_SUGGESTED"
+      ],
+      "not_expected_warnings": [],
+      "expected_messages": [],
+      "notes": "Delivery proof for the case that ends in a written objection."
+    },
+    {
+      "file": "case-02-micro-works/04-objection/WRITTEN-OBJECTION-2026-03-24.eml",
+      "role": "source",
+      "doc_type": "WRITTEN_OBJECTION",
+      "evidence_kind": null,
+      "case": "case-02-micro-works",
+      "render": "email",
+      "text_layer": null,
+      "pages": null,
+      "expected": {},
+      "notes": "The same objection as a raw email, for header/body parsers."
+    },
+    {
+      "file": "case-02-micro-works/04-objection/WRITTEN-OBJECTION-2026-03-24.pdf",
+      "role": "document",
+      "doc_type": "WRITTEN_OBJECTION",
+      "evidence_kind": null,
+      "case": "case-02-micro-works",
+      "render": "digital",
+      "text_layer": true,
+      "pages": 1,
+      "expected": {
+        "invoice_number": "INV-2026-0209",
+        "invoice_date": null,
+        "amount": null,
+        "supplier_gstin": null,
+        "buyer_gstin": "29SYN000000001Z1",
+        "buyer_name": null,
+        "supplier_name": null,
+        "delivery_date": null,
+        "po_reference": null,
+        "written_credit_days": null
+      },
+      "text_layer_must_contain": [
+        "INV-2026-0209",
+        "22 pieces"
+      ],
+      "notes": "A domestic commercial email, not an official form. Dated day 9 after delivery, which is inside the configured 15-day window."
+    },
+    {
+      "file": "case-02-micro-works/04-objection/WRITTEN-OBJECTION-2026-03-24.txt",
+      "role": "text_twin",
+      "doc_type": "WRITTEN_OBJECTION",
+      "evidence_kind": null,
+      "case": "case-02-micro-works",
+      "render": "text",
+      "text_layer": null,
+      "pages": null,
+      "expected": {
+        "invoice_number": "INV-2026-0209",
+        "invoice_date": null,
+        "amount": null,
+        "supplier_gstin": null,
+        "buyer_gstin": "29SYN000000001Z1",
+        "buyer_name": null,
+        "supplier_name": null,
+        "delivery_date": null,
+        "po_reference": null,
+        "written_credit_days": null
+      },
+      "expect_kind": "DOCUMENT_TEXT",
+      "expected_warnings": [
+        "MACHINE_SUGGESTED"
+      ],
+      "not_expected_warnings": [],
+      "expected_messages": [],
+      "notes": "A domestic commercial email, not an official form. Dated day 9 after delivery, which is inside the configured 15-day window."
+    },
+    {
+      "file": "case-02-micro-works/05-whatsapp/chat_defect_day9.png",
+      "role": "chat_render",
+      "doc_type": "CHAT_SCREENSHOT",
+      "evidence_kind": "WHATSAPP",
+      "case": "case-02-micro-works",
+      "render": "raster",
+      "text_layer": false,
+      "pages": 1,
+      "expected": {},
+      "notes": "Neutral transcript image rendered from chat_defect_day9.txt. No platform logo or page styling."
+    },
+    {
+      "file": "case-02-micro-works/05-whatsapp/chat_defect_day9.txt",
+      "role": "chat_export",
+      "doc_type": "WHATSAPP_EXPORT",
+      "evidence_kind": "WHATSAPP",
+      "case": "case-02-micro-works",
+      "render": "text",
+      "text_layer": null,
+      "pages": null,
+      "expected": {
+        "invoice_number": "INV-2026-0209",
+        "invoice_date": null,
+        "amount": null,
+        "supplier_gstin": null,
+        "buyer_gstin": null,
+        "buyer_name": null,
+        "supplier_name": null,
+        "delivery_date": null,
+        "po_reference": null,
+        "written_credit_days": null
+      },
+      "expect_kind": "WHATSAPP_EXPORT",
+      "expected_warnings": [
+        "MACHINE_SUGGESTED",
+        "OBJECTION_WINDOW_APPLIED"
+      ],
+      "not_expected_warnings": [],
+      "expected_messages": [
+        {
+          "contains": "We received the 300 units",
+          "tags": [
+            "DELIVERY_CONFIRMATION"
+          ]
+        },
+        {
+          "contains": "18 bushes are defective",
+          "tags": [
+            "DEFECT_OBJECTION"
+          ],
+          "days_after_delivery": 9,
+          "within_objection_window": true
+        },
+        {
+          "contains": "Replacement for the 22 rejected",
+          "tags": [
+            "DEFECT_OBJECTION",
+            "RESOLUTION_ACK"
+          ]
+        }
+      ],
+      "notes": "The objection is on day 9, inside the 15-day window, and is resolved on day 18. The resolution is not a late complaint."
+    },
+    {
+      "file": "case-02-micro-works/05-whatsapp/chat_late_objection.txt",
+      "role": "chat_export",
+      "doc_type": "WHATSAPP_EXPORT",
+      "evidence_kind": "WHATSAPP",
+      "case": "case-02-micro-works",
+      "render": "text",
+      "text_layer": null,
+      "pages": null,
+      "expected": {
+        "invoice_number": null,
+        "invoice_date": null,
+        "amount": null,
+        "supplier_gstin": null,
+        "buyer_gstin": null,
+        "buyer_name": null,
+        "supplier_name": null,
+        "delivery_date": null,
+        "po_reference": null,
+        "written_credit_days": null
+      },
+      "expect_kind": "WHATSAPP_EXPORT",
+      "expected_warnings": [
+        "MACHINE_SUGGESTED",
+        "OBJECTION_WINDOW_APPLIED"
+      ],
+      "not_expected_warnings": [],
+      "expected_messages": [
+        {
+          "contains": "still finding cracked bushes",
+          "tags": [
+            "DEFECT_OBJECTION",
+            "LATE_COMPLAINT"
+          ],
+          "days_after_delivery": 60,
+          "within_objection_window": false
+        }
+      ],
+      "notes": "Negative control: the same complaint on day 60 is tagged LATE_COMPLAINT. The tag is a suggestion; the engine decides whether it qualifies."
+    },
+    {
+      "file": "case-04-fabricators/01-purchase-order/PO-2026-0310.pdf",
+      "role": "document",
+      "doc_type": "PURCHASE_ORDER",
+      "evidence_kind": "PO",
+      "case": "case-04-fabricators",
+      "render": "digital",
+      "text_layer": true,
+      "pages": 1,
+      "expected": {
+        "invoice_number": null,
+        "invoice_date": null,
+        "amount": "500000.00",
+        "supplier_gstin": "29SYN000000012Z1",
+        "buyer_gstin": "29SYN000000003Z1",
+        "buyer_name": "Sample Buyer Four Ltd (synthetic)",
+        "supplier_name": "Sample Fabricators Pvt Ltd (synthetic)",
+        "delivery_date": "2026-03-10",
+        "po_reference": "PO-2026-0310",
+        "written_credit_days": "30"
+      },
+      "text_layer_must_contain": [
+        "PO-2026-0310",
+        "Net 30 days"
+      ],
+      "notes": "Part-payment case. 10/03/2026 is a deliberately ambiguous date."
+    },
+    {
+      "file": "case-04-fabricators/01-purchase-order/PO-2026-0310.txt",
+      "role": "text_twin",
+      "doc_type": "PURCHASE_ORDER",
+      "evidence_kind": "PO",
+      "case": "case-04-fabricators",
+      "render": "text",
+      "text_layer": null,
+      "pages": null,
+      "expected": {
+        "invoice_number": null,
+        "invoice_date": null,
+        "amount": "500000.00",
+        "supplier_gstin": "29SYN000000012Z1",
+        "buyer_gstin": "29SYN000000003Z1",
+        "buyer_name": "Sample Buyer Four Ltd (synthetic)",
+        "supplier_name": "Sample Fabricators Pvt Ltd (synthetic)",
+        "delivery_date": "2026-03-10",
+        "po_reference": "PO-2026-0310",
+        "written_credit_days": "30"
+      },
+      "expect_kind": "DOCUMENT_TEXT",
+      "expected_warnings": [
+        "MACHINE_SUGGESTED"
+      ],
+      "not_expected_warnings": [],
+      "expected_messages": [],
+      "notes": "Part-payment case. 10/03/2026 is a deliberately ambiguous date."
+    },
+    {
+      "file": "case-04-fabricators/02-tax-invoice/INV-2026-0310.pdf",
+      "role": "document",
+      "doc_type": "TAX_INVOICE",
+      "evidence_kind": "INVOICE",
+      "case": "case-04-fabricators",
+      "render": "digital",
+      "text_layer": true,
+      "pages": 1,
+      "expected": {
+        "invoice_number": "INV-2026-0310",
+        "invoice_date": "2026-03-10",
+        "amount": "500000.00",
+        "supplier_gstin": "29SYN000000012Z1",
+        "buyer_gstin": "29SYN000000003Z1",
+        "buyer_name": "Sample Buyer Four Ltd (synthetic)",
+        "supplier_name": "Sample Fabricators Pvt Ltd (synthetic)",
+        "delivery_date": "2026-03-10",
+        "po_reference": "PO-2026-0310",
+        "written_credit_days": "30"
+      },
+      "text_layer_must_contain": [
+        "INV-2026-0310",
+        "5,00,000.00"
+      ],
+      "notes": "10/03/2026 is genuinely ambiguous (day and month are both 12 or less), so the extractor must raise DATE_ORDER_ASSUMED and the human must check."
+    },
+    {
+      "file": "case-04-fabricators/02-tax-invoice/INV-2026-0310.txt",
+      "role": "text_twin",
+      "doc_type": "TAX_INVOICE",
+      "evidence_kind": "INVOICE",
+      "case": "case-04-fabricators",
+      "render": "text",
+      "text_layer": null,
+      "pages": null,
+      "expected": {
+        "invoice_number": "INV-2026-0310",
+        "invoice_date": "2026-03-10",
+        "amount": "500000.00",
+        "supplier_gstin": "29SYN000000012Z1",
+        "buyer_gstin": "29SYN000000003Z1",
+        "buyer_name": "Sample Buyer Four Ltd (synthetic)",
+        "supplier_name": "Sample Fabricators Pvt Ltd (synthetic)",
+        "delivery_date": "2026-03-10",
+        "po_reference": "PO-2026-0310",
+        "written_credit_days": "30"
+      },
+      "expect_kind": "DOCUMENT_TEXT",
+      "expected_warnings": [
+        "MACHINE_SUGGESTED",
+        "DATE_ORDER_ASSUMED"
+      ],
+      "not_expected_warnings": [],
+      "expected_messages": [],
+      "notes": "10/03/2026 is genuinely ambiguous (day and month are both 12 or less), so the extractor must raise DATE_ORDER_ASSUMED and the human must check."
+    },
+    {
+      "file": "case-04-fabricators/03-payment/REMITTANCE-ADVICE-2026-05-15.pdf",
+      "role": "document",
+      "doc_type": "REMITTANCE_ADVICE",
+      "evidence_kind": null,
+      "case": "case-04-fabricators",
+      "render": "digital",
+      "text_layer": true,
+      "pages": 1,
+      "expected": {
+        "invoice_number": "INV-2026-0310",
+        "invoice_date": null,
+        "amount": "500000.00",
+        "supplier_gstin": "29SYN000000012Z1",
+        "buyer_gstin": "29SYN000000003Z1",
+        "buyer_name": null,
+        "supplier_name": "Sample Fabricators Pvt Ltd (synthetic)",
+        "delivery_date": null,
+        "po_reference": null,
+        "written_credit_days": null
+      },
+      "text_layer_must_contain": [
+        "1,50,000.00",
+        "3,50,000.00"
+      ],
+      "notes": "The part payment the preset records on 2026-05-15. 'Invoice value' is the invoice amount; 'Amount paid' is not the invoice amount."
+    },
+    {
+      "file": "case-04-fabricators/03-payment/REMITTANCE-ADVICE-2026-05-15.txt",
+      "role": "text_twin",
+      "doc_type": "REMITTANCE_ADVICE",
+      "evidence_kind": null,
+      "case": "case-04-fabricators",
+      "render": "text",
+      "text_layer": null,
+      "pages": null,
+      "expected": {
+        "invoice_number": "INV-2026-0310",
+        "invoice_date": null,
+        "amount": "500000.00",
+        "supplier_gstin": "29SYN000000012Z1",
+        "buyer_gstin": "29SYN000000003Z1",
+        "buyer_name": null,
+        "supplier_name": "Sample Fabricators Pvt Ltd (synthetic)",
+        "delivery_date": null,
+        "po_reference": null,
+        "written_credit_days": null
+      },
+      "expect_kind": "DOCUMENT_TEXT",
+      "expected_warnings": [
+        "MACHINE_SUGGESTED"
+      ],
+      "not_expected_warnings": [],
+      "expected_messages": [],
+      "notes": "The part payment the preset records on 2026-05-15. 'Invoice value' is the invoice amount; 'Amount paid' is not the invoice amount."
+    },
+    {
+      "file": "case-06-maintenance/01-purchase-order/PO-2026-0401.pdf",
+      "role": "document",
+      "doc_type": "PURCHASE_ORDER",
+      "evidence_kind": "PO",
+      "case": "case-06-maintenance",
+      "render": "digital",
+      "text_layer": true,
+      "pages": 1,
+      "expected": {
+        "invoice_number": null,
+        "invoice_date": null,
+        "amount": "250000.00",
+        "supplier_gstin": "29SYN000000013Z1",
+        "buyer_gstin": "29SYN000000006Z1",
+        "buyer_name": "Sample Buyer Seven Pvt Ltd (synthetic)",
+        "supplier_name": "Sample Maintenance Services (synthetic)",
+        "delivery_date": "2026-04-01",
+        "po_reference": "PO-2026-0401",
+        "written_credit_days": "30"
+      },
+      "text_layer_must_contain": [
+        "PO-2026-0401",
+        "Net 30 days"
+      ],
+      "notes": "Service case: the PO exists, but no delivery proof is ever produced."
+    },
+    {
+      "file": "case-06-maintenance/01-purchase-order/PO-2026-0401.txt",
+      "role": "text_twin",
+      "doc_type": "PURCHASE_ORDER",
+      "evidence_kind": "PO",
+      "case": "case-06-maintenance",
+      "render": "text",
+      "text_layer": null,
+      "pages": null,
+      "expected": {
+        "invoice_number": null,
+        "invoice_date": null,
+        "amount": "250000.00",
+        "supplier_gstin": "29SYN000000013Z1",
+        "buyer_gstin": "29SYN000000006Z1",
+        "buyer_name": "Sample Buyer Seven Pvt Ltd (synthetic)",
+        "supplier_name": "Sample Maintenance Services (synthetic)",
+        "delivery_date": "2026-04-01",
+        "po_reference": "PO-2026-0401",
+        "written_credit_days": "30"
+      },
+      "expect_kind": "DOCUMENT_TEXT",
+      "expected_warnings": [
+        "MACHINE_SUGGESTED"
+      ],
+      "not_expected_warnings": [],
+      "expected_messages": [],
+      "notes": "Service case: the PO exists, but no delivery proof is ever produced."
+    },
+    {
+      "file": "case-06-maintenance/02-tax-invoice/INV-2026-0401.pdf",
+      "role": "document",
+      "doc_type": "TAX_INVOICE",
+      "evidence_kind": "INVOICE",
+      "case": "case-06-maintenance",
+      "render": "digital",
+      "text_layer": true,
+      "pages": 1,
+      "expected": {
+        "invoice_number": "INV-2026-0401",
+        "invoice_date": "2026-04-01",
+        "amount": "250000.00",
+        "supplier_gstin": "29SYN000000013Z1",
+        "buyer_gstin": "29SYN000000006Z1",
+        "buyer_name": "Sample Buyer Seven Pvt Ltd (synthetic)",
+        "supplier_name": "Sample Maintenance Services (synthetic)",
+        "delivery_date": null,
+        "po_reference": "PO-2026-0401",
+        "written_credit_days": "30"
+      },
+      "text_layer_must_contain": [
+        "INV-2026-0401",
+        "2,50,000.00"
+      ],
+      "notes": "A service invoice with NO delivery date line. Delivery is the anchor the engine needs, so this case is the 'no delivery proof' demo. 01/04/2026 is ambiguous."
+    },
+    {
+      "file": "case-06-maintenance/02-tax-invoice/INV-2026-0401.txt",
+      "role": "text_twin",
+      "doc_type": "TAX_INVOICE",
+      "evidence_kind": "INVOICE",
+      "case": "case-06-maintenance",
+      "render": "text",
+      "text_layer": null,
+      "pages": null,
+      "expected": {
+        "invoice_number": "INV-2026-0401",
+        "invoice_date": "2026-04-01",
+        "amount": "250000.00",
+        "supplier_gstin": "29SYN000000013Z1",
+        "buyer_gstin": "29SYN000000006Z1",
+        "buyer_name": "Sample Buyer Seven Pvt Ltd (synthetic)",
+        "supplier_name": "Sample Maintenance Services (synthetic)",
+        "delivery_date": null,
+        "po_reference": "PO-2026-0401",
+        "written_credit_days": "30"
+      },
+      "expect_kind": "DOCUMENT_TEXT",
+      "expected_warnings": [
+        "MACHINE_SUGGESTED",
+        "DATE_ORDER_ASSUMED"
+      ],
+      "not_expected_warnings": [],
+      "expected_messages": [],
+      "notes": "A service invoice with NO delivery date line. Delivery is the anchor the engine needs, so this case is the 'no delivery proof' demo. 01/04/2026 is ambiguous."
+    },
+    {
+      "file": "case-06-maintenance/03-whatsapp/chat_no_delivery_confirmation.txt",
+      "role": "chat_export",
+      "doc_type": "WHATSAPP_EXPORT",
+      "evidence_kind": "WHATSAPP",
+      "case": "case-06-maintenance",
+      "render": "text",
+      "text_layer": null,
+      "pages": null,
+      "expected": {
+        "invoice_number": "INV-2026-0401",
+        "invoice_date": null,
+        "amount": null,
+        "supplier_gstin": null,
+        "buyer_gstin": null,
+        "buyer_name": null,
+        "supplier_name": null,
+        "delivery_date": null,
+        "po_reference": null,
+        "written_credit_days": null
+      },
+      "expect_kind": "WHATSAPP_EXPORT",
+      "expected_warnings": [
+        "MACHINE_SUGGESTED",
+        "DELIVERY_ANCHOR_MISSING"
+      ],
+      "not_expected_warnings": [
+        "OBJECTION_WINDOW_APPLIED"
+      ],
+      "expected_messages": [
+        {
+          "contains": "completed the service check",
+          "tags": []
+        },
+        {
+          "contains": "will be released by 10 May",
+          "tags": [
+            "PAYMENT_PROMISE"
+          ]
+        }
+      ],
+      "notes": "'Completed the service' is not a delivery confirmation: the extractor must say the anchor is missing rather than assume day 0."
+    },
+    {
+      "file": "ocr-stress/01-degraded/INV-2026-0042-cropped-total.pdf",
+      "role": "derived",
+      "doc_type": "TAX_INVOICE",
+      "evidence_kind": "INVOICE",
+      "case": "case-01-sample-supplies",
+      "render": "scanned",
+      "text_layer": false,
+      "pages": 1,
+      "expected": {
+        "invoice_number": "INV-2026-0042",
+        "invoice_date": "2026-02-16",
+        "amount": null,
+        "supplier_gstin": "29SYN000000010Z1",
+        "buyer_gstin": "29SYN000000000Z1",
+        "buyer_name": "Sample Buyer Corp (synthetic)",
+        "supplier_name": "Sample Supplies Pvt Ltd (synthetic)",
+        "delivery_date": "2026-02-16",
+        "po_reference": "PO-2026-0114",
+        "written_credit_days": "90"
+      },
+      "notes": "The right 22% (the amounts column and the Grand Total) is cut off. A good OCR reports amount as missing. A bad one guesses."
+    },
+    {
+      "file": "ocr-stress/01-degraded/INV-2026-0042-low-contrast.pdf",
+      "role": "derived",
+      "doc_type": "TAX_INVOICE",
+      "evidence_kind": "INVOICE",
+      "case": "case-01-sample-supplies",
+      "render": "scanned",
+      "text_layer": false,
+      "pages": 1,
+      "expected": {
+        "invoice_number": "INV-2026-0042",
+        "invoice_date": "2026-02-16",
+        "amount": "1250000.00",
+        "supplier_gstin": "29SYN000000010Z1",
+        "buyer_gstin": "29SYN000000000Z1",
+        "buyer_name": "Sample Buyer Corp (synthetic)",
+        "supplier_name": "Sample Supplies Pvt Ltd (synthetic)",
+        "delivery_date": "2026-02-16",
+        "po_reference": "PO-2026-0114",
+        "written_credit_days": "90"
+      },
+      "notes": "Washed-out photocopy: contrast 0.42 plus speckle. Tests binarisation."
+    },
+    {
+      "file": "ocr-stress/01-degraded/INV-2026-0042-photocopy.pdf",
+      "role": "derived",
+      "doc_type": "TAX_INVOICE",
+      "evidence_kind": "INVOICE",
+      "case": "case-01-sample-supplies",
+      "render": "scanned",
+      "text_layer": false,
+      "pages": 1,
+      "expected": {
+        "invoice_number": "INV-2026-0042",
+        "invoice_date": "2026-02-16",
+        "amount": "1250000.00",
+        "supplier_gstin": "29SYN000000010Z1",
+        "buyer_gstin": "29SYN000000000Z1",
+        "buyer_name": "Sample Buyer Corp (synthetic)",
+        "supplier_name": "Sample Supplies Pvt Ltd (synthetic)",
+        "delivery_date": "2026-02-16",
+        "po_reference": "PO-2026-0114",
+        "written_credit_days": "90"
+      },
+      "notes": "Generational-copy look: speckle, streak lines, slightly grey whites."
+    },
+    {
+      "file": "ocr-stress/01-degraded/INV-2026-0042-rotated.pdf",
+      "role": "derived",
+      "doc_type": "TAX_INVOICE",
+      "evidence_kind": "INVOICE",
+      "case": "case-01-sample-supplies",
+      "render": "scanned",
+      "text_layer": false,
+      "pages": 1,
+      "expected": {
+        "invoice_number": "INV-2026-0042",
+        "invoice_date": "2026-02-16",
+        "amount": "1250000.00",
+        "supplier_gstin": "29SYN000000010Z1",
+        "buyer_gstin": "29SYN000000000Z1",
+        "buyer_name": "Sample Buyer Corp (synthetic)",
+        "supplier_name": "Sample Supplies Pvt Ltd (synthetic)",
+        "delivery_date": "2026-02-16",
+        "po_reference": "PO-2026-0114",
+        "written_credit_days": "90"
+      },
+      "notes": "Same invoice rotated 1.8 degrees. No text layer: OCR only."
+    },
+    {
+      "file": "ocr-stress/01-degraded/INV-2026-0042-stamp-over-total.pdf",
+      "role": "derived",
+      "doc_type": "TAX_INVOICE",
+      "evidence_kind": "INVOICE",
+      "case": "case-01-sample-supplies",
+      "render": "scanned",
+      "text_layer": false,
+      "pages": 1,
+      "expected": {
+        "invoice_number": "INV-2026-0042",
+        "invoice_date": "2026-02-16",
+        "amount": "1250000.00",
+        "supplier_gstin": "29SYN000000010Z1",
+        "buyer_gstin": "29SYN000000000Z1",
+        "buyer_name": "Sample Buyer Corp (synthetic)",
+        "supplier_name": "Sample Supplies Pvt Ltd (synthetic)",
+        "delivery_date": "2026-02-16",
+        "po_reference": "PO-2026-0114",
+        "written_credit_days": "90"
+      },
+      "notes": "A rubber stamp overlaps the totals. Tests ink-over-text recovery."
+    },
+    {
+      "file": "ocr-stress/02-photos/INV-2026-0042-phone-photo-low-light.jpg",
+      "role": "derived",
+      "doc_type": "TAX_INVOICE",
+      "evidence_kind": "INVOICE",
+      "case": "case-01-sample-supplies",
+      "render": "photo",
+      "text_layer": false,
+      "pages": 1,
+      "expected": {
+        "invoice_number": "INV-2026-0042",
+        "invoice_date": "2026-02-16",
+        "amount": "1250000.00",
+        "supplier_gstin": "29SYN000000010Z1",
+        "buyer_gstin": "29SYN000000000Z1",
+        "buyer_name": "Sample Buyer Corp (synthetic)",
+        "supplier_name": "Sample Supplies Pvt Ltd (synthetic)",
+        "delivery_date": "2026-02-16",
+        "po_reference": "PO-2026-0114",
+        "written_credit_days": "90"
+      },
+      "notes": "Low-light photo: brightness 0.72, contrast 0.75, JPEG q40."
+    },
+    {
+      "file": "ocr-stress/02-photos/INV-2026-0042-phone-photo.jpg",
+      "role": "derived",
+      "doc_type": "TAX_INVOICE",
+      "evidence_kind": "INVOICE",
+      "case": "case-01-sample-supplies",
+      "render": "photo",
+      "text_layer": false,
+      "pages": 1,
+      "expected": {
+        "invoice_number": "INV-2026-0042",
+        "invoice_date": "2026-02-16",
+        "amount": "1250000.00",
+        "supplier_gstin": "29SYN000000010Z1",
+        "buyer_gstin": "29SYN000000000Z1",
+        "buyer_name": "Sample Buyer Corp (synthetic)",
+        "supplier_name": "Sample Supplies Pvt Ltd (synthetic)",
+        "delivery_date": "2026-02-16",
+        "po_reference": "PO-2026-0114",
+        "written_credit_days": "90"
+      },
+      "notes": "Handheld-photo look: tilt, edge shadow, JPEG q48. OCR input is an image."
+    },
+    {
+      "file": "ocr-stress/03-multipage/INV-2026-MP01.pdf",
+      "role": "document",
+      "doc_type": "TAX_INVOICE",
+      "evidence_kind": "INVOICE",
+      "case": "case-01-sample-supplies",
+      "render": "digital",
+      "text_layer": true,
+      "pages": 2,
+      "expected": {
+        "invoice_number": "INV-2026-MP01",
+        "invoice_date": "2026-02-16",
+        "amount": "183549.00",
+        "supplier_gstin": "29SYN000000010Z1",
+        "buyer_gstin": "29SYN000000000Z1",
+        "buyer_name": "Sample Buyer Corp (synthetic)",
+        "supplier_name": "Sample Supplies Pvt Ltd (synthetic)",
+        "delivery_date": "2026-02-16",
+        "po_reference": "PO-2026-0114",
+        "written_credit_days": "90"
+      },
+      "text_layer_must_contain": [
+        "INV-2026-MP01",
+        "1,83,549.00"
+      ],
+      "notes": "Three-page invoice with 30 line items. Taxable 1,55,550.00, CGST 13,999.50, SGST 13,999.50, total 1,83,549.00. The total is on the last page."
+    },
+    {
+      "file": "ocr-stress/03-multipage/INV-2026-MP01.txt",
+      "role": "text_twin",
+      "doc_type": "TAX_INVOICE",
+      "evidence_kind": "INVOICE",
+      "case": "case-01-sample-supplies",
+      "render": "text",
+      "text_layer": null,
+      "pages": null,
+      "expected": {
+        "invoice_number": "INV-2026-MP01",
+        "invoice_date": "2026-02-16",
+        "amount": "183549.00",
+        "supplier_gstin": "29SYN000000010Z1",
+        "buyer_gstin": "29SYN000000000Z1",
+        "buyer_name": "Sample Buyer Corp (synthetic)",
+        "supplier_name": "Sample Supplies Pvt Ltd (synthetic)",
+        "delivery_date": "2026-02-16",
+        "po_reference": "PO-2026-0114",
+        "written_credit_days": "90"
+      },
+      "expect_kind": "DOCUMENT_TEXT",
+      "expected_warnings": [
+        "MACHINE_SUGGESTED"
+      ],
+      "not_expected_warnings": [],
+      "expected_messages": [],
+      "notes": "Three-page invoice with 30 line items. Taxable 1,55,550.00, CGST 13,999.50, SGST 13,999.50, total 1,83,549.00. The total is on the last page."
+    },
+    {
+      "file": "ocr-stress/04-edge-cases/INV-2026-EDGE01-ambiguous-dates.pdf",
+      "role": "document",
+      "doc_type": "TAX_INVOICE",
+      "evidence_kind": "INVOICE",
+      "case": "case-01-sample-supplies",
+      "render": "digital",
+      "text_layer": true,
+      "pages": 1,
+      "expected": {
+        "invoice_number": "INV-2026-EDGE01",
+        "invoice_date": "2026-03-10",
+        "amount": "125000.00",
+        "supplier_gstin": "29SYN000000010Z1",
+        "buyer_gstin": "29SYN000000000Z1",
+        "buyer_name": "Sample Buyer Corp (synthetic)",
+        "supplier_name": "Sample Supplies Pvt Ltd (synthetic)",
+        "delivery_date": "2026-05-04",
+        "po_reference": "PO-2026-0114",
+        "written_credit_days": "90"
+      },
+      "text_layer_must_contain": [
+        "10/03/2026",
+        "04/05/2026"
+      ],
+      "notes": "Both dates are ambiguous under DD/MM/YYYY. The extractor assumes Indian order and must say so. The amount is whatever the arithmetic gives."
+    },
+    {
+      "file": "ocr-stress/04-edge-cases/INV-2026-EDGE01-ambiguous-dates.txt",
+      "role": "text_twin",
+      "doc_type": "TAX_INVOICE",
+      "evidence_kind": "INVOICE",
+      "case": "case-01-sample-supplies",
+      "render": "text",
+      "text_layer": null,
+      "pages": null,
+      "expected": {
+        "invoice_number": "INV-2026-EDGE01",
+        "invoice_date": "2026-03-10",
+        "amount": "125000.00",
+        "supplier_gstin": "29SYN000000010Z1",
+        "buyer_gstin": "29SYN000000000Z1",
+        "buyer_name": "Sample Buyer Corp (synthetic)",
+        "supplier_name": "Sample Supplies Pvt Ltd (synthetic)",
+        "delivery_date": "2026-05-04",
+        "po_reference": "PO-2026-0114",
+        "written_credit_days": "90"
+      },
+      "expect_kind": "DOCUMENT_TEXT",
+      "expected_warnings": [
+        "MACHINE_SUGGESTED",
+        "DATE_ORDER_ASSUMED"
+      ],
+      "not_expected_warnings": [],
+      "expected_messages": [],
+      "notes": "Both dates are ambiguous under DD/MM/YYYY. The extractor assumes Indian order and must say so. The amount is whatever the arithmetic gives."
+    },
+    {
+      "file": "ocr-stress/04-edge-cases/INV-2026-EDGE02-no-total.pdf",
+      "role": "document",
+      "doc_type": "TAX_INVOICE",
+      "evidence_kind": "INVOICE",
+      "case": "case-01-sample-supplies",
+      "render": "digital",
+      "text_layer": true,
+      "pages": 1,
+      "expected": {
+        "invoice_number": "INV-2026-EDGE02",
+        "invoice_date": "2026-02-16",
+        "amount": null,
+        "supplier_gstin": "29SYN000000010Z1",
+        "buyer_gstin": "29SYN000000000Z1",
+        "buyer_name": "Sample Buyer Corp (synthetic)",
+        "supplier_name": "Sample Supplies Pvt Ltd (synthetic)",
+        "delivery_date": "2026-02-16",
+        "po_reference": "PO-2026-0114",
+        "written_credit_days": "90"
+      },
+      "text_layer_must_contain": [
+        "INV-2026-EDGE02"
+      ],
+      "notes": "The Grand Total line is absent (a torn or blurred page). amount must be missing, not the taxable value and not the amount in words."
+    },
+    {
+      "file": "ocr-stress/04-edge-cases/INV-2026-EDGE02-no-total.txt",
+      "role": "text_twin",
+      "doc_type": "TAX_INVOICE",
+      "evidence_kind": "INVOICE",
+      "case": "case-01-sample-supplies",
+      "render": "text",
+      "text_layer": null,
+      "pages": null,
+      "expected": {
+        "invoice_number": "INV-2026-EDGE02",
+        "invoice_date": "2026-02-16",
+        "amount": null,
+        "supplier_gstin": "29SYN000000010Z1",
+        "buyer_gstin": "29SYN000000000Z1",
+        "buyer_name": "Sample Buyer Corp (synthetic)",
+        "supplier_name": "Sample Supplies Pvt Ltd (synthetic)",
+        "delivery_date": "2026-02-16",
+        "po_reference": "PO-2026-0114",
+        "written_credit_days": "90"
+      },
+      "expect_kind": "DOCUMENT_TEXT",
+      "expected_warnings": [
+        "MACHINE_SUGGESTED"
+      ],
+      "not_expected_warnings": [],
+      "expected_messages": [],
+      "notes": "The Grand Total line is absent (a torn or blurred page). amount must be missing, not the taxable value and not the amount in words."
+    },
+    {
+      "file": "ocr-stress/04-edge-cases/INV-2026-EDGE03-no-gstin.pdf",
+      "role": "document",
+      "doc_type": "TAX_INVOICE",
+      "evidence_kind": "INVOICE",
+      "case": "case-01-sample-supplies",
+      "render": "digital",
+      "text_layer": true,
+      "pages": 1,
+      "expected": {
+        "invoice_number": "INV-2026-EDGE03",
+        "invoice_date": "2026-02-16",
+        "amount": "125000.00",
+        "supplier_gstin": null,
+        "buyer_gstin": null,
+        "buyer_name": "Sample Buyer Corp (synthetic)",
+        "supplier_name": "Sample Supplies Pvt Ltd (synthetic)",
+        "delivery_date": "2026-02-16",
+        "po_reference": "PO-2026-0114",
+        "written_credit_days": "90"
+      },
+      "text_layer_must_contain": [
+        "INV-2026-EDGE03"
+      ],
+      "notes": "No GSTIN anywhere. Both GSTIN fields must be missing; the user fills them in or the case is marked unregistered."
+    },
+    {
+      "file": "ocr-stress/04-edge-cases/INV-2026-EDGE03-no-gstin.txt",
+      "role": "text_twin",
+      "doc_type": "TAX_INVOICE",
+      "evidence_kind": "INVOICE",
+      "case": "case-01-sample-supplies",
+      "render": "text",
+      "text_layer": null,
+      "pages": null,
+      "expected": {
+        "invoice_number": "INV-2026-EDGE03",
+        "invoice_date": "2026-02-16",
+        "amount": "125000.00",
+        "supplier_gstin": null,
+        "buyer_gstin": null,
+        "buyer_name": "Sample Buyer Corp (synthetic)",
+        "supplier_name": "Sample Supplies Pvt Ltd (synthetic)",
+        "delivery_date": "2026-02-16",
+        "po_reference": "PO-2026-0114",
+        "written_credit_days": "90"
+      },
+      "expect_kind": "DOCUMENT_TEXT",
+      "expected_warnings": [
+        "MACHINE_SUGGESTED"
+      ],
+      "not_expected_warnings": [],
+      "expected_messages": [],
+      "notes": "No GSTIN anywhere. Both GSTIN fields must be missing; the user fills them in or the case is marked unregistered."
+    },
+    {
+      "file": "ocr-stress/05-chats/chat_group_continuation.txt",
+      "role": "chat_export",
+      "doc_type": "WHATSAPP_EXPORT",
+      "evidence_kind": "WHATSAPP",
+      "case": "case-01-sample-supplies",
+      "render": "text",
+      "text_layer": null,
+      "pages": null,
+      "expected": {
+        "invoice_number": "INV-2026-0042",
+        "invoice_date": null,
+        "amount": null,
+        "supplier_gstin": null,
+        "buyer_gstin": null,
+        "buyer_name": null,
+        "supplier_name": null,
+        "delivery_date": null,
+        "po_reference": null,
+        "written_credit_days": null
+      },
+      "expect_kind": "WHATSAPP_EXPORT",
+      "expected_warnings": [
+        "MACHINE_SUGGESTED",
+        "OBJECTION_WINDOW_APPLIED"
+      ],
+      "not_expected_warnings": [],
+      "expected_messages": [
+        {
+          "contains": "LR number is on the challan",
+          "tags": []
+        },
+        {
+          "contains": "Received all 100 units",
+          "tags": [
+            "DELIVERY_CONFIRMATION"
+          ]
+        }
+      ],
+      "notes": "The wrapped line must be joined onto the first message, and the system line must not become a message."
+    },
+    {
+      "file": "ocr-stress/05-chats/chat_hinglish.txt",
+      "role": "chat_export",
+      "doc_type": "WHATSAPP_EXPORT",
+      "evidence_kind": "WHATSAPP",
+      "case": "case-01-sample-supplies",
+      "render": "text",
+      "text_layer": null,
+      "pages": null,
+      "expected": {
+        "invoice_number": "SYN-INV-9001",
+        "invoice_date": null,
+        "amount": null,
+        "supplier_gstin": null,
+        "buyer_gstin": null,
+        "buyer_name": null,
+        "supplier_name": null,
+        "delivery_date": null,
+        "po_reference": null,
+        "written_credit_days": null
+      },
+      "expect_kind": "WHATSAPP_EXPORT",
+      "expected_warnings": [
+        "MACHINE_SUGGESTED",
+        "DELIVERY_ANCHOR_MISSING",
+        "NO_CANDIDATES"
+      ],
+      "not_expected_warnings": [],
+      "expected_messages": [],
+      "notes": "Expected: no tags. The English keyword tagger cannot read Hinglish, and the honest output is NO_CANDIDATES plus a missing anchor. A future language layer may suggest tags; a human still confirms."
+    },
+    {
+      "file": "ocr-stress/05-chats/chat_ios_format.txt",
+      "role": "chat_export",
+      "doc_type": "WHATSAPP_EXPORT",
+      "evidence_kind": "WHATSAPP",
+      "case": "case-01-sample-supplies",
+      "render": "text",
+      "text_layer": null,
+      "pages": null,
+      "expected": {
+        "invoice_number": null,
+        "invoice_date": null,
+        "amount": null,
+        "supplier_gstin": null,
+        "buyer_gstin": null,
+        "buyer_name": null,
+        "supplier_name": null,
+        "delivery_date": null,
+        "po_reference": null,
+        "written_credit_days": null
+      },
+      "expect_kind": "WHATSAPP_EXPORT",
+      "expected_warnings": [
+        "MACHINE_SUGGESTED",
+        "OBJECTION_WINDOW_APPLIED"
+      ],
+      "not_expected_warnings": [],
+      "expected_messages": [
+        {
+          "contains": "We received the goods today",
+          "tags": [
+            "DELIVERY_CONFIRMATION"
+          ]
+        }
+      ],
+      "notes": "Parser coverage for the iOS bracket header and a seconds-bearing time."
+    },
+    {
+      "file": "supplier-records/01-udyam/UDYAM-DATA-EXTRACT-SAMPLE-FABRICATORS.pdf",
+      "role": "document",
+      "doc_type": "UDYAM_DATA_EXTRACT",
+      "evidence_kind": "UDYAM",
+      "case": "case-04-fabricators",
+      "render": "digital",
+      "text_layer": true,
+      "pages": 1,
+      "expected": {
+        "invoice_number": null,
+        "invoice_date": null,
+        "amount": null,
+        "supplier_gstin": "29SYN000000012Z1",
+        "buyer_gstin": null,
+        "buyer_name": null,
+        "supplier_name": null,
+        "delivery_date": null,
+        "po_reference": null,
+        "written_credit_days": null
+      },
+      "text_layer_must_contain": [],
+      "notes": "Same template, different fictional enterprise."
+    },
+    {
+      "file": "supplier-records/01-udyam/UDYAM-DATA-EXTRACT-SAMPLE-FABRICATORS.txt",
+      "role": "text_twin",
+      "doc_type": "UDYAM_DATA_EXTRACT",
+      "evidence_kind": "UDYAM",
+      "case": "case-04-fabricators",
+      "render": "text",
+      "text_layer": null,
+      "pages": null,
+      "expected": {
+        "invoice_number": null,
+        "invoice_date": null,
+        "amount": null,
+        "supplier_gstin": "29SYN000000012Z1",
+        "buyer_gstin": null,
+        "buyer_name": null,
+        "supplier_name": null,
+        "delivery_date": null,
+        "po_reference": null,
+        "written_credit_days": null
+      },
+      "expect_kind": "DOCUMENT_TEXT",
+      "expected_warnings": [
+        "MACHINE_SUGGESTED"
+      ],
+      "not_expected_warnings": [],
+      "expected_messages": [],
+      "notes": "Same template, different fictional enterprise."
+    },
+    {
+      "file": "supplier-records/01-udyam/UDYAM-DATA-EXTRACT-SAMPLE-MAINTENANCE.pdf",
+      "role": "document",
+      "doc_type": "UDYAM_DATA_EXTRACT",
+      "evidence_kind": "UDYAM",
+      "case": "case-06-maintenance",
+      "render": "digital",
+      "text_layer": true,
+      "pages": 1,
+      "expected": {
+        "invoice_number": null,
+        "invoice_date": null,
+        "amount": null,
+        "supplier_gstin": "29SYN000000013Z1",
+        "buyer_gstin": null,
+        "buyer_name": null,
+        "supplier_name": null,
+        "delivery_date": null,
+        "po_reference": null,
+        "written_credit_days": null
+      },
+      "text_layer_must_contain": [],
+      "notes": "Same template, different fictional enterprise."
+    },
+    {
+      "file": "supplier-records/01-udyam/UDYAM-DATA-EXTRACT-SAMPLE-MAINTENANCE.txt",
+      "role": "text_twin",
+      "doc_type": "UDYAM_DATA_EXTRACT",
+      "evidence_kind": "UDYAM",
+      "case": "case-06-maintenance",
+      "render": "text",
+      "text_layer": null,
+      "pages": null,
+      "expected": {
+        "invoice_number": null,
+        "invoice_date": null,
+        "amount": null,
+        "supplier_gstin": "29SYN000000013Z1",
+        "buyer_gstin": null,
+        "buyer_name": null,
+        "supplier_name": null,
+        "delivery_date": null,
+        "po_reference": null,
+        "written_credit_days": null
+      },
+      "expect_kind": "DOCUMENT_TEXT",
+      "expected_warnings": [
+        "MACHINE_SUGGESTED"
+      ],
+      "not_expected_warnings": [],
+      "expected_messages": [],
+      "notes": "Same template, different fictional enterprise."
+    },
+    {
+      "file": "supplier-records/01-udyam/UDYAM-DATA-EXTRACT-SAMPLE-MICRO-WORKS.pdf",
+      "role": "document",
+      "doc_type": "UDYAM_DATA_EXTRACT",
+      "evidence_kind": "UDYAM",
+      "case": "case-02-micro-works",
+      "render": "digital",
+      "text_layer": true,
+      "pages": 1,
+      "expected": {
+        "invoice_number": null,
+        "invoice_date": null,
+        "amount": null,
+        "supplier_gstin": "29SYN000000011Z1",
+        "buyer_gstin": null,
+        "buyer_name": null,
+        "supplier_name": null,
+        "delivery_date": null,
+        "po_reference": null,
+        "written_credit_days": null
+      },
+      "text_layer_must_contain": [],
+      "notes": "Same template, different fictional enterprise."
+    },
+    {
+      "file": "supplier-records/01-udyam/UDYAM-DATA-EXTRACT-SAMPLE-MICRO-WORKS.txt",
+      "role": "text_twin",
+      "doc_type": "UDYAM_DATA_EXTRACT",
+      "evidence_kind": "UDYAM",
+      "case": "case-02-micro-works",
+      "render": "text",
+      "text_layer": null,
+      "pages": null,
+      "expected": {
+        "invoice_number": null,
+        "invoice_date": null,
+        "amount": null,
+        "supplier_gstin": "29SYN000000011Z1",
+        "buyer_gstin": null,
+        "buyer_name": null,
+        "supplier_name": null,
+        "delivery_date": null,
+        "po_reference": null,
+        "written_credit_days": null
+      },
+      "expect_kind": "DOCUMENT_TEXT",
+      "expected_warnings": [
+        "MACHINE_SUGGESTED"
+      ],
+      "not_expected_warnings": [],
+      "expected_messages": [],
+      "notes": "Same template, different fictional enterprise."
+    },
+    {
+      "file": "supplier-records/01-udyam/UDYAM-DATA-EXTRACT-SAMPLE-SUPPLIES.pdf",
+      "role": "document",
+      "doc_type": "UDYAM_DATA_EXTRACT",
+      "evidence_kind": "UDYAM",
+      "case": "case-01-sample-supplies",
+      "render": "digital",
+      "text_layer": true,
+      "pages": 1,
+      "expected": {
+        "invoice_number": null,
+        "invoice_date": null,
+        "amount": null,
+        "supplier_gstin": "29SYN000000010Z1",
+        "buyer_gstin": null,
+        "buyer_name": null,
+        "supplier_name": null,
+        "delivery_date": null,
+        "po_reference": null,
+        "written_credit_days": null
+      },
+      "text_layer_must_contain": [
+        "UDYAM-SYN-000000000",
+        "NOT AN UDYAM REGISTRATION CERTIFICATE"
+      ],
+      "notes": "Not a certificate: a labelled field transcription. This is the one document type we deliberately do not imitate (golden rules 9, 17)."
+    },
+    {
+      "file": "supplier-records/01-udyam/UDYAM-DATA-EXTRACT-SAMPLE-SUPPLIES.txt",
+      "role": "text_twin",
+      "doc_type": "UDYAM_DATA_EXTRACT",
+      "evidence_kind": "UDYAM",
+      "case": "case-01-sample-supplies",
+      "render": "text",
+      "text_layer": null,
+      "pages": null,
+      "expected": {
+        "invoice_number": null,
+        "invoice_date": null,
+        "amount": null,
+        "supplier_gstin": "29SYN000000010Z1",
+        "buyer_gstin": null,
+        "buyer_name": null,
+        "supplier_name": null,
+        "delivery_date": null,
+        "po_reference": null,
+        "written_credit_days": null
+      },
+      "expect_kind": "DOCUMENT_TEXT",
+      "expected_warnings": [
+        "MACHINE_SUGGESTED"
+      ],
+      "not_expected_warnings": [],
+      "expected_messages": [],
+      "notes": "Not a certificate: a labelled field transcription. This is the one document type we deliberately do not imitate (golden rules 9, 17)."
+    },
+    {
+      "file": "supplier-records/02-gst-return/GSTR-1-2026-02-EXTRACT.pdf",
+      "role": "document",
+      "doc_type": "GST_RETURN_EXTRACT",
+      "evidence_kind": "GST_RETURN",
+      "case": "case-01-sample-supplies",
+      "render": "digital",
+      "text_layer": true,
+      "pages": 1,
+      "expected": {
+        "invoice_number": "INV-2026-0042",
+        "invoice_date": "2026-02-16",
+        "amount": "1250000.00",
+        "supplier_gstin": "29SYN000000010Z1",
+        "buyer_gstin": null,
+        "buyer_name": null,
+        "supplier_name": null,
+        "delivery_date": null,
+        "po_reference": null,
+        "written_credit_days": null
+      },
+      "text_layer_must_contain": [
+        "GSTR-1",
+        "INV-2026-0042"
+      ],
+      "notes": "Invoice-level return detail. It shows the invoice was declared; it proves nothing about payment or acceptance."
+    },
+    {
+      "file": "supplier-records/02-gst-return/GSTR-1-2026-02-EXTRACT.txt",
+      "role": "text_twin",
+      "doc_type": "GST_RETURN_EXTRACT",
+      "evidence_kind": "GST_RETURN",
+      "case": "case-01-sample-supplies",
+      "render": "text",
+      "text_layer": null,
+      "pages": null,
+      "expected": {
+        "invoice_number": "INV-2026-0042",
+        "invoice_date": "2026-02-16",
+        "amount": "1250000.00",
+        "supplier_gstin": "29SYN000000010Z1",
+        "buyer_gstin": null,
+        "buyer_name": null,
+        "supplier_name": null,
+        "delivery_date": null,
+        "po_reference": null,
+        "written_credit_days": null
+      },
+      "expect_kind": "DOCUMENT_TEXT",
+      "expected_warnings": [
+        "MACHINE_SUGGESTED"
+      ],
+      "not_expected_warnings": [],
+      "expected_messages": [],
+      "notes": "Invoice-level return detail. It shows the invoice was declared; it proves nothing about payment or acceptance."
+    },
+    {
+      "file": "supplier-records/02-gst-return/GSTR-3B-2026-02-EXTRACT.pdf",
+      "role": "document",
+      "doc_type": "GST_RETURN_EXTRACT",
+      "evidence_kind": "GST_RETURN",
+      "case": "case-01-sample-supplies",
+      "render": "digital",
+      "text_layer": true,
+      "pages": 1,
+      "expected": {
+        "invoice_number": "INV-2026-0042",
+        "invoice_date": "2026-02-16",
+        "amount": "1250000.00",
+        "supplier_gstin": "29SYN000000010Z1",
+        "buyer_gstin": null,
+        "buyer_name": null,
+        "supplier_name": null,
+        "delivery_date": null,
+        "po_reference": null,
+        "written_credit_days": null
+      },
+      "text_layer_must_contain": [
+        "GSTR-3B",
+        "Filed (synthetic)"
+      ],
+      "notes": "Summary return. Same figures as the GSTR-1 extract for the invoice."
+    },
+    {
+      "file": "supplier-records/02-gst-return/GSTR-3B-2026-02-EXTRACT.txt",
+      "role": "text_twin",
+      "doc_type": "GST_RETURN_EXTRACT",
+      "evidence_kind": "GST_RETURN",
+      "case": "case-01-sample-supplies",
+      "render": "text",
+      "text_layer": null,
+      "pages": null,
+      "expected": {
+        "invoice_number": "INV-2026-0042",
+        "invoice_date": "2026-02-16",
+        "amount": "1250000.00",
+        "supplier_gstin": "29SYN000000010Z1",
+        "buyer_gstin": null,
+        "buyer_name": null,
+        "supplier_name": null,
+        "delivery_date": null,
+        "po_reference": null,
+        "written_credit_days": null
+      },
+      "expect_kind": "DOCUMENT_TEXT",
+      "expected_warnings": [
+        "MACHINE_SUGGESTED"
+      ],
+      "not_expected_warnings": [],
+      "expected_messages": [],
+      "notes": "Summary return. Same figures as the GSTR-1 extract for the invoice."
+    }
+  ]
+}

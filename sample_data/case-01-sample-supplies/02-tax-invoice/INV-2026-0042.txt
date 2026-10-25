@@ -1,0 +1,35 @@
+SPECIMEN - SYNTHETIC DATA - NOT A REAL DOCUMENT
+Generated for the SamadhaanOS sample corpus - every party, GSTIN and amount is fictional.
+
+Sample Supplies Pvt Ltd (synthetic)
+TAX INVOICE
+ORIGINAL FOR RECIPIENT
+Plot 14, Fictional Industrial Estate
+Sample Nagar, Karnataka 560000, India
+GSTIN: 29SYN000000010Z1
+Email: accounts@example.invalid
+
+Supplier: Sample Supplies Pvt Ltd (synthetic)   GSTIN: 29SYN000000010Z1
+Bill to: Sample Buyer Corp (synthetic)   GSTIN: 29SYN000000000Z1
+Plot 14, Fictional Industrial Estate, Sample Nagar, Karnataka 560000, India
+Plot 9, Fictional Trade Centre, Sample Nagar, Karnataka 560000, India
+
+Tax Invoice No: INV-2026-0042
+Date: 16/02/2026
+Your PO: PO-2026-0114
+Delivery date: 16/02/2026
+Payment terms: Net 90 days
+Place of supply: Karnataka (29)
+Description  HSN/SAC  Qty  Rate  Amount
+Fabricated component, MS bracket, 12 mm  7308  100  10,593.22  10,59,322.00
+Taxable value: 10,59,322.00
+CGST @ 9%: 95,338.98
+SGST @ 9%: 95,338.98
+Round off: 0.04
+Grand Total: Rs 12,50,000.00
+Amount in words: Rupees Twelve Lakh Fifty Thousand Only
+Bank details: Fictional Bank A, A/c 000000000000, IFSC FICT0000001 (fictional, for layout only).
+
+SYNTHETIC SAMPLE - generated for the SamadhaanOS demo. Not a real tax invoice. No real party, GSTIN or supply is represented.
+For Sample Supplies Pvt Ltd (synthetic)
+Authorised signatory (fictional)

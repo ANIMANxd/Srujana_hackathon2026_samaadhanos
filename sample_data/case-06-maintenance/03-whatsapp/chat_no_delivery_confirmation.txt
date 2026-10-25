@@ -1,0 +1,6 @@
+SPECIMEN - SYNTHETIC DATA - NOT A REAL DOCUMENT
+Synthetic WhatsApp export with no delivery confirmation anywhere, so the extractor cannot compute days after delivery.
+
+01/04/2026, 9:15 AM - Anu (fictional): Invoice INV-2026-0401 raised for the April to September maintenance contract.
+07/04/2026, 12:40 PM - Anu (fictional): The technician attended site on 03/04 and completed the service check. Please confirm acceptance.
+20/04/2026, 6:05 PM - Buyer Accounts (fictional): Payment for the invoice will be released by 10 May.

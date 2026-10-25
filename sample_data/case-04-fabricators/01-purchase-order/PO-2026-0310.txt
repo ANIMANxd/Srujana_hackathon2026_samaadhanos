@@ -1,0 +1,31 @@
+SPECIMEN - SYNTHETIC DATA - NOT A REAL DOCUMENT
+Generated for the SamadhaanOS sample corpus - every party, GSTIN and amount is fictional.
+
+Sample Buyer Four Ltd (synthetic)
+PURCHASE ORDER
+SYNTHETIC SPECIMEN
+Block 4, Fictional Trade Centre
+Sample Nagar, Karnataka 560000, India
+GSTIN: 29SYN000000003Z1
+Email: purchase@example.invalid
+
+Buyer: Sample Buyer Four Ltd (synthetic)   GSTIN: 29SYN000000003Z1
+Block 4, Fictional Trade Centre, Sample Nagar, Karnataka 560000, India
+
+Supplier: Sample Fabricators Pvt Ltd (synthetic)   GSTIN: 29SYN000000012Z1
+Works 7, Fictional Industrial Estate, Sample Nagar, Karnataka 560000, India
+
+PO No: PO-2026-0310
+Order date: 15/02/2026
+Delivery date: 10/03/2026
+Payment terms: Net 30 days from delivery
+Delivery instructions: Fictional Industrial Estate stores, gate 2
+Description  HSN/SAC  Qty  Rate  Basic value
+Fabricated frame assembly, painted  7308  300  1,410.00  4,23,000.00
+Freight and packing (reimbursement)  9965  1  728.81  728.81
+Basic value: 4,23,728.81
+GST: 18.00% extra as applicable
+Estimated total: Rs 5,00,000.00
+Notes: The estimated total is inclusive of GST at 18.00%. Please quote PO-2026-0310 on your invoice. Deliver in one lot. Order quantity: 300 units.
+
+SYNTHETIC SAMPLE - generated for the SamadhaanOS demo. Not a real purchase order. The Net-90 term is a demo of a contractual term that does not move the statutory clock; the engine decides that, not this page.

@@ -17,6 +17,13 @@ The authoritative list of *installed* packages is `requirements.txt`; this file 
 |---|---|---|---|
 | `httpx` | `>=0.27` | HTTP client for the mock provider service (`backend/adapters/mock/client.py`) and the `/health` reachability probe. | Mock-only: the live adapters are stubs that raise `NotImplementedError`. 5 s timeout, retries on **connect errors only** (never a timeout or a 5xx, which could double-book), `X-Correlation-Id` forwarded. `httpx` was already present as starlette's TestClient transport; it is now an explicit dependency because production code imports it. |
 
+## Development-only tools (sample_data/)
+
+| Library | Version | Why it is here | Constraints |
+|---|---|---|---|
+| `pymupdf` | 1.28 (tested) | Rasterises the generated PDFs into image-only "scanned" PDFs and renders the chat-transcript PNGs (`sample_data/generate_samples.py`). `verify_samples.py` also uses it to assert that a digital PDF has a text layer and a scan has none. | Development only. Nothing under `backend/` or `frontend/` imports it, and it is deliberately not in `requirements.txt`. The generator exits with a pip hint if it is missing. |
+| `pillow` | 12.3 (tested) | Rotates, blurs, speckles and re-compresses the degraded scan and photo variants. | Development only, same rule: never in the runtime or legal path. |
+
 ## Present before the v4 work
 
 Recorded here from the comments in `requirements.txt`. These entries are **not** a

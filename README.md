@@ -73,6 +73,20 @@ The offline demo sequence is in [`frontend/DEMO.md`](frontend/DEMO.md).
 
 ---
 
+## Sample documents
+
+[`sample_data/`](sample_data/README.md) holds a synthetic document corpus a judge
+can open: PDFs of a GST invoice, purchase order, delivery challan, goods receipt
+note, Udyam data extract, GST return extracts, a written objection and a
+remittance advice, plus WhatsApp exports and a degraded/photo OCR stress set.
+Every page is watermarked SPECIMEN, every party and GSTIN is fictional, and the
+Udyam page is a labelled data extract rather than a certificate.
+`sample_data/MANIFEST.json` is the OCR ground truth; rebuild the corpus with
+`python sample_data/generate_samples.py` and check it with
+`python sample_data/verify_samples.py`.
+
+---
+
 ## Sending is manual, on purpose
 
 The app drafts; the owner sends. A stage produces a `wa.me` link and a `mailto:`

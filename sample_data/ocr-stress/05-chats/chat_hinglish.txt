@@ -1,0 +1,6 @@
+SPECIMEN - SYNTHETIC DATA - NOT A REAL DOCUMENT
+Synthetic Hinglish export. The keyword tagger is English-only today, so this file is a known-limitation test, not a failure to fix by guessing.
+
+03/02/2026, 10:05 AM - Anu (fictional): 40 boxes dispatch ho gaye hain, invoice SYN-INV-9001 ke against.
+03/02/2026, 4:30 PM - Buyer Stores (fictional): Maal mil gaya, GRN sign kar diya.
+12/02/2026, 11:20 AM - Buyer Stores (fictional): 6 units kharab hain, replace kar dijiye.

@@ -1,0 +1,22 @@
+SPECIMEN - SYNTHETIC DATA - NOT A REAL DOCUMENT
+Generated for the SamadhaanOS sample corpus - every party, GSTIN and amount is fictional.
+
+Sample Buyer Four Ltd (synthetic)
+REMITTANCE ADVICE
+SYNTHETIC SPECIMEN
+Block 4, Fictional Trade Centre
+Sample Nagar, Karnataka 560000, India
+Email: purchase@example.invalid
+
+Advice No: RA-2026-0515
+Payment date: 15/05/2026
+Supplier: Sample Fabricators Pvt Ltd (synthetic)
+Supplier GSTIN: 29SYN000000012Z1
+Buyer GSTIN: 29SYN000000003Z1
+Invoice No: INV-2026-0310
+Invoice value: Rs 5,00,000.00
+Amount paid: Rs 1,50,000.00
+Balance outstanding: Rs 3,50,000.00
+Mode: NEFT (simulated)
+UTR: SYNTHUTR0001
+SYNTHETIC SAMPLE - a fictional buyer's accounts-payable advice. The bank, the UTR and the payment are simulated; no money moved.

@@ -1,0 +1,5 @@
+SPECIMEN - SYNTHETIC DATA - NOT A REAL DOCUMENT
+Synthetic WhatsApp export. The same delivery, with the first complaint on day 60 instead of day 9.
+
+15/03/2026, 4:30 PM - Buyer Stores (fictional): We received the 300 units today. GRN signed, thanks.
+14/05/2026, 10:10 AM - Buyer Stores (fictional): 60 days after delivery we are still finding cracked bushes in the same lot. This is unacceptable.

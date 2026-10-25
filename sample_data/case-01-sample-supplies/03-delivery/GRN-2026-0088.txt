@@ -1,0 +1,28 @@
+SPECIMEN - SYNTHETIC DATA - NOT A REAL DOCUMENT
+Generated for the SamadhaanOS sample corpus - every party, GSTIN and amount is fictional.
+
+Sample Buyer Corp (synthetic)
+GOODS RECEIPT NOTE
+DELIVERY PROOF - SYNTHETIC
+Plot 9, Fictional Trade Centre
+Sample Nagar, Karnataka 560000, India
+GSTIN: 29SYN000000000Z1
+Email: purchase@example.invalid
+
+Supplier: Sample Supplies Pvt Ltd (synthetic)   GSTIN: 29SYN000000010Z1
+Buyer: Sample Buyer Corp (synthetic)   GSTIN: 29SYN000000000Z1
+GRN No: GRN-2026-0088
+Delivery date: 16/02/2026
+Against Invoice No: INV-2026-0042
+Your PO: PO-2026-0114
+Quantity received: 100
+Quantity accepted: 100
+Quantity rejected: 0
+Condition: Received in good condition, no shortage, no damage
+Description  HSN/SAC  Qty received  Qty accepted
+Fabricated component, MS bracket, 12 mm  7308  100  100
+Remarks: GRN signed by stores. No rejection was raised on this delivery.
+
+For Sample Buyer Corp (synthetic)
+Stores in-charge (fictional)
+SYNTHETIC SAMPLE - generated for the SamadhaanOS demo. A real GRN is signed by the buyer; this page proves nothing.

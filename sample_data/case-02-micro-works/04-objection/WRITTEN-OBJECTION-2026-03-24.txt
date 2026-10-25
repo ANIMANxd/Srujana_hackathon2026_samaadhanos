@@ -1,0 +1,28 @@
+SPECIMEN - SYNTHETIC DATA - NOT A REAL DOCUMENT
+Generated for the SamadhaanOS sample corpus - every party, GSTIN and amount is fictional.
+
+Sample Buyer Two Ltd (synthetic)
+WRITTEN OBJECTION
+E-MAIL PRINT - SYNTHETIC
+Tower B, Fictional Trade Centre
+Sample Nagar, Karnataka 560000, India
+Email: purchase@example.invalid
+
+From (buyer): Purchase Desk <purchase@example.invalid>
+To (supplier): Accounts <accounts@example.invalid>
+Buyer GSTIN: 29SYN000000001Z1
+Sent: 24/03/2026 11:20
+Subject: Defective batch against Invoice No INV-2026-0209
+Dear Sir/Madam,
+
+We refer to your Invoice No INV-2026-0209 dated 15/03/2026 and the 300 units received on 15/03/2026.
+
+On opening the cartons we found 18 bushes with a machining defect and 4 cracked bushes. 22 pieces in total are not usable. We are rejecting these 22 pieces only; the remaining 278 pieces are accepted.
+
+Please arrange a replacement for the 22 rejected pieces. Payment for the accepted quantity will be processed as per the agreed terms once the replacement is received.
+
+This note is sent nine days after delivery. Kindly acknowledge receipt.
+
+Reference: Invoice No INV-2026-0209
+
+SYNTHETIC SAMPLE - a fictional buyer's email, not a real dispute.

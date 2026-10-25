@@ -1,0 +1,7 @@
+SPECIMEN - SYNTHETIC DATA - NOT A REAL DOCUMENT
+Synthetic group export with a system line and a wrapped message.
+
+Messages in this chat are end-to-end encrypted.
+16/02/2026, 9:40 AM - Anu (fictional): Dispatched 100 units against invoice INV-2026-0042.
+LR number is on the challan and the driver has the signed copy.
+16/02/2026, 4:30 PM - Buyer Stores (fictional): Received all 100 units. GRN signed.

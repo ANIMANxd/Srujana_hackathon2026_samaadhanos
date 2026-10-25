@@ -1,0 +1,36 @@
+SPECIMEN - SYNTHETIC DATA - NOT A REAL DOCUMENT
+Generated for the SamadhaanOS sample corpus - every party, GSTIN and amount is fictional.
+
+Sample Fabricators Pvt Ltd (synthetic)
+TAX INVOICE
+ORIGINAL FOR RECIPIENT
+Works 7, Fictional Industrial Estate
+Sample Nagar, Karnataka 560000, India
+GSTIN: 29SYN000000012Z1
+Email: accounts@example.invalid
+
+Supplier: Sample Fabricators Pvt Ltd (synthetic)   GSTIN: 29SYN000000012Z1
+Bill to: Sample Buyer Four Ltd (synthetic)   GSTIN: 29SYN000000003Z1
+Works 7, Fictional Industrial Estate, Sample Nagar, Karnataka 560000, India
+Block 4, Fictional Trade Centre, Sample Nagar, Karnataka 560000, India
+
+Tax Invoice No: INV-2026-0310
+Date: 10/03/2026
+Your PO: PO-2026-0310
+Delivery date: 10/03/2026
+Payment terms: Net 30 days
+Place of supply: Karnataka (29)
+Description  HSN/SAC  Qty  Rate  Amount
+Fabricated frame assembly, painted  7308  300  1,410.00  4,23,000.00
+Freight and packing (reimbursement)  9965  1  728.81  728.81
+Taxable value: 4,23,728.81
+CGST @ 9%: 38,135.59
+SGST @ 9%: 38,135.59
+Round off: 0.01
+Grand Total: Rs 5,00,000.00
+Amount in words: Rupees Five Lakh Only
+Bank details: Fictional Bank A, A/c 000000000000, IFSC FICT0000001 (fictional, for layout only).
+
+SYNTHETIC SAMPLE - generated for the SamadhaanOS demo. Not a real tax invoice. No real party, GSTIN or supply is represented.
+For Sample Fabricators Pvt Ltd (synthetic)
+Authorised signatory (fictional)
