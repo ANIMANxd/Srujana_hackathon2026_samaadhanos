@@ -11,28 +11,85 @@ export function Skeleton({ className = "h-6 w-full" }: { className?: string }) {
   return <div className={`animate-pulse rounded-md bg-paper-sunk ${className}`} aria-hidden="true" />;
 }
 
-export function CaseSkeleton() {
+export type CaseSkeletonVariant = "overview" | "cfo" | "evidence" | "math" | "escalation";
+
+export function CaseSkeleton({ variant = "overview" }: { variant?: CaseSkeletonVariant }) {
   const { t } = useT();
   return (
     <div className="flex flex-col gap-4" aria-busy="true">
       <span className="sr-only">{t("state.loading")}</span>
-      <div className="panel grid gap-8 p-6 sm:p-8 lg:grid-cols-[1.4fr_1fr]">
-        <div className="flex flex-col gap-3">
-          <Skeleton className="h-3 w-24" />
-          <Skeleton className="h-11 w-64" />
-          <Skeleton className="h-4 w-80 max-w-full" />
+
+      {variant === "cfo" ? (
+        <>
+          <div className="flex flex-col gap-3 py-2">
+            <Skeleton className="h-8 w-96 max-w-full" />
+            <Skeleton className="h-4 w-[32rem] max-w-full" />
+          </div>
+          <div className="grid gap-4 lg:grid-cols-3">
+            <Skeleton className="h-64" />
+            <Skeleton className="h-64" />
+            <Skeleton className="h-64" />
+          </div>
+          <Skeleton className="h-28" />
+          <Skeleton className="h-72" />
+        </>
+      ) : variant === "evidence" ? (
+        <div className="grid items-start gap-4 lg:grid-cols-[1.1fr_1fr]">
+          <div className="flex flex-col gap-4">
+            <Skeleton className="h-80" />
+            <Skeleton className="h-56" />
+          </div>
+          <div className="flex flex-col gap-4">
+            <Skeleton className="h-72" />
+            <Skeleton className="h-80" />
+            <Skeleton className="h-40" />
+          </div>
         </div>
-        <div className="flex flex-col gap-3">
-          <Skeleton className="h-3 w-20" />
-          <Skeleton className="h-6 w-48" />
-          <Skeleton className="h-10 w-40" />
+      ) : variant === "math" ? (
+        <>
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <Skeleton className="h-24" />
+            <Skeleton className="h-24" />
+            <Skeleton className="h-24" />
+            <Skeleton className="h-24" />
+          </div>
+          <Skeleton className="h-80" />
+          <Skeleton className="h-56" />
+        </>
+      ) : variant === "escalation" ? (
+        <div className="grid items-start gap-4 lg:grid-cols-[19rem_1fr]">
+          <Skeleton className="h-[26rem]" />
+          <Skeleton className="h-[34rem]" />
         </div>
-      </div>
-      <Skeleton className="h-28" />
-      <div className="grid gap-4 md:grid-cols-[3fr_2fr]">
-        <Skeleton className="h-44" />
-        <Skeleton className="h-44" />
-      </div>
+      ) : (
+        <>
+          <div className="panel grid gap-8 p-6 sm:p-8 lg:grid-cols-[1.4fr_1fr]">
+            <div className="flex flex-col gap-3">
+              <Skeleton className="h-3 w-24" />
+              <Skeleton className="h-11 w-64" />
+              <Skeleton className="h-4 w-80 max-w-full" />
+              <div className="mt-4 grid grid-cols-2 gap-6 border-t border-rule pt-5">
+                <Skeleton className="h-10 w-32" />
+                <Skeleton className="h-10 w-32" />
+              </div>
+            </div>
+            <div className="flex flex-col gap-3 border-t border-rule pt-6 lg:border-l lg:border-t-0 lg:pl-8 lg:pt-0">
+              <Skeleton className="h-3 w-20" />
+              <Skeleton className="h-6 w-48" />
+              <Skeleton className="h-10 w-40" />
+            </div>
+          </div>
+          <Skeleton className="h-44" />
+          <div className="grid gap-4 lg:grid-cols-[3fr_2fr]">
+            <Skeleton className="h-64" />
+            <div className="flex flex-col gap-4">
+              <Skeleton className="h-36" />
+              <Skeleton className="h-16" />
+            </div>
+          </div>
+          <Skeleton className="h-36" />
+        </>
+      )}
     </div>
   );
 }

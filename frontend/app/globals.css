@@ -16,7 +16,7 @@
   --color-ink-800: #2e2d2a;
   --color-ink-700: #4a4945;
   --color-ink-600: #5f5e59;
-  --color-ink-500: #75746e;
+  --color-ink-500: #6c6b65;
   --color-ink-300: #c9c8c3;
   --color-ink-100: #f0efec;
 
@@ -51,9 +51,10 @@
   /* spacing: 4px base unit; components use 8px steps for groups */
   --spacing: 0.25rem;
 
-  /* type scale: body 16px, hero figure 44px */
-  --text-xs: 0.75rem;
-  --text-sm: 0.875rem;
+  /* type scale: body 16px, hero figure 44px. xs/sm are one notch larger than
+     the Tailwind defaults because the demo is recorded at 1080p. */
+  --text-xs: 0.8125rem;
+  --text-sm: 0.9375rem;
   --text-base: 1rem;
   --text-lg: 1.125rem;
   --text-xl: 1.25rem;
@@ -128,6 +129,23 @@ html {
   font-size: 100%;
   -webkit-text-size-adjust: 100%;
   font-feature-settings: "ss01", "cv11";
+}
+
+/*
+ * Screen recording at 1920x1080: one step larger from laptop width up. rem-based
+ * sizes (type and spacing) scale together, so nothing is left at 12px on video.
+ * Print keeps the normal scale so the evidence pack stays compact.
+ */
+@media (min-width: 1280px) {
+  html {
+    font-size: 106.25%; /* 17px */
+  }
+}
+
+@media print {
+  html {
+    font-size: 100%;
+  }
 }
 
 body {

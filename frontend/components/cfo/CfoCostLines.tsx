@@ -158,7 +158,7 @@ export function CfoCostLines({
           </ul>
         </section>
       )}
-      {fin && <CfoSettlementOptions caseId={caseId} request={request} />}
+      {fin && <CfoSettlementOptions key={JSON.stringify(request)} caseId={caseId} request={request} />}
     </div>
   );
 }

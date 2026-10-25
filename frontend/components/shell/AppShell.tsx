@@ -6,6 +6,7 @@ import { useEffect, type ReactNode } from "react";
 import { I18nProvider, useT } from "@/lib/i18n";
 import { ParamsProvider, useHref, useUrlState, type UrlState } from "@/lib/params";
 import { JUDGE_EVENT, useConnection, type Connection } from "@/lib/useConnection";
+import { DemoHint } from "../demo/DemoHint";
 import { Icon } from "../common/Icon";
 
 function Wordmark() {
@@ -29,7 +30,7 @@ function ConnectionPill({ conn }: { conn: Connection }) {
   return (
     <span
       title={hint}
-      className={`inline-flex h-7 items-center gap-2 rounded-full border px-2.5 text-xs font-medium ${
+      className={`inline-flex h-7 items-center gap-2 rounded-full border px-2.5 text-xs font-medium sm:min-w-[7.25rem] sm:justify-center ${
         conn === "offline" ? "border-warn/30 bg-warn-wash text-warn" : "border-rule bg-paper-raised text-ink-700"
       }`}
     >
@@ -92,9 +93,10 @@ function TopNav() {
   const { t } = useT();
   const href = useHref();
   const conn = useConnection();
+  const { demo, judge } = useUrlState();
   return (
     <header className="no-print sticky top-0 z-40 border-b border-rule bg-paper-raised/90 backdrop-blur-md">
-      <div className="mx-auto flex h-14 max-w-[1120px] items-center justify-between gap-4 px-4 sm:px-8">
+      <div className="mx-auto flex h-14 max-w-[1200px] items-center justify-between gap-4 px-4 sm:px-8">
         <div className="flex items-center gap-6">
           <Wordmark />
           <nav aria-label={t("nav.main")} className="hidden items-center gap-1 sm:flex">
@@ -105,16 +107,19 @@ function TopNav() {
         <div className="flex items-center gap-2">
           <LangToggle />
           <ConnectionPill conn={conn} />
-          <button
-            type="button"
-            onClick={() => window.dispatchEvent(new Event(JUDGE_EVENT))}
-            className="btn btn-quiet min-h-8 px-2 text-xs"
-            title={t("judge.hint")}
-          >
-            <span className="num rounded border border-rule px-1 text-[0.6875rem] text-ink-500" aria-hidden="true">{t("judge.kbd")}</span>
-            <span className="hidden md:inline">{t("nav.judge")}</span>
-            <span className="sr-only md:hidden">{t("nav.judge")}</span>
-          </button>
+          {/* Demo mode: the judge console is a rehearsal tool, not part of the script. ?judge=1 still shows it. */}
+          {(!demo || judge) && (
+            <button
+              type="button"
+              onClick={() => window.dispatchEvent(new Event(JUDGE_EVENT))}
+              className="btn btn-quiet min-h-8 px-2 text-xs"
+              title={t("judge.hint")}
+            >
+              <span className="num rounded border border-rule px-1 text-[0.6875rem] text-ink-500" aria-hidden="true">{t("judge.kbd")}</span>
+              <span className="hidden md:inline">{t("nav.judge")}</span>
+              <span className="sr-only md:hidden">{t("nav.judge")}</span>
+            </button>
+          )}
           <div className="flex sm:hidden">
             <Link href={href("/upload")} className="btn btn-secondary min-h-8 px-2.5" aria-label={t("nav.upload")}>
               <Icon name="upload" className="h-4 w-4" />
@@ -122,11 +127,12 @@ function TopNav() {
           </div>
         </div>
       </div>
+      <DemoHint />
       {conn === "offline" && (
         // F1: persistent "Offline demo data" banner. It lives in the sticky top
         // bar so it stays on screen on every page while the backend is down.
         <div role="status" className="border-t border-warn/20 bg-warn-wash">
-          <p className="mx-auto flex max-w-[1120px] items-center gap-2 px-4 py-1.5 text-xs font-medium text-warn sm:px-8">
+          <p className="mx-auto flex max-w-[1200px] items-center gap-2 px-4 py-1.5 text-xs font-medium text-warn sm:px-8">
             <Icon name="warn" className="h-3.5 w-3.5" />
             {t("banner.offline")}
           </p>
@@ -140,7 +146,7 @@ function Footer() {
   const { t } = useT();
   return (
     <footer className="no-print border-t border-rule">
-      <p className="mx-auto max-w-[1120px] px-4 py-6 text-xs leading-relaxed text-ink-500 sm:px-8">{t("footer.disclaimer")}</p>
+      <p className="mx-auto max-w-[1200px] px-4 py-6 text-xs leading-relaxed text-ink-500 sm:px-8">{t("footer.disclaimer")}</p>
     </footer>
   );
 }
@@ -177,7 +183,7 @@ export function AppShell({ state, children }: { state: UrlState; children: React
         <div lang={state.lang} data-tone={state.view === "cfo" ? "cfo" : "supplier"} className="flex min-h-screen flex-col bg-paper">
           <SkipLink />
           <TopNav />
-          <main id="main" className="mx-auto w-full max-w-[1120px] flex-1 px-4 py-8 sm:px-8 sm:py-10">
+          <main id="main" className="mx-auto w-full max-w-[1200px] flex-1 px-4 py-8 sm:px-8 sm:py-10">
             {children}
           </main>
           <Footer />

@@ -290,11 +290,14 @@ function EditForm({ c }: { c: JudgeCase }) {
 export function JudgeConsole({ current }: { current?: JudgeCase | null }) {
   const { t } = useT();
   const href = useHref();
-  const { judge } = useUrlState();
+  const { judge, demo } = useUrlState();
+  // Demo mode hides the rehearsal console by default; ?judge=1 is the explicit escape hatch.
+  const enabled = !demo || judge;
   const [open, setOpen] = useState(judge);
   const [presets, setPresets] = useState<PresetSummary[]>([]);
 
   useEffect(() => {
+    if (!enabled) return;
     function onKey(e: KeyboardEvent) {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "j") {
         e.preventDefault();
@@ -308,10 +311,10 @@ export function JudgeConsole({ current }: { current?: JudgeCase | null }) {
       window.removeEventListener("keydown", onKey);
       window.removeEventListener(JUDGE_EVENT, onToggle);
     };
-  }, []);
+  }, [enabled]);
 
   useEffect(() => {
-    if (!open) return;
+    if (!enabled || !open) return;
     let alive = true;
     listPresets()
       .then((p) => alive && setPresets(p.data))
@@ -319,7 +322,7 @@ export function JudgeConsole({ current }: { current?: JudgeCase | null }) {
     return () => {
       alive = false;
     };
-  }, [open]);
+  }, [enabled, open]);
 
   /** Loading a preset always shows the preset itself: any earlier edits to it are dropped. */
   function load(id: string) {
@@ -327,6 +330,8 @@ export function JudgeConsole({ current }: { current?: JudgeCase | null }) {
     else setEdited(id, null);
     setOpen(false);
   }
+
+  if (!enabled) return null;
 
   return (
     <Drawer open={open} onClose={() => setOpen(false)} title={t("judge.title")} width="lg">

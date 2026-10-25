@@ -53,8 +53,17 @@ export function CaseScreen({ caseId }: { caseId: string }) {
       <DataBanners placeholder={placeholder} needsBackend={ev.status === "needs_backend"} />
       {ev.error && res && <ErrorState message={ev.error} onRetry={ev.retry} />}
 
-      {ev.status === "loading" && !res && <CaseSkeleton />}
-      {ev.status === "error" && !res && <ErrorState message={ev.error ?? t("state.error_title")} onRetry={ev.retry} />}
+      {ev.status === "loading" && !res && (
+        <CaseSkeleton
+          variant={view === "cfo" ? "cfo" : tab === "evidence" ? "evidence" : tab === "math" ? "math" : tab === "escalation" ? "escalation" : "overview"}
+        />
+      )}
+      {ev.status === "error" && !res && (
+        <section className="panel flex flex-col gap-3 p-6" aria-live="polite">
+          <ErrorState message={ev.error ?? t("state.error_title")} onRetry={ev.retry} />
+          <p className="max-w-prose text-sm leading-relaxed text-ink-600">{t("state.error_body")}</p>
+        </section>
+      )}
       {ev.status === "needs_backend" && (
         <div className="flex flex-wrap gap-2">
           {ev.isEdited && (

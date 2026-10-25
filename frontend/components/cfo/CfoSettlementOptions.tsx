@@ -9,6 +9,7 @@ import type { MessageKey } from "@/lib/i18n/en";
 import { useHref } from "@/lib/params";
 import type { CaseRequest, SettlementSimulationResponse } from "@/lib/types";
 import { Icon } from "../common/Icon";
+import { Skeleton } from "../common/States";
 
 /**
  * Illustrative terms (inputs, not legal values). The engine splits its own
@@ -30,6 +31,7 @@ export function CfoSettlementOptions({ caseId, request }: { caseId: string; requ
   const { t } = useT();
   const href = useHref();
   const [state, setState] = useState<State>({ kind: "loading" });
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
     let alive = true;
@@ -47,7 +49,7 @@ export function CfoSettlementOptions({ caseId, request }: { caseId: string; requ
     return () => {
       alive = false;
     };
-  }, [request, t]);
+  }, [request, t, attempt]);
 
   return (
     <section aria-labelledby="cfo-settle" className="panel flex flex-col gap-4 p-6">
@@ -63,49 +65,69 @@ export function CfoSettlementOptions({ caseId, request }: { caseId: string; requ
       </div>
 
       {state.kind === "offline" && <p className="text-sm text-warn">{t("cfo.settle.offline")}</p>}
-      {state.kind === "error" && <p className="text-sm text-block">{state.message}</p>}
+      {state.kind === "error" && (
+        <div role="alert" className="flex flex-wrap items-center gap-3 text-sm text-block">
+          <span>{state.message}</span>
+          <button
+            type="button"
+            className="btn btn-secondary min-h-8 px-3 text-xs"
+            onClick={() => {
+              setState({ kind: "loading" });
+              setAttempt((n) => n + 1);
+            }}
+          >
+            {t("state.retry")}
+          </button>
+        </div>
+      )}
 
-      <ul className="grid gap-3 md:grid-cols-3">
-        {OPTIONS.map((o, i) => {
-          const r = state.kind === "ready" ? state.results[i] : null;
-          const now = r?.payments.find((p) => p.kind === "UPFRONT");
-          const later = r?.payments.find((p) => p.kind === "SECOND");
-          return (
-            <li key={o.key} className="flex flex-col gap-3 rounded-lg border border-rule p-4">
-              <div className="flex flex-col gap-0.5">
-                <span className="text-sm font-medium text-ink-950">{t(o.key)}</span>
-                <span className="text-xs text-ink-500">{o.upfront === 100 ? t("cfo.settle.terms_full") : t("cfo.settle.terms", { upfront: o.upfront, days: count(o.days), waiver: o.waiver })}</span>
-              </div>
-              {r ? (
-                <dl className="flex flex-col gap-1.5 text-sm">
-                  <div className="flex items-baseline justify-between gap-3">
-                    <dt className="text-ink-600">{t("cfo.settle.payable")}</dt>
-                    <dd className="num font-semibold text-ink-950">{money(r.total_payable)}</dd>
-                  </div>
-                  {now && (
+      {(state.kind === "ready" || state.kind === "loading") && (
+        <ul className="grid gap-3 md:grid-cols-3" aria-busy={state.kind === "loading"}>
+          {OPTIONS.map((o, i) => {
+            const r = state.kind === "ready" ? state.results[i] : null;
+            const now = r?.payments.find((p) => p.kind === "UPFRONT");
+            const later = r?.payments.find((p) => p.kind === "SECOND");
+            return (
+              <li key={o.key} className="flex min-h-[9.5rem] flex-col gap-3 rounded-lg border border-rule p-4">
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-sm font-medium text-ink-950">{t(o.key)}</span>
+                  <span className="text-xs text-ink-500">{o.upfront === 100 ? t("cfo.settle.terms_full") : t("cfo.settle.terms", { upfront: o.upfront, days: count(o.days), waiver: o.waiver })}</span>
+                </div>
+                {r ? (
+                  <dl className="flex flex-col gap-1.5 text-sm">
                     <div className="flex items-baseline justify-between gap-3">
-                      <dt className="text-ink-600">{t("cfo.settle.now")}</dt>
-                      <dd className="num text-ink-900">{money(now.amount)}</dd>
+                      <dt className="text-ink-600">{t("cfo.settle.payable")}</dt>
+                      <dd className="num font-semibold text-ink-950">{money(r.total_payable)}</dd>
                     </div>
-                  )}
-                  {later && o.upfront < 100 && (
+                    {now && (
+                      <div className="flex items-baseline justify-between gap-3">
+                        <dt className="text-ink-600">{t("cfo.settle.now")}</dt>
+                        <dd className="num text-ink-900">{money(now.amount)}</dd>
+                      </div>
+                    )}
+                    {later && o.upfront < 100 && (
+                      <div className="flex items-baseline justify-between gap-3">
+                        <dt className="text-ink-600">{t("cfo.settle.later", { n: count(later.days_from_now) })}</dt>
+                        <dd className="num text-ink-900">{money(later.amount)}</dd>
+                      </div>
+                    )}
                     <div className="flex items-baseline justify-between gap-3">
-                      <dt className="text-ink-600">{t("cfo.settle.later", { n: count(later.days_from_now) })}</dt>
-                      <dd className="num text-ink-900">{money(later.amount)}</dd>
+                      <dt className="text-ink-600">{t("cfo.settle.waived")}</dt>
+                      <dd className="num text-ink-900">{money(r.interest_waived)}</dd>
                     </div>
-                  )}
-                  <div className="flex items-baseline justify-between gap-3">
-                    <dt className="text-ink-600">{t("cfo.settle.waived")}</dt>
-                    <dd className="num text-ink-900">{money(r.interest_waived)}</dd>
+                  </dl>
+                ) : (
+                  <div className="flex flex-col gap-2" aria-hidden="true">
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-5/6" />
+                    <Skeleton className="h-4 w-2/3" />
                   </div>
-                </dl>
-              ) : (
-                state.kind === "loading" && <div className="h-20 animate-pulse rounded-md bg-paper-sunk" aria-hidden="true" />
-              )}
-            </li>
-          );
-        })}
-      </ul>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      )}
     </section>
   );
 }

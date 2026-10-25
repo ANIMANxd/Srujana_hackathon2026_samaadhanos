@@ -13,7 +13,16 @@ export type CaseTab = "overview" | "evidence" | "math" | "escalation";
 /** Escalation step shown on the Escalation tab (?tab=escalation&step=2). */
 export type EscalationStep = 1 | 2 | 3 | 4;
 
-export type UrlState = { lang: Lang; view: View; judge: boolean; send: SendStage | null; tab: CaseTab; step: EscalationStep | null };
+export type UrlState = {
+  lang: Lang;
+  view: View;
+  judge: boolean;
+  /** Presentation-only demo mode: the scripted hint sequence, judge clutter hidden. Never changes the request. */
+  demo: boolean;
+  send: SendStage | null;
+  tab: CaseTab;
+  step: EscalationStep | null;
+};
 
 type Raw = string | string[] | undefined;
 
@@ -22,6 +31,10 @@ export function parseView(raw: Raw): View {
 }
 
 export function parseJudge(raw: Raw): boolean {
+  return raw === "1";
+}
+
+export function parseDemo(raw: Raw): boolean {
   return raw === "1";
 }
 
@@ -44,6 +57,7 @@ export function buildHref(path: string, state: UrlState, overrides: Partial<UrlS
   if (s.lang !== "en") q.set("lang", s.lang);
   if (s.view !== "supplier") q.set("view", s.view);
   if (s.judge) q.set("judge", "1");
+  if (s.demo) q.set("demo", "1");
   if (s.tab !== "overview") q.set("tab", s.tab);
   if (s.tab === "escalation" && s.step) q.set("step", String(s.step));
   if (s.send) q.set("send", String(s.send));

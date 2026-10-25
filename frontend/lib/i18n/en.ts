@@ -46,6 +46,7 @@ export const en = {
 
   "state.loading": "Loading…",
   "state.error_title": "Something went wrong",
+  "state.error_body": "The engine did not return figures for this case, so nothing is shown rather than an estimate. Your inputs are unchanged.",
   "state.retry": "Try again",
   "state.not_found_title": "We could not find this case",
   "state.not_found_body": "It may have been opened in another browser or session. Go back to your dues and pick it again.",
@@ -83,6 +84,25 @@ export const en = {
   "dues.empty.title": "No dues yet",
   "dues.empty.body": "Add your first invoice to see what the law allows you to claim.",
   "dues.list_label": "Buyers sorted by days overdue",
+
+  // ----------------------------------------------------------- demo ----
+  "demo.label": "Demo",
+  "demo.script": "Demo script",
+  "demo.step": "{n} of 4",
+  "demo.next": "Next: {title}",
+  "demo.restart": "Restart the demo",
+  "demo.start": "Start the demo",
+  "demo.start_hint": "Four screens, about 60 seconds. CASE-01, then the buyer's view, then CASE-02 and CASE-05.",
+  "demo.hide": "Hide the demo hint",
+  "demo.show": "Show the demo hint",
+  "demo.1.title": "CASE-01 · Supplier view",
+  "demo.1.hint": "Claim, timeline, readiness and the one next step.",
+  "demo.2.title": "CASE-01 · Buyer CFO",
+  "demo.2.hint": "Three cost lines, shown separately and never added together.",
+  "demo.3.title": "CASE-02 · Objection resolved",
+  "demo.3.hint": "A written objection resolved by replacement: the payment clock starts on resolution.",
+  "demo.4.title": "CASE-05 · Blocked at the gate",
+  "demo.4.hint": "The gate stops the case: no claim is worked out, and nothing pretends it is zero.",
 
   // ----------------------------------------------------------- stages ----
   "stage.chip": "Stage {n}",

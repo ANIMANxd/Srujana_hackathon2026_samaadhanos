@@ -57,6 +57,7 @@ export function useEvaluation(caseId: string): Evaluation {
   const [refreshing, setRefreshing] = useState(false);
   const [attempt, setAttempt] = useState(0);
   const seq = useRef(0);
+  const firstLoad = useRef(true);
 
   // 1. Resolve the case input.
   useEffect(() => {
@@ -80,7 +81,11 @@ export function useEvaluation(caseId: string): Evaluation {
     if (!request || !resolved) return;
     const mine = ++seq.current;
     const unedited = sameRequest(request, resolved.base);
+    // The first evaluation of a case is not an edit: start at once so a slow
+    // backend is not made slower by the typing debounce. Edits keep the debounce.
+    const delay = firstLoad.current ? 0 : DEBOUNCE_MS;
     const timer = setTimeout(async () => {
+      firstLoad.current = false;
       setRefreshing(true);
       try {
         const res = await evaluate(request);
@@ -112,7 +117,7 @@ export function useEvaluation(caseId: string): Evaluation {
       } finally {
         if (mine === seq.current) setRefreshing(false);
       }
-    }, DEBOUNCE_MS);
+    }, delay);
     return () => clearTimeout(timer);
   }, [request, resolved, caseId, attempt]);
 

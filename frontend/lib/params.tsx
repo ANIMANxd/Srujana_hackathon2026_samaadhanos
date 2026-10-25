@@ -8,7 +8,15 @@ import { buildHref, type UrlState } from "./params-parse";
 
 export type { CaseTab, EscalationStep, SendStage, UrlState, View } from "./params-parse";
 
-const ParamsContext = createContext<UrlState>({ lang: "en", view: "supplier", judge: false, send: null, tab: "overview", step: null });
+const ParamsContext = createContext<UrlState>({
+  lang: "en",
+  view: "supplier",
+  judge: false,
+  demo: false,
+  send: null,
+  tab: "overview",
+  step: null,
+});
 
 export function ParamsProvider({ value, children }: { value: UrlState; children: ReactNode }) {
   return <ParamsContext.Provider value={value}>{children}</ParamsContext.Provider>;
