@@ -8,8 +8,11 @@ import { useHref } from "@/lib/params";
 import { STAGES, type CaseResponse, type Stage } from "@/lib/types";
 import type { SendLogEntry } from "@/lib/caseStore";
 import { Icon } from "../common/Icon";
-import { StatusIcon } from "../common/StatusIcon";
 
+/**
+ * Four-step stepper. State is always icon + word (Recommended / Available /
+ * Locked), never colour alone. Steps 1-3 open the send drawer; 4 the pack.
+ */
 export function EscalationLadder({
   caseId,
   response,
@@ -23,60 +26,61 @@ export function EscalationLadder({
   const href = useHref();
   const current = currentStage(response);
 
-  const linkFor = (s: Stage) => (s === 4 ? href(`/case/${caseId}/pack`) : href(`/case/${caseId}/send/${s}`));
+  const linkFor = (s: Stage) => (s === 4 ? href(`/case/${caseId}/pack`) : href(`/case/${caseId}`, { send: s }));
 
   return (
-    <section aria-labelledby="ladder-title" className="panel p-5">
-      <h2 id="ladder-title" className="ledger-rule font-display text-xl font-semibold text-ink-950">
-        {t("ladder.title")}
-      </h2>
-      <p className="mt-2 text-sm text-ink-700">{t("ladder.intro")}</p>
+    <section aria-labelledby="ladder-title" className="panel p-6">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h2 id="ladder-title" className="section-title">{t("ladder.title")}</h2>
+        <p className="text-xs text-ink-500">{t("ladder.intro")}</p>
+      </div>
 
-      <ol className="mt-4 grid gap-3 md:grid-cols-4">
+      <ol className="mt-5 grid gap-px overflow-hidden rounded-lg border border-rule bg-rule md:grid-cols-4">
         {STAGES.map((s) => {
           const blocked = isStageBlocked(response, s);
           const isCurrent = s === current && !blocked;
           const prepared = log.filter((e) => e.stage === s);
-          return (
-            <li
-              key={s}
-              aria-current={isCurrent ? "step" : undefined}
-              className={`flex flex-col gap-2 rounded-md border p-4 ${
-                isCurrent ? "border-saffron-600 bg-saffron-100/50" : blocked ? "border-dashed border-rule-strong bg-paper" : "border-rule bg-paper-raised"
-              }`}
-            >
-              <div className="flex items-center gap-2">
+          const state = blocked ? "blocked" : isCurrent ? "recommended" : "available";
+          const body = (
+            <>
+              <div className="flex items-center justify-between gap-2">
                 <span
-                  className={`num flex h-7 w-7 items-center justify-center rounded-full text-sm font-semibold ${
-                    isCurrent ? "bg-ink-900 text-paper" : "border border-ink-300 text-ink-700"
-                  }`}
                   aria-hidden="true"
+                  className={`num grid h-6 w-6 place-items-center rounded-full text-xs font-medium ${
+                    isCurrent ? "bg-ink-950 text-paper-raised" : blocked ? "border border-dashed border-ink-300 text-ink-300" : "border border-ink-300 text-ink-700"
+                  }`}
                 >
                   {s}
                 </span>
-                <span className="sr-only">{t("stage.chip", { n: s })}</span>
-                <span className={`font-semibold ${blocked ? "text-ink-500" : "text-ink-950"}`}>{t(`stage.${s}.title`)}</span>
+                <span
+                  className={`inline-flex items-center gap-1 text-xs font-medium ${
+                    state === "recommended" ? "text-saffron-ink" : state === "blocked" ? "text-ink-500" : "text-ink-600"
+                  }`}
+                >
+                  <Icon name={state === "blocked" ? "lock" : state === "recommended" ? "arrow-right" : "ok"} className="h-3.5 w-3.5" />
+                  {t(state === "blocked" ? "ladder.blocked" : state === "recommended" ? "ladder.recommended" : "ladder.available")}
+                </span>
               </div>
-              <p className="text-sm text-ink-700">{t(`stage.${s}.purpose`)}</p>
-              <div className="mt-auto flex flex-wrap items-center gap-2 pt-1">
-                {blocked ? (
-                  <StatusIcon tone="block" size="sm" icon="lock" label={t("ladder.blocked")} />
-                ) : isCurrent ? (
-                  <StatusIcon tone="warn" size="sm" icon="arrow-right" label={t("ladder.recommended")} />
-                ) : (
-                  <StatusIcon tone="info" size="sm" icon="ok" label={t("ladder.available")} />
-                )}
-                {!blocked && (
-                  <Link href={linkFor(s)} className="btn btn-quiet min-h-0 text-sm">
-                    {t("common.open")}
-                    <Icon name="chevron" className="h-3.5 w-3.5" />
-                  </Link>
-                )}
-              </div>
+              <span className="sr-only">{t("stage.chip", { n: s })}</span>
+              <span className={`mt-3 text-sm font-medium ${blocked ? "text-ink-500" : "text-ink-950"}`}>{t(`stage.${s}.title`)}</span>
               {prepared.length > 0 && (
-                <p className="text-xs text-ink-600">
-                  {t("send.prepared_log", { n: s, date: date(prepared[prepared.length - 1].at) })}
-                </p>
+                <span className="mt-1 text-xs text-ink-500">{t("ladder.prepared", { date: date(prepared[prepared.length - 1].at) })}</span>
+              )}
+            </>
+          );
+          return (
+            <li key={s} aria-current={isCurrent ? "step" : undefined} className="bg-paper-raised">
+              {blocked ? (
+                <div className="flex h-full flex-col p-4">{body}</div>
+              ) : (
+                <Link
+                  href={linkFor(s)}
+                  scroll={false}
+                  className={`relative flex h-full flex-col p-4 transition-colors hover:bg-paper ${isCurrent ? "bg-saffron-100/40" : ""}`}
+                >
+                  {isCurrent && <span aria-hidden="true" className="absolute inset-x-0 top-0 h-0.5 bg-saffron-500" />}
+                  {body}
+                </Link>
               )}
             </li>
           );

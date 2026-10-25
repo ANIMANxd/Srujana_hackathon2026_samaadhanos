@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { date, money, pct } from "@/lib/format";
 import { useT } from "@/lib/i18n";
 import type { CaseRequest, CaseResponse } from "@/lib/types";
@@ -10,6 +10,20 @@ import { LiveInterestTicker } from "../case/LiveInterestTicker";
 import { PlaceholderBadge } from "../shell/PlaceholderBadge";
 
 const DECIMAL = /^\d+(\.\d{1,4})?$/;
+
+function Line({ n, title, sub, children }: { n: number; title: string; sub: string; children: ReactNode }) {
+  const { t } = useT();
+  return (
+    <section aria-labelledby={`cfo-${n}`} className="panel flex flex-col gap-4 p-6">
+      <div className="flex flex-col gap-1">
+        <span className="eyebrow">{t("cfo.line", { n })}</span>
+        <h3 id={`cfo-${n}`} className="text-lg font-semibold tracking-[-0.01em] text-ink-950">{title}</h3>
+        <p className="text-sm text-ink-600">{sub}</p>
+      </div>
+      {children}
+    </section>
+  );
+}
 
 /**
  * Buyer CFO view (F5): three SEPARATE cost lines, advisory tone, never one total
@@ -36,7 +50,7 @@ export function CfoCostLines({
   if (!bc) {
     return (
       <section className="panel p-6">
-        <p className="text-ink-800">{t("cfo.unavailable")}</p>
+        <p className="text-sm text-ink-700">{t("cfo.unavailable")}</p>
       </section>
     );
   }
@@ -54,105 +68,87 @@ export function CfoCostLines({
   }
 
   return (
-    <div className="flex flex-col gap-5">
-      <header className="flex flex-col gap-2">
-        <h2 className="font-display text-3xl font-semibold tracking-tight text-ink-950">{t("cfo.title")}</h2>
-        <p className="max-w-prose text-ink-700">{t("cfo.intro")}</p>
+    <div className="flex flex-col gap-4">
+      <header className="flex flex-col gap-3 py-2 sm:flex-row sm:items-end sm:justify-between">
+        <div className="flex flex-col gap-1.5">
+          <h2 className="text-2xl font-semibold tracking-[-0.02em] text-ink-950">{t("cfo.title")}</h2>
+          <p className="max-w-xl text-sm text-ink-600">{t("cfo.intro")}</p>
+        </div>
         {fin && (
-          <p className="flex flex-wrap items-baseline gap-2 text-sm text-ink-600">
-            <span>{t("cfo.ticker")}:</span>
-            <LiveInterestTicker interest={fin.interest_outstanding} dailyAccrual={fin.daily_accrual} className="text-base text-ink-900" />
+          <p className="flex items-center gap-2 text-sm text-ink-600">
+            <span className="live-dot" aria-hidden="true" />
+            {t("cfo.ticker")}
+            <LiveInterestTicker interest={fin.interest_outstanding} dailyAccrual={fin.daily_accrual} className="text-ink-950" />
             {placeholder && <PlaceholderBadge />}
           </p>
         )}
       </header>
 
-      {/* Line 1: permanent */}
-      <section aria-labelledby="cfo-1" className="panel p-5">
-        <h3 id="cfo-1" className="ledger-rule font-display text-xl font-semibold">{t("cfo.permanent.title")}</h3>
-        <p className="mt-3 text-lg text-ink-900">
-          {t("cfo.permanent.body", {
-            amount: money(bc.permanent_loss.interest_non_deductible),
-            rate: pct(bc.permanent_loss.pretax_equivalent_rate_pct),
-          })}
-        </p>
-        <p className="mt-2">
-          <Money value={bc.permanent_loss.interest_non_deductible} placeholder={placeholder} className="text-2xl font-semibold" />
-        </p>
-      </section>
+      <div className="grid gap-4 lg:grid-cols-3">
+        <Line n={1} title={t("cfo.permanent.title")} sub={t("cfo.permanent.sub")}>
+          <Money value={bc.permanent_loss.interest_non_deductible} placeholder={placeholder} className="figure text-[2rem]" />
+          <p className="text-sm text-ink-700">{t("cfo.permanent.body", { rate: pct(bc.permanent_loss.pretax_equivalent_rate_pct) })}</p>
+        </Line>
 
-      {/* Line 2: deferral */}
-      <section aria-labelledby="cfo-2" className="panel p-5">
-        <h3 id="cfo-2" className="ledger-rule font-display text-xl font-semibold">{t("cfo.deferral.title")}</h3>
-        <p className="mt-3 text-ink-800">{t("cfo.deferral.body")}</p>
-        {bc.deferral.applies && bc.deferral.checkpoints.length > 0 ? (
-          <ul className="mt-3 flex flex-col gap-1.5">
-            {bc.deferral.checkpoints.map((c) => (
-              <li key={c.fy_end} className="num text-ink-900">
-                {t("cfo.deferral.checkpoint", {
-                  fy: date(c.fy_end),
-                  principal: money(c.unpaid_principal),
-                  effect: money(c.tax_timing_effect),
-                })}
+        <Line n={2} title={t("cfo.deferral.title")} sub={t("cfo.deferral.sub")}>
+          {bc.deferral.applies && bc.deferral.checkpoints.length > 0 ? (
+            <>
+              {bc.deferral.deferral_cost && (
+                <div className="flex flex-col gap-1">
+                  <Money value={bc.deferral.deferral_cost} placeholder={placeholder} className="figure text-[2rem]" />
+                  <span className="text-xs text-ink-500">{t("cfo.deferral.cost")}</span>
+                </div>
+              )}
+              <ul className="flex flex-col divide-y divide-rule border-y border-rule text-sm">
+                {bc.deferral.checkpoints.map((c) => (
+                  <li key={c.fy_end} className="flex flex-col gap-0.5 py-2.5">
+                    <span className="text-ink-950">{t("cfo.deferral.checkpoint", { fy: date(c.fy_end) })}</span>
+                    <span className="num text-xs text-ink-600">
+                      {t("cfo.deferral.unpaid", { principal: money(c.unpaid_principal) })} · {t("cfo.deferral.effect", { effect: money(c.tax_timing_effect) })}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </>
+          ) : (
+            <p className="text-sm text-ink-700">{t("cfo.deferral.none")}</p>
+          )}
+          <p className="text-xs text-ink-500">{t("cfo.deferral.body")} {t("cfo.deferral.note")}</p>
+        </Line>
+
+        <Line n={3} title={t("cfo.disclosure.title")} sub={t("cfo.disclosure.sub")}>
+          <ul className="flex flex-col gap-3">
+            {bc.disclosure_flags.map((f) => (
+              <li key={f.id} className="flex flex-col items-start gap-2 text-sm">
+                <span className="text-ink-800">{f.text}</span>
+                <StatusIcon size="sm" tone={f.verified ? "ok" : "warn"} label={t(f.verified ? "badge.verified" : "badge.unverified")} />
               </li>
             ))}
-            {bc.deferral.deferral_cost && (
-              <li className="mt-1 font-semibold text-ink-950">
-                {t("cfo.deferral.cost", { cost: money(bc.deferral.deferral_cost) })}
-                {placeholder && ` (${t("badge.placeholder")})`}
-              </li>
-            )}
           </ul>
-        ) : (
-          <p className="mt-3 text-ink-700">{t("cfo.deferral.none")}</p>
-        )}
-        <p className="mt-2 text-sm text-ink-600">{t("cfo.deferral.note")}</p>
+        </Line>
+      </div>
 
-        <fieldset className="mt-4 grid gap-3 border-t border-rule pt-4 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
-          <legend className="mb-2 text-sm font-semibold text-ink-800">{t("cfo.deferral.inputs")}</legend>
+      <section aria-labelledby="cfo-inputs" className="panel p-6">
+        <h3 id="cfo-inputs" className="section-title">{t("cfo.deferral.inputs")}</h3>
+        <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
           <label>
             <span className="field-label">{t("cfo.deferral.coc")}</span>
-            <input
-              className="field-input num"
-              inputMode="decimal"
-              value={coc}
-              aria-invalid={!cocValid}
-              onChange={(e) => setCoc(e.target.value.trim())}
-            />
+            <input className="field-input num" inputMode="decimal" value={coc} aria-invalid={!cocValid} onChange={(e) => setCoc(e.target.value.trim())} />
           </label>
           <label>
             <span className="field-label">{t("cfo.deferral.years")}</span>
-            <input
-              className="field-input num"
-              inputMode="decimal"
-              value={years}
-              aria-invalid={!yearsValid}
-              onChange={(e) => setYears(e.target.value.trim())}
-            />
+            <input className="field-input num" inputMode="decimal" value={years} aria-invalid={!yearsValid} onChange={(e) => setYears(e.target.value.trim())} />
           </label>
-          <button type="button" className="btn btn-secondary" onClick={apply} disabled={!cocValid || !yearsValid}>
+          <button type="button" className="btn btn-primary" onClick={apply} disabled={!cocValid || !yearsValid}>
             {t("cfo.deferral.recompute")}
           </button>
-        </fieldset>
-      </section>
-
-      {/* Line 3: disclosure */}
-      <section aria-labelledby="cfo-3" className="panel p-5">
-        <h3 id="cfo-3" className="ledger-rule font-display text-xl font-semibold">{t("cfo.disclosure.title")}</h3>
-        <ul className="mt-3 flex flex-col gap-2">
-          {bc.disclosure_flags.map((f) => (
-            <li key={f.id} className="flex flex-col items-start gap-1">
-              <span className="text-ink-900">{f.text}</span>
-              <StatusIcon size="sm" tone={f.verified ? "ok" : "warn"} label={t(f.verified ? "badge.verified" : "badge.unverified")} />
-            </li>
-          ))}
-        </ul>
+        </div>
       </section>
 
       {bc.other_pressure_points.length > 0 && (
-        <section aria-labelledby="cfo-4" className="panel p-5">
-          <h3 id="cfo-4" className="ledger-rule font-display text-xl font-semibold">{t("cfo.other.title")}</h3>
-          <ul className="mt-3 list-disc pl-5 text-ink-900">
+        <section aria-labelledby="cfo-4" className="panel p-6">
+          <h3 id="cfo-4" className="section-title">{t("cfo.other.title")}</h3>
+          <ul className="mt-3 list-disc pl-5 text-sm text-ink-800">
             {bc.other_pressure_points.map((p) => (
               <li key={p.id}>{p.text}</li>
             ))}

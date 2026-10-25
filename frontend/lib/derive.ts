@@ -30,13 +30,13 @@ export function eligibilityTone(status: JurisdictionStatus): Tone {
 const HARD_BLOCKS: JurisdictionStatus[] = ["BARRED_SILPI", "EXCLUDED_TRADER", "EXCLUDED_MEDIUM"];
 
 /**
- * The "Not covered" screen replaces the case screen for hard gate blocks, or
- * when the engine returned no money blocks because the case is ineligible.
- * INSUFFICIENT_DATA with blocks present stays on the case screen, flagged.
+ * The "Not covered" screen replaces the case screen for hard gate blocks only.
+ * The engine nulls the money blocks for exactly these statuses; INSUFFICIENT_DATA
+ * keeps computing (CQ-33), and a case with no delivery proof has no money yet
+ * but is not "not covered", so both stay on the case screen.
  */
 export function isNotCovered(res: CaseResponse): boolean {
-  if (HARD_BLOCKS.includes(res.jurisdiction.status)) return true;
-  return !res.jurisdiction.eligible && res.financials === null;
+  return HARD_BLOCKS.includes(res.jurisdiction.status);
 }
 
 /** The engine's recommended stage, kept within the 4-step ladder. */

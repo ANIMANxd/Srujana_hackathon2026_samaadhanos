@@ -2,9 +2,9 @@
 // client screens use (persona, language, judge mode).
 
 import { parseLang } from "./i18n/parse";
-import { parseJudge, parseView, type UrlState } from "./params-parse";
+import { parseJudge, parseSend, parseView, type UrlState } from "./params-parse";
 
 export async function urlStateFrom(searchParams: Promise<Record<string, string | string[] | undefined>>): Promise<UrlState> {
   const sp = await searchParams;
-  return { lang: parseLang(sp.lang), view: parseView(sp.view), judge: parseJudge(sp.judge) };
+  return { lang: parseLang(sp.lang), view: parseView(sp.view), judge: parseJudge(sp.judge), send: parseSend(sp.send) };
 }

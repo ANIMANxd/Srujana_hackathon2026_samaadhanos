@@ -2,29 +2,25 @@
 
 import { useRouter } from "next/navigation";
 import { useRef, useState, type DragEvent } from "react";
+import { ApiError, BackendUnreachable, extractEvidence } from "@/lib/api";
 import { saveUploaded } from "@/lib/caseStore";
-import {
-  extractEvidence,
-  FIELD_KEYS,
-  REQUIRED_FIELDS,
-  sampleExtraction,
-  type ExtractedField,
-  type Extraction,
-  type FieldKey,
-} from "@/lib/extraction";
+import { FIELD_KEYS, looksLikeText, REQUIRED_FIELDS, reviewFields, type FieldKey, type ReviewField } from "@/lib/extraction";
+import { EXTRACTION_SAMPLES, type ExtractionSample } from "@/lib/fixtures";
+import { date } from "@/lib/format";
 import { useT } from "@/lib/i18n";
 import type { MessageKey } from "@/lib/i18n/en";
 import { useHref } from "@/lib/params";
 import { configEntry, useConfig } from "@/lib/useConfig";
-import type { Activity, CaseRequest, EnterpriseClass } from "@/lib/types";
+import type { Activity, CaseRequest, EnterpriseClass, ExtractionResponse } from "@/lib/types";
 import { Icon } from "../common/Icon";
 import { StatusIcon } from "../common/StatusIcon";
 import { Banner } from "../shell/Banners";
-import { PlaceholderBadge } from "../shell/PlaceholderBadge";
+import { JudgeConsole } from "../shell/JudgeConsole";
 
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
 const AMOUNT = /^\d+(\.\d{1,2})?$/;
 const PCT = /^\d+(\.\d{1,4})?$/;
+const INT = /^\d+$/;
 
 const FIELD_LABEL: Record<FieldKey, MessageKey> = {
   invoice_number: "upload.field.invoice_number",
@@ -35,12 +31,14 @@ const FIELD_LABEL: Record<FieldKey, MessageKey> = {
   buyer_name: "upload.field.buyer_name",
   delivery_date: "upload.field.delivery_date",
   po_reference: "upload.field.po_reference",
+  written_credit_days: "upload.field.written_credit_days",
 };
 
 const FIELD_PATTERN: Partial<Record<FieldKey, RegExp>> = {
   invoice_date: DATE,
   delivery_date: DATE,
   amount: AMOUNT,
+  written_credit_days: INT,
 };
 
 const CLASSES: EnterpriseClass[] = ["MICRO", "SMALL", "MEDIUM", "UNKNOWN"];
@@ -65,28 +63,31 @@ function taxPresets(value: unknown): TaxPreset[] {
   );
 }
 
-function fieldValid(key: FieldKey, f: ExtractedField): boolean {
+function fieldValid(key: FieldKey, f: ReviewField): boolean {
   const v = f.value ?? "";
   if (v === "") return !REQUIRED_FIELDS.includes(key);
   const p = FIELD_PATTERN[key];
   return p ? p.test(v) : true;
 }
 
-function Review({ extraction, onCancel }: { extraction: Extraction; onCancel: () => void }) {
-  const { t } = useT();
+type Result = { response: ExtractionResponse; offlineSample: boolean };
+
+function Review({ result, onCancel }: { result: Result; onCancel: () => void }) {
+  const { t, tCode } = useT();
   const router = useRouter();
   const href = useHref();
   const cfg = useConfig();
   const presets = taxPresets(configEntry(cfg.config, "tax_presets")?.value);
+  const res = result.response;
+  const isChat = res.kind === "WHATSAPP_EXPORT";
 
-  const [fields, setFields] = useState(extraction.fields);
-  const [selected, setSelected] = useState<FieldKey>(FIELD_KEYS.find((k) => extraction.fields[k].method === "missing") ?? "invoice_date");
-  const [supplierName, setSupplierName] = useState(extraction.supplier_name ?? "");
+  const [fields, setFields] = useState(() => reviewFields(res));
+  const [selected, setSelected] = useState<FieldKey>(() => FIELD_KEYS.find((k) => fields[k].method !== "missing") ?? "invoice_date");
+  const [supplierName, setSupplierName] = useState(res.supplier_name ?? "");
   const [klass, setKlass] = useState<EnterpriseClass>("UNKNOWN");
   const [activity, setActivity] = useState<Activity>("MANUFACTURING");
   const [nic, setNic] = useState("");
   const [udyamDate, setUdyamDate] = useState("");
-  const [creditDays, setCreditDays] = useState("");
   const [calcDate, setCalcDate] = useState(todayLocal());
   const [taxPick, setTaxPick] = useState<string>("");
   const [taxManual, setTaxManual] = useState("");
@@ -99,23 +100,20 @@ function Review({ extraction, onCancel }: { extraction: Extraction; onCancel: ()
   const detailsOk =
     supplierName.trim() !== "" &&
     (udyamDate === "" || DATE.test(udyamDate)) &&
-    (creditDays === "" || /^\d+$/.test(creditDays)) &&
     DATE.test(calcDate) &&
     PCT.test(tax) &&
     PCT.test(coc);
   const canApprove = fieldsOk && detailsOk;
 
   function setField(key: FieldKey, value: string) {
-    setFields((prev) => ({
-      ...prev,
-      [key]: { ...prev[key], value: value === "" ? null : value, method: value === "" ? "missing" : prev[key].method === "missing" ? "manual" : prev[key].method },
-    }));
+    setFields((prev) => ({ ...prev, [key]: { ...prev[key], value: value === "" ? null : value, edited: true } }));
   }
 
   function approve() {
     if (!canApprove) return;
     const v = (k: FieldKey) => fields[k].value;
     const id = `upload_${Date.now()}`;
+    const credit = v("written_credit_days");
     const request: CaseRequest = {
       contract_version: "1.0",
       case_id: id,
@@ -136,7 +134,7 @@ function Review({ extraction, onCancel }: { extraction: Extraction; onCancel: ()
         invoice_date: v("invoice_date") ?? "",
         delivery_date: v("delivery_date"),
         principal: v("amount") ?? "",
-        written_credit_days: creditDays === "" ? null : Number(creditDays),
+        written_credit_days: credit === null ? null : Number(credit),
         calculation_date: calcDate,
         years_deferred: null,
       },
@@ -148,7 +146,7 @@ function Review({ extraction, onCancel }: { extraction: Extraction; onCancel: ()
           { kind: "INVOICE", present: true, ref: v("invoice_number") },
           { kind: "PO", present: Boolean(v("po_reference")), ref: v("po_reference") },
           { kind: "DELIVERY_PROOF", present: hasProof, ref: null },
-          { kind: "WHATSAPP", present: false, ref: null },
+          { kind: "WHATSAPP", present: isChat, ref: null },
           { kind: "UDYAM", present: false, ref: null },
           { kind: "GST_RETURN", present: false, ref: null },
         ],
@@ -160,35 +158,43 @@ function Review({ extraction, onCancel }: { extraction: Extraction; onCancel: ()
   }
 
   const sel = fields[selected];
+  const messages = res.messages ?? [];
+  const notes = res.warnings ?? [];
 
   return (
     <div className="flex flex-col gap-6">
-      {extraction.placeholder && <Banner tone="warn" icon="warn" message="upload.unavailable" />}
-      <header>
-        <h2 className="font-display text-2xl font-semibold text-ink-950">{t("upload.review_title")}</h2>
-        <p className="mt-1 text-ink-700">{t("upload.review_intro")}</p>
+      {result.offlineSample && <Banner tone="info" icon="info" message="upload.offline_sample" />}
+
+      <header className="flex flex-col gap-2">
+        <div className="flex flex-wrap items-center gap-3">
+          <h2 className="text-xl font-semibold tracking-[-0.015em] text-ink-950">{t("upload.review_title")}</h2>
+          <StatusIcon size="sm" tone="info" icon="doc" label={t(`upload.kind.${res.kind}`)} />
+        </div>
+        <p className="text-sm text-ink-600">{t("upload.review_intro")}</p>
       </header>
 
-      <div className="grid gap-5 lg:grid-cols-[3fr_2fr]">
-        <ul className="panel flex flex-col divide-y divide-rule">
+      <div className="grid gap-4 lg:grid-cols-[1.5fr_1fr]">
+        <ul className="panel flex flex-col divide-y divide-rule overflow-hidden">
           {FIELD_KEYS.map((k) => {
             const f = fields[k];
             const valid = fieldValid(k, f);
             const required = REQUIRED_FIELDS.includes(k);
             const isSel = k === selected;
-            const methodTone = f.method === "missing" ? "warn" : f.method === "llm" ? "info" : "ok";
+            const method = f.edited ? "manual" : f.method;
+            const methodTone = method === "missing" ? "warn" : method === "llm" ? "info" : "ok";
             return (
-              <li key={k} className={`flex flex-col gap-2 px-4 py-3 ${isSel ? "bg-saffron-100/40" : ""}`}>
+              <li key={k} className={`relative flex flex-col gap-2 px-5 py-3.5 transition-colors ${isSel ? "bg-paper" : ""}`}>
+                {isSel && <span aria-hidden="true" className="absolute inset-y-0 left-0 w-0.5 bg-saffron-500" />}
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <label htmlFor={`f-${k}`} className="text-sm font-semibold text-ink-800">
+                  <label htmlFor={`f-${k}`} className="text-sm font-medium text-ink-800">
                     {t(FIELD_LABEL[k])}
-                    {required && <span className="ml-1 text-xs font-normal text-ink-500">({t("upload.required")})</span>}
+                    {required && <span className="ml-1.5 text-xs font-normal text-ink-500">{t("upload.required")}</span>}
                   </label>
                   <span className="flex items-center gap-2">
-                    <StatusIcon size="sm" tone={methodTone} label={t(`upload.method.${f.method}`)} />
-                    {f.method !== "missing" && f.method !== "manual" && (
-                      <span className="text-xs text-ink-500">{t("upload.confidence", { n: Math.round(f.confidence * 100) })}</span>
+                    {method !== "missing" && method !== "manual" && (
+                      <span className="num text-xs text-ink-500">{t("upload.confidence", { n: Math.round(f.confidence * 100) })}</span>
                     )}
+                    <StatusIcon size="sm" tone={methodTone} label={t(`upload.method.${method}`)} />
                   </span>
                 </div>
                 <input
@@ -198,32 +204,77 @@ function Review({ extraction, onCancel }: { extraction: Extraction; onCancel: ()
                   aria-invalid={!valid}
                   onFocus={() => setSelected(k)}
                   onChange={(e) => setField(k, e.target.value.trim())}
-                  placeholder={FIELD_PATTERN[k] === DATE ? "YYYY-MM-DD" : undefined}
+                  placeholder={FIELD_PATTERN[k] === DATE ? t("common.date_format") : undefined}
                 />
               </li>
             );
           })}
         </ul>
 
-        <aside aria-live="polite" className="panel flex flex-col gap-3 self-start p-5 lg:sticky lg:top-4">
-          <h3 className="ledger-rule font-display text-lg font-semibold">{t("upload.source")}</h3>
-          <p className="text-sm font-semibold text-ink-800">{t(FIELD_LABEL[selected])}</p>
+        <aside aria-live="polite" className="panel flex flex-col gap-3 self-start p-5 lg:sticky lg:top-20">
+          <div className="flex items-center justify-between gap-2">
+            <h3 className="eyebrow">{t("upload.source")}</h3>
+            {sel.line !== null && sel.line !== undefined && (
+              <span className="num text-xs text-ink-500">{t("upload.source_line", { n: sel.line })}</span>
+            )}
+          </div>
+          <p className="text-sm font-medium text-ink-950">{t(FIELD_LABEL[selected])}</p>
           {sel.source_text ? (
-            <>
-              <blockquote className="rounded-sm border-l-4 border-saffron-500 bg-saffron-100/60 px-3 py-2 font-mono text-sm text-ink-900">
-                <mark className="bg-transparent text-inherit">{sel.source_text}</mark>
-              </blockquote>
-              {sel.page !== null && <p className="text-xs text-ink-600">{t("upload.source_page", { n: sel.page })}</p>}
-            </>
+            <blockquote className="rounded-md border-l-2 border-saffron-500 bg-paper px-3 py-2.5 font-mono text-[0.8125rem] leading-relaxed text-ink-900">
+              {sel.source_text}
+            </blockquote>
           ) : (
             <p className="text-sm text-warn">{t("upload.source_none")}</p>
           )}
-          {extraction.placeholder && <PlaceholderBadge />}
+          <p className="border-t border-rule pt-3 text-xs text-ink-500">{t("upload.machine_note")}</p>
         </aside>
       </div>
 
-      <section aria-labelledby="details-title" className="panel flex flex-col gap-4 p-5">
-        <h3 id="details-title" className="ledger-rule font-display text-lg font-semibold">{t("upload.details_title")}</h3>
+      {messages.length > 0 && (
+        <section aria-labelledby="msgs-title" className="panel p-6">
+          <h3 id="msgs-title" className="section-title">{t("upload.messages_title")}</h3>
+          <ol className="mt-4 flex flex-col divide-y divide-rule">
+            {messages.map((m) => (
+              <li key={m.line} className="grid gap-1.5 py-3 first:pt-0 last:pb-0 sm:grid-cols-[8rem_1fr]">
+                <div className="num flex flex-col text-xs text-ink-500">
+                  <span>{m.sent ? date(m.sent) : t("upload.source_line", { n: m.line })}</span>
+                  {m.days_after_delivery !== null && m.days_after_delivery !== undefined && (
+                    <span>{t("upload.msg.day", { n: m.days_after_delivery })}</span>
+                  )}
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <p className="text-sm text-ink-900">
+                    <span className="font-medium">{m.sender}:</span> {m.text}
+                  </p>
+                  {(m.tags.length > 0 || m.within_objection_window !== null) && (
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      {m.tags.map((tag) => (
+                        <span key={tag} className="tag">{t(`msgtag.${tag}`)}</span>
+                      ))}
+                      {m.within_objection_window === true && <span className="text-xs text-ink-500">{t("upload.msg.in_window")}</span>}
+                      {m.within_objection_window === false && <span className="text-xs text-warn">{t("upload.msg.after_window")}</span>}
+                    </div>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ol>
+        </section>
+      )}
+
+      {notes.length > 0 && (
+        <details className="panel px-6 py-4 text-sm">
+          <summary className="cursor-pointer text-sm font-medium text-ink-800">{t("upload.extractor_notes")}</summary>
+          <ul className="mt-3 flex flex-col gap-2 text-ink-700">
+            {notes.map((w, i) => (
+              <li key={`${w.code}-${i}`}>{tCode("warning", w.code, w.text)}</li>
+            ))}
+          </ul>
+        </details>
+      )}
+
+      <section aria-labelledby="details-title" className="panel flex flex-col gap-5 p-6">
+        <h3 id="details-title" className="section-title">{t("upload.details_title")}</h3>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <label>
             <span className="field-label">{t("upload.field.supplier_name")}</span>
@@ -247,11 +298,7 @@ function Review({ extraction, onCancel }: { extraction: Extraction; onCancel: ()
           </label>
           <label>
             <span className="field-label">{t("upload.field.udyam_date")}</span>
-            <input className="field-input num" placeholder="YYYY-MM-DD" value={udyamDate} aria-invalid={udyamDate !== "" && !DATE.test(udyamDate)} onChange={(e) => setUdyamDate(e.target.value.trim())} />
-          </label>
-          <label>
-            <span className="field-label">{t("upload.field.credit_days")}</span>
-            <input className="field-input num" inputMode="numeric" value={creditDays} aria-invalid={creditDays !== "" && !/^\d+$/.test(creditDays)} onChange={(e) => setCreditDays(e.target.value.trim())} />
+            <input className="field-input num" placeholder={t("common.date_format")} value={udyamDate} aria-invalid={udyamDate !== "" && !DATE.test(udyamDate)} onChange={(e) => setUdyamDate(e.target.value.trim())} />
           </label>
           <label>
             <span className="field-label">{t("upload.field.calculation_date")}</span>
@@ -273,13 +320,13 @@ function Review({ extraction, onCancel }: { extraction: Extraction; onCancel: ()
             <input className="field-input num" inputMode="decimal" value={coc} aria-invalid={!PCT.test(coc)} onChange={(e) => setCoc(e.target.value.trim())} />
           </label>
         </div>
-        <label className="flex items-start gap-3">
-          <input type="checkbox" className="mt-0.5 h-5 w-5" checked={hasProof} onChange={(e) => setHasProof(e.target.checked)} />
+        <label className="flex items-start gap-3 text-sm">
+          <input type="checkbox" className="mt-0.5 h-4 w-4 accent-ink-950" checked={hasProof} onChange={(e) => setHasProof(e.target.checked)} />
           <span className="text-ink-900">{t("upload.field.has_delivery_proof")}</span>
         </label>
       </section>
 
-      <div className="sticky bottom-0 z-10 -mx-4 flex flex-wrap items-center gap-3 border-t border-rule bg-paper/95 px-4 py-3 backdrop-blur sm:mx-0 sm:rounded-md sm:border">
+      <div className="sticky bottom-3 z-10 flex flex-wrap items-center gap-3 rounded-xl border border-rule bg-paper-raised/95 px-4 py-3 shadow-float backdrop-blur">
         <button type="button" className="btn btn-primary" disabled={!canApprove} onClick={approve}>
           <Icon name="ok" className="h-4 w-4" />
           {t("upload.approve")}
@@ -287,55 +334,64 @@ function Review({ extraction, onCancel }: { extraction: Extraction; onCancel: ()
         <button type="button" className="btn btn-quiet" onClick={onCancel}>
           {t("common.close")}
         </button>
-        {!canApprove && <span className="text-sm text-ink-600">{t("upload.approve_disabled")}</span>}
+        {!canApprove && <span className="text-xs text-ink-500">{t("upload.approve_disabled")}</span>}
       </div>
     </div>
   );
 }
 
 export function UploadScreen() {
-  const { t } = useT();
+  const { t, tCode } = useT();
   const input = useRef<HTMLInputElement>(null);
-  const [extraction, setExtraction] = useState<Extraction | null>(null);
+  const [result, setResult] = useState<Result | null>(null);
   const [reading, setReading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
 
-  async function handle(file: File | undefined) {
+  async function read(blob: Blob, name: string, sample: ExtractionSample | null) {
     setError(null);
-    if (!file) return;
-    if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
-      setError(t("upload.not_pdf"));
-      return;
-    }
     setReading(true);
     try {
-      const e = await extractEvidence(file);
-      setExtraction(e ?? sampleExtraction());
+      setResult({ response: await extractEvidence(blob, name), offlineSample: false });
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("state.error_title"));
+      if (err instanceof BackendUnreachable) {
+        if (sample) setResult({ response: sample.response, offlineSample: true });
+        else setError(t("upload.offline_file"));
+      } else {
+        setError(err instanceof ApiError ? err.message : t("state.error_title"));
+      }
     } finally {
       setReading(false);
     }
   }
 
+  function handle(file: File | undefined) {
+    setError(null);
+    if (!file) return;
+    if (!looksLikeText(file)) {
+      setError(t("upload.not_text"));
+      return;
+    }
+    void read(file, file.name, null);
+  }
+
   function onDrop(e: DragEvent<HTMLDivElement>) {
     e.preventDefault();
     setDragOver(false);
-    void handle(e.dataTransfer.files?.[0]);
+    handle(e.dataTransfer.files?.[0]);
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <header>
-        <h1 className="font-display text-4xl font-bold tracking-tight text-ink-950">{t("upload.title")}</h1>
-        <p className="mt-1 max-w-prose text-ink-700">{t("upload.intro")}</p>
+    <div className="flex flex-col gap-8">
+      <header className="flex flex-col gap-1">
+        <h1 className="text-[2rem] font-semibold leading-tight tracking-[-0.025em] text-ink-950">{t("upload.title")}</h1>
+        <p className="max-w-2xl text-sm text-ink-500">{t("upload.intro")}</p>
       </header>
 
-      {extraction ? (
-        <Review extraction={extraction} onCancel={() => setExtraction(null)} />
+      {result ? (
+        <Review result={result} onCancel={() => setResult(null)} />
       ) : (
-        <>
+        <div className="flex flex-col gap-6">
           <div
             onDragOver={(e) => {
               e.preventDefault();
@@ -343,29 +399,60 @@ export function UploadScreen() {
             }}
             onDragLeave={() => setDragOver(false)}
             onDrop={onDrop}
-            className={`flex flex-col items-center gap-4 rounded-lg border-2 border-dashed px-6 py-14 text-center ${
-              dragOver ? "border-saffron-600 bg-saffron-100/50" : "border-rule-strong bg-paper-raised"
+            className={`flex flex-col items-center gap-4 rounded-xl border border-dashed px-6 py-16 text-center transition-colors ${
+              dragOver ? "border-saffron-500 bg-saffron-100/40" : "border-rule-strong bg-paper-raised"
             }`}
           >
-            <Icon name="upload" className="h-10 w-10 text-ink-500" />
-            <p className="font-display text-xl font-semibold text-ink-900">{reading ? t("upload.reading") : t("upload.drop")}</p>
-            <input ref={input} type="file" accept="application/pdf,.pdf" className="sr-only" id="invoice-file" onChange={(e) => void handle(e.target.files?.[0])} />
-            <div className="flex flex-wrap justify-center gap-3">
-              <button type="button" className="btn btn-primary" disabled={reading} onClick={() => input.current?.click()}>
-                {t("upload.choose")}
-              </button>
-              <button type="button" className="btn btn-secondary" disabled={reading} onClick={() => setExtraction(sampleExtraction())}>
-                {t("upload.try_sample")}
-              </button>
+            <span className="grid h-11 w-11 place-items-center rounded-xl border border-rule bg-paper text-ink-600">
+              <Icon name="upload" className="h-5 w-5" />
+            </span>
+            <div className="flex flex-col gap-1">
+              <p className="text-base font-medium text-ink-950">{reading ? t("upload.reading") : t("upload.drop")}</p>
+              <p className="text-sm text-ink-500">{t("upload.drop_hint")}</p>
             </div>
+            <input
+              ref={input}
+              type="file"
+              accept=".txt,text/plain"
+              className="sr-only"
+              id="evidence-file"
+              onChange={(e) => handle(e.target.files?.[0])}
+            />
+            <button type="button" className="btn btn-primary" disabled={reading} onClick={() => input.current?.click()}>
+              {t("upload.choose")}
+            </button>
           </div>
+
           {error && (
-            <p role="alert" className="text-sm font-medium text-block">
+            <p role="alert" className="flex items-center gap-2 text-sm text-block">
+              <Icon name="block" className="h-4 w-4" />
               {error}
             </p>
           )}
-        </>
+
+          {EXTRACTION_SAMPLES.length > 0 && (
+            <div className="flex flex-col gap-3">
+              <p className="eyebrow">{t("upload.samples")}</p>
+              <div className="flex flex-wrap gap-2">
+                {EXTRACTION_SAMPLES.map((s) => (
+                  <button
+                    key={s.name}
+                    type="button"
+                    className="btn btn-secondary"
+                    disabled={reading}
+                    onClick={() => void read(new Blob([s.text], { type: "text/plain" }), s.name, s)}
+                  >
+                    <Icon name="doc" className="h-4 w-4 text-ink-500" />
+                    {tCode("upload.sample", s.name, s.name)}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
       )}
+      <JudgeConsole current={null} />
     </div>
   );
 }
+

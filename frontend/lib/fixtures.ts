@@ -1,10 +1,8 @@
-// Offline fixtures, synced from ../contracts/fixtures (engine output only) plus
-// the demo request files in ../demo-cases (INPUT only, never outputs).
+// Offline fixtures, synced from ../contracts/fixtures (engine output only),
+// plus the extractor's own results for its synthetic demo texts.
 
-import { RAW_FIXTURES } from "@/fixtures";
-import demo02 from "@/demo-cases/demo_02.request.json";
-import demo03 from "@/demo-cases/demo_03.request.json";
-import type { CaseRequest, CaseResponse } from "./types";
+import { RAW_ARTIFACTS, RAW_EXTRACTION_SAMPLES, RAW_FIXTURES } from "@/fixtures";
+import type { ArtifactKind, CaseRequest, CaseResponse, ExtractionResponse } from "./types";
 
 export type Fixture = { id: string; title: string; request: CaseRequest; response: CaseResponse | null };
 
@@ -23,6 +21,11 @@ export function asResponse(v: unknown): CaseResponse | null {
   return v as unknown as CaseResponse;
 }
 
+export function asExtraction(v: unknown): ExtractionResponse | null {
+  if (!isObject(v) || !isObject(v.fields) || typeof v.kind !== "string") return null;
+  return v as unknown as ExtractionResponse;
+}
+
 export const FIXTURES: Fixture[] = RAW_FIXTURES.flatMap((f) => {
   const request = asRequest(f.request);
   if (!request) return [];
@@ -33,16 +36,15 @@ export function fixtureFor(id: string): Fixture | undefined {
   return FIXTURES.find((f) => f.id === id);
 }
 
-export type DemoCase = { id: string; title: string; request: CaseRequest };
-
-type DemoFile = { title: string; request: unknown };
-
-/** Synthetic demo inputs used until the backend ships more presets (B7). */
-export const DEMO_CASES: DemoCase[] = ([demo02, demo03] as DemoFile[]).flatMap((d) => {
-  const request = asRequest(d.request);
-  return request ? [{ id: request.case_id, title: d.title, request }] : [];
-});
-
-export function demoFor(id: string): DemoCase | undefined {
-  return DEMO_CASES.find((d) => d.id === id);
+/** An engine-generated draft saved for an unedited preset (offline only). */
+export function artifactFixture(id: string, kind: ArtifactKind): string | null {
+  return RAW_ARTIFACTS.find((a) => a.id === id && a.kind === kind)?.markdown ?? null;
 }
+
+export type ExtractionSample = { name: string; text: string; response: ExtractionResponse };
+
+/** Synthetic upload samples with the result the extractor generated for each. */
+export const EXTRACTION_SAMPLES: ExtractionSample[] = RAW_EXTRACTION_SAMPLES.flatMap((s) => {
+  const response = asExtraction(s.response);
+  return response ? [{ name: s.name, text: s.text, response }] : [];
+});

@@ -4,7 +4,11 @@
 // importing ../contracts directly we copy, on every install/dev/build:
 //   ../contracts/types.ts           -> generated/contract-types.ts
 //   ../contracts/fixtures/*.json    -> fixtures/*.json (+ fixtures/index.ts)
+//   ../contracts/fixtures/*.md      -> artifact samples, inlined in fixtures/index.ts
 //   ../backend/presets/*.json       -> preset titles only (read, never written)
+//   ../backend/extraction/demo/*.txt + cache/*.json
+//                                   -> synthetic upload samples and the results the
+//                                      extractor generated for them (offline demo)
 // Both output folders are git-ignored: the contract stays the single source of
 // truth and a `git pull` of backend changes is picked up on the next run.
 // This script only READS outside frontend/.
@@ -19,6 +23,8 @@ const repo = path.resolve(frontend, "..");
 const contractsDir = path.join(repo, "contracts");
 const fixturesSrc = path.join(contractsDir, "fixtures");
 const presetsSrc = path.join(repo, "backend", "presets");
+const extractionDemoSrc = path.join(repo, "backend", "extraction", "demo");
+const extractionCacheSrc = path.join(repo, "backend", "extraction", "cache");
 const generatedDir = path.join(frontend, "generated");
 const fixturesOut = path.join(frontend, "fixtures");
 
@@ -72,6 +78,38 @@ lines.push("");
 lines.push("export const RAW_FIXTURES: RawFixture[] = [");
 lines.push(...entries);
 lines.push("];");
+
+// 3. Artifact samples: <case>.<KIND>.md, engine-generated drafts
+const mdFiles = fs.existsSync(fixturesSrc) ? fs.readdirSync(fixturesSrc).filter((f) => /^.+\.[A-Z0-9_]+\.md$/.test(f)).sort() : [];
+const artifacts = mdFiles.map((f) => {
+  const [, id, kind] = f.match(/^(.+)\.([A-Z0-9_]+)\.md$/);
+  return { id, kind, markdown: fs.readFileSync(path.join(fixturesSrc, f), "utf8") };
+});
+lines.push("");
+lines.push("export type RawArtifact = { id: string; kind: string; markdown: string };");
+lines.push("");
+lines.push(`export const RAW_ARTIFACTS: RawArtifact[] = ${JSON.stringify(artifacts, null, 2)};`);
+
+// 4. Extraction samples: the synthetic text plus what the extractor produced for it
+const samples = [];
+const cacheFiles = fs.existsSync(extractionCacheSrc) ? fs.readdirSync(extractionCacheSrc).filter((f) => f.endsWith(".json")) : [];
+for (const f of cacheFiles) {
+  const cached = readJson(path.join(extractionCacheSrc, f));
+  const name = cached && typeof cached.generated_from === "string" ? cached.generated_from : null;
+  if (!name || !cached.response) continue;
+  const textFile = path.join(extractionDemoSrc, name);
+  if (!fs.existsSync(textFile)) continue;
+  samples.push({ name, text: fs.readFileSync(textFile, "utf8"), response: cached.response });
+}
+samples.sort((a, b) => a.name.localeCompare(b.name));
+lines.push("");
+lines.push("export type RawExtractionSample = { name: string; text: string; response: unknown };");
+lines.push("");
+lines.push(`export const RAW_EXTRACTION_SAMPLES: RawExtractionSample[] = ${JSON.stringify(samples, null, 2)};`);
+
 fs.writeFileSync(path.join(fixturesOut, "index.ts"), lines.join("\n") + "\n");
 
-console.log(`[sync-contracts] types + ${ids.length} fixture case(s): ${ids.join(", ") || "none"}`);
+console.log(
+  `[sync-contracts] types + ${ids.length} fixture case(s): ${ids.join(", ") || "none"}; ` +
+    `${artifacts.length} artifact sample(s); ${samples.length} extraction sample(s)`,
+);

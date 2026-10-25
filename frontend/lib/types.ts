@@ -32,6 +32,14 @@ export type RateMode = S["RateMode"];
 export type AppropriationMode = S["AppropriationMode"];
 export type PartPayment = S["PartPayment"];
 export type Objection = S["Objection"];
+export type ArtifactKind = S["ArtifactKind"];
+export type ArtifactResponse = S["ArtifactResponse"];
+export type ExtractionResponse = S["ExtractionResponse"];
+export type ExtractedField = S["ExtractedField"];
+export type ExtractedMessage = S["ExtractedMessage"];
+export type ExtractionMethod = S["ExtractionMethod"];
+export type MessageTag = S["MessageTag"];
+export type SourceKind = S["SourceKind"];
 
 export type ConfigEntry = {
   value: unknown;
