@@ -134,22 +134,41 @@ class MockFinancingMarketplace:
             "GET", f"/marketplace/factoring-units/{ref.unit_id}/bids", correlation_id=correlation_id
         )
         raw: Any = data.get("bids", data)
-        # The mock ships `annual_rate_pct` (docs/webhooks.md); the contract model calls
-        # it `annual_rate`. Map at the boundary rather than reshaping the contract.
+        # The mock ships `annual_rate_pct` and no money at all (architecture_v4 section
+        # 7.2). `annual_rate` is mapped here; discount, fee and net stay at zero until
+        # the route prices them with `backend/finance`, so no adapter computes a rupee.
+        from decimal import Decimal
+
         return [
             Bid.model_validate(
-                {**item, "annual_rate": item.get("annual_rate_pct", item.get("annual_rate"))}
+                {
+                    # The provider calls it `bid_id`; the contract model calls it `id`.
+                    "id": item.get("bid_id", item.get("id")),
+                    "track_id": item.get("track_id", ""),
+                    "discount": item.get("discount", "0.00"),
+                    "fee": item.get("fee", "0.00"),
+                    "net_amount": item.get("net_amount", "0.00"),
+                    "status": item.get("status", "AVAILABLE"),
+                    **item,
+                    "annual_rate": item.get("annual_rate_pct", item.get("annual_rate")),
+                }
             )
             for item in raw
         ]
 
     def accept_bid(
-        self, ref: FactoringUnitRef, bid_id: str, idem_key: str, *, correlation_id: str | None = None
+        self,
+        ref: FactoringUnitRef,
+        bid_id: str,
+        idem_key: str,
+        amount: str | None = None,
+        *,
+        correlation_id: str | None = None,
     ) -> BidAcceptance:
         data = self._client.request(
             "POST",
             f"/marketplace/bids/{bid_id}/accept",
-            json_body={"unit_id": ref.unit_id},
+            json_body={"unit_id": ref.unit_id, "amount": amount},
             correlation_id=correlation_id,
             idempotency_key=idem_key,
         )

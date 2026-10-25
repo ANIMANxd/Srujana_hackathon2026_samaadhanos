@@ -224,25 +224,63 @@ def _recovery_stage(session, case_id: str) -> int | None:
 
 
 def _bids_from_provider(session, case: CaseRow) -> list[Bid]:
-    """Ask the marketplace for bids. Returns [] when the provider is unavailable."""
+    """Ask the marketplace for bid rates, then price them with `backend/finance`.
+
+    The provider ships `bid_id`, `financier_alias`, `annual_rate_pct` and
+    `valid_until` only (architecture_v4 section 7.2). Discount, fee and net are
+    computed here from the configured band and fee, so a simulation can never
+    introduce a money bug and the contract's `Bid` shape stays complete.
+    """
     request = CaseEvaluationRequest.model_validate(case.input_json)
     marketplace = _adapters().marketplace
     try:
+        from backend.ports.marketplace import FactoringUnitIn
+
+        due = request.transaction.delivery_date or request.transaction.invoice_date
         ref = marketplace.register_invoice(
-            __import__("backend.ports.marketplace", fromlist=["FactoringUnitIn"]).FactoringUnitIn(
+            FactoringUnitIn(
                 invoice_no=case.invoice_no,
                 buyer_gstin=case.buyer_gstin,
                 amount=case.accepted_amount,
-                due_date=case.input_json["transaction"]["delivery_date"]
-                and date.fromisoformat(case.input_json["transaction"]["delivery_date"]),
+                due_date=due,
             ),
             idem_key=f"register:{case.id}",
         )
-        return marketplace.list_bids(ref)
+        rates = marketplace.list_bids(ref)
     except ProviderUnavailable:
         return []
     except Exception:  # noqa: BLE001 - the demo must not die on a mock outage
         return []
+
+    from backend.finance import bid_quote
+    from backend.finance.config import finance_config
+    from backend.app.config_loader import load_config
+
+    cfg = finance_config(load_config())
+    as_of = _adapters().clock.now().date()
+    tenor_days = (request.transaction.delivery_date or as_of) and (due - as_of).days
+    tenor_days = max(1, int(tenor_days))
+
+    priced: list[Bid] = []
+    for rate in rates:
+        quote = bid_quote(case.accepted_amount, rate.annual_rate, tenor_days, cfg)
+        priced.append(
+            rate.model_copy(
+                update={
+                    "track_id": _active_track_id(session, case.id),
+                    "discount": quote["discount"],
+                    "fee": quote["fee"],
+                    "net_amount": quote["net_amount"],
+                    "status": "AVAILABLE",
+                }
+            )
+        )
+    return priced
+
+
+def _active_track_id(session, case_id: str) -> str:
+    row = tracks.active_track(session, case_id)
+    return row.id if row is not None else ""
 
 
 # ---------------------------------------------------------------- routes ----
@@ -635,6 +673,29 @@ def select_bid(
             session_model = None
         except NotImplementedError:
             session_model = None
+
+        # Tell the marketplace the bid is accepted, passing the net the API computed.
+        # Without this call the provider never learns the bid was taken, so its payout
+        # trigger (which needs both this and the signature) never fires.
+        try:
+            from backend.ports.marketplace import FactoringUnitIn
+
+            ref = _adapters().marketplace.register_invoice(
+                FactoringUnitIn(
+                    invoice_no=case.invoice_no,
+                    buyer_gstin=case.buyer_gstin,
+                    amount=case.accepted_amount,
+                    due_date=request.transaction.delivery_date or request.transaction.invoice_date,
+                ),
+                idem_key=f"register:{case.id}",
+            )
+            _adapters().marketplace.accept_bid(
+                ref, bid.id, f"accept:{case.id}:{bid.id}", str(bid.net_amount)
+            )
+        except ProviderUnavailable:
+            pass
+        except Exception:  # noqa: BLE001 - a mock outage must not lose the selection
+            pass
 
         financing_row = session.exec(
             select(FinancingRequestRow).where(FinancingRequestRow.track_id == track_row.id)

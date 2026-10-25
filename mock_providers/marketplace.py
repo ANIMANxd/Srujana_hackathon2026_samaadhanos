@@ -92,10 +92,17 @@ class AcceptBid(BaseModel):
 
 
 def _scenario(key: str | None, unit_id: str | None = None) -> str:
-    """A scenario may be set by case id or by unit id, whichever the caller knows."""
+    """A scenario may be set by case id or by unit id, whichever the caller knows.
+
+    `active_case_id` is the last resort: the API's adapter does not send a case id
+    with its own requests, so the case a judge activated must still be honoured.
+    """
+    from mock_providers.state import store as _store
+
     return (
-        (key and store.scenarios.get(key))
-        or (unit_id and store.scenarios.get(unit_id))
+        (key and _store.scenarios.get(key))
+        or (unit_id and _store.scenarios.get(unit_id))
+        or (_store.active_case_id and _store.scenarios.get(_store.active_case_id))
         or os.environ.get("MOCK_SCENARIO")
         or "happy_path"
     )
@@ -149,6 +156,12 @@ def _bids(unit: FactoringUnit, override: RateBand | None) -> list[dict]:
         }
         for index, rate in enumerate(rates)
     ]
+
+
+@router.get("/factoring-units")
+def list_units() -> dict:
+    """Every registered unit. Used by the judge console and the scenario harness."""
+    return {"units": [unit.as_dict() for unit in store.units.values()]}
 
 
 @router.post("/factoring-units")
@@ -262,6 +275,29 @@ def open_bidding(unit_id: str, payload: BiddingWindow, background: BackgroundTas
                 "tenor_days": 30,
                 "bids": unit.bids,
             },
+            api_url(),
+            "marketplace",
+        )
+
+    if not unit.bids:
+        # Section 5.1: a closed window with zero bids is what reaches NO_BIDS.
+        background.add_task(
+            service.deliver_after,
+            _delay("MOCK_BID_DELAY_S", 3.0),
+            "bidding.closed",
+            {"case_id": case_id_for(unit=unit), "unit_id": unit_id, "bid_count": 0},
+            api_url(),
+            "marketplace",
+        )
+
+    if scenario == "bids_expire":
+        # The window closes with no bid taken. Section 5.1: this reopens bidding
+        # once; a second expiry is what reaches NO_BIDS.
+        background.add_task(
+            service.deliver_after,
+            _delay("MOCK_BID_DELAY_S", 3.0) + _delay("MOCK_EXPIRE_DELAY_S", 1.0),
+            "bids.expired",
+            {"case_id": case_id_for(unit=unit), "unit_id": unit_id, "bid_count": len(unit.bids)},
             api_url(),
             "marketplace",
         )

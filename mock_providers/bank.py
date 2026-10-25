@@ -28,15 +28,21 @@ def api_url() -> str:
     return f"{base}/api/v1/webhooks/disbursement"
 
 
+def marketplace_url() -> str:
+    """`buyer.default` is a marketplace event, not a bank one."""
+    base = os.environ.get("API_BASE_URL", "http://127.0.0.1:8000").rstrip("/")
+    return f"{base}/api/v1/webhooks/marketplace"
+
+
 def _now() -> str:
     return datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
-def _delay() -> float:
+def _delay(name: str = "MOCK_PAYOUT_DELAY_S", default: float = 5.0) -> float:
     try:
-        return float(os.environ.get("MOCK_PAYOUT_DELAY_S", "5"))
+        return float(os.environ.get(name, str(default)))
     except ValueError:
-        return 5.0
+        return default
 
 
 class PayoutIn(BaseModel):
@@ -63,19 +69,63 @@ def note_bid_accepted(case_id: str, amount: str, bid_id: str, background: Backgr
 
 def _maybe_pay(case_id: str, background: BackgroundTasks) -> None:
     state = store.payout_triggers.get(case_id) or {}
+    scenario = store.scenarios.get(case_id) or os.environ.get("MOCK_SCENARIO") or "happy_path"
+
+    # `webhook_out_of_order` is the whole point of parking: the payout is announced
+    # BEFORE the signature, so the API must store it and apply it later.
+    if scenario == "webhook_out_of_order" and state.get("bid") and not state.get("esign"):
+        if not state.get("out_of_order_sent"):
+            state["out_of_order_sent"] = True
+            _emit_payout(case_id, state, background, failing=False)
+        return
+
     if not (state.get("esign") and state.get("bid")):
         return
     if state.get("scheduled"):
         return  # both triggers can arrive in either order; pay once
     state["scheduled"] = True
 
-    payout_id = f"MOCK_PAYOUT_{abs(hash(case_id)) % 10**10:010d}"
-    scenario = store.scenarios.get(case_id) or os.environ.get("MOCK_SCENARIO", "happy_path")
-    failing = scenario == "payout_failed_then_succeeds"
+    if scenario == "payout_failed_then_succeeds":
+        _emit_payout(case_id, state, background, failing=True)
+        # Then a retry, then a successful payout, so the track walks
+        # DISBURSEMENT_FAILED -> AWAITING_DISBURSEMENT -> DISBURSED.
+        background.add_task(
+            service.deliver_after,
+            _delay() + _delay("MOCK_RETRY_DELAY_S", 1.0),
+            "payout.retry",
+            {"case_id": case_id, "payout_ref": state.get("payout_ref")},
+            api_url(),
+            "disbursement",
+        )
+        background.add_task(
+            service.deliver_after,
+            _delay() + 2 * _delay("MOCK_RETRY_DELAY_S", 1.0),
+            "payout.processed",
+            _payout_payload(case_id, state, failing=False),
+            api_url(),
+            "disbursement",
+        )
+        return
+
+    _emit_payout(case_id, state, background, failing=False)
+
+    if scenario == "buyer_defaults_after_disbursal":
+        background.add_task(
+            service.deliver_after,
+            _delay() + _delay("MOCK_DEFAULT_DELAY_S", 1.0),
+            "buyer.default",
+            {"case_id": case_id, "payout_ref": state.get("payout_ref")},
+            marketplace_url(),
+            "marketplace",
+        )
+
+
+def _payout_payload(case_id: str, state: dict, *, failing: bool) -> dict:
+    payout_id = state.get("payout_ref") or f"MOCK_PAYOUT_{abs(hash(case_id)) % 10**10:010d}"
+    state["payout_ref"] = payout_id
     utr = None if failing else store.next_utr()
     settled_at = None if failing else _now()
-
-    payout = Payout(
+    store.payouts[payout_id] = Payout(
         payout_ref=payout_id,
         amount=str(state.get("amount", "0.00")),
         status="FAILED" if failing else "PROCESSED",
@@ -83,21 +133,23 @@ def _maybe_pay(case_id: str, background: BackgroundTasks) -> None:
         settled_at=settled_at,
         case_id=case_id,
     )
-    store.payouts[payout_id] = payout
+    return {
+        "case_id": case_id,
+        "payout_id": payout_id,
+        "payout_ref": payout_id,
+        "amount": str(state.get("amount", "0.00")),
+        "currency": "INR",
+        "utr": utr,
+        "settled_at": settled_at,
+    }
 
+
+def _emit_payout(case_id: str, state: dict, background: BackgroundTasks, *, failing: bool) -> None:
     background.add_task(
         service.deliver_after,
         _delay(),
         "payout.failed" if failing else "payout.processed",
-        {
-            "case_id": case_id,
-            "payout_id": payout_id,
-            "payout_ref": payout_id,
-            "amount": payout.amount,
-            "currency": "INR",
-            "utr": utr,
-            "settled_at": settled_at,
-        },
+        _payout_payload(case_id, state, failing=failing),
         api_url(),
         "disbursement",
     )

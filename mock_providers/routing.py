@@ -1,4 +1,4 @@
-"""The mock's webhooks must carry the case id, or the API cannot route them.
+﻿"""The mock's webhooks must carry the case id, or the API cannot route them.
 
 The API's marketplace adapter does not send a case id today, so this module keeps the
 case id on the unit and falls back to `MOCK_LAST_CASE_ID` for a one-case demo. Both
@@ -27,4 +27,10 @@ def case_id_for(*, unit=None, explicit: str | None = None) -> str | None:
     remembered = getattr(unit, "case_id", None) if unit is not None else None
     if remembered:
         return remembered
+    # `POST /mock/scenarios` records the case being driven, which is the last resort
+    # when the API's adapter does not send a case id of its own.
+    from mock_providers.state import store
+
+    if store.active_case_id:
+        return store.active_case_id
     return os.environ.get("MOCK_LAST_CASE_ID") or None

@@ -77,11 +77,25 @@ def reset() -> dict:
 
 
 @app.get("/mock/deliveries")
-def deliveries() -> dict:
-    """The webhook delivery log, including retries and dead letters."""
+def deliveries(limit: int = 50) -> dict:
+    """The last `limit` deliveries with their status, for the judge console.
+
+    Newest first. Each row carries the event id, type, provider, how many attempts it
+    took, and whether it was delivered or dead-lettered, so a judge can point at a
+    retry rather than describe one.
+    """
+    invent = list(reversed(service.deliveries()))[: max(1, min(limit, 200))]
     return {
-        "deliveries": service.deliveries(),
-        "dead_letters": [item.as_dict() for item in service.dead_letters],
+        "count": len(invent),
+        "deliveries": [
+            {
+                **item,
+                "status": "DELIVERED" if item["delivered"] else ("DEAD_LETTER" if item["dead_lettered"] else "PENDING"),
+                "attempt_count": len(item["attempts"]),
+            }
+            for item in invent
+        ],
+        "dead_letters": [item.as_dict() for item in service.dead_letters][-limit:],
     }
 
 

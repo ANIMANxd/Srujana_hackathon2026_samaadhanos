@@ -43,16 +43,26 @@ PROVIDERS = ("esign", "marketplace", "disbursement")
 
 # Provider event -> financing-track event. `bid.accepted` is absent on purpose: a bid
 # is accepted by the supplier through a route, not announced by the marketplace.
+# Every scenario in architecture_v4 section 7.4 is expressible with these names, so the
+# mock never has to invent an event the API silently ignores.
 EVENT_MAP: dict[str, dict[str, str]] = {
-    "esign": {"esign.completed": "esign_completed"},
+    "esign": {
+        "esign.completed": "esign_completed",
+        "esign.failed": "esign_failed",
+    },
     "marketplace": {
         "fu.accepted": "buyer_accepted",
-        "bids.available": "bids_received",
         "fu.rejected": "buyer_rejected",
+        "fu.expired": "window_expired",
+        "bids.available": "bids_received",
+        "bids.expired": "bids_expired",
+        "bidding.closed": "bidding_closed",
+        "buyer.default": "buyer_default",
     },
     "disbursement": {
         "payout.processed": "payout_processed",
         "payout.failed": "payout_failed",
+        "payout.retry": "retry_payout",
     },
 }
 

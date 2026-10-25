@@ -89,6 +89,13 @@ class FinancingMarketplace(Protocol):
         """Bids received so far, priced by `backend/finance/`."""
         ...
 
-    def accept_bid(self, ref: FactoringUnitRef, bid_id: str, idem_key: str) -> BidAcceptance:
-        """Accept a bid. Idempotent on `idem_key`."""
+    def accept_bid(
+        self, ref: FactoringUnitRef, bid_id: str, idem_key: str, amount: str | None = None
+    ) -> BidAcceptance:
+        """Accept a bid. Idempotent on `idem_key`.
+
+        `amount` is the net the API computed with `backend/finance`. It is passed
+        through so the provider can schedule a payout for the right figure without
+        ever computing one itself.
+        """
         ...

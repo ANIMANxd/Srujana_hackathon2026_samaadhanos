@@ -48,6 +48,44 @@ then the event is appended to `dead_letter.jsonl` and to `GET /mock/deliveries`.
 A fixed test vector lives in `docs/webhooks.md`, and both this service and the API
 assert against it, so the two implementations are proved to agree without sharing code.
 
+## Scenarios (architecture_v4 section 7.4)
+
+`POST /mock/scenarios {case_id, scenario}` activates one for a case and records that
+case as the **active case**, which is how outgoing webhooks are routed when the API
+adapter sends no case id of its own. `GET /mock/scenarios/{case_id}` reports what is
+active; `GET /mock/scenarios` lists the menu.
+
+Every row below is run **end to end against the live API** by
+`mock_providers/tests/test_scenarios_e2e.py` (two real uvicorn processes, real signed
+webhooks), and the assertion is the final track state that section 5.1 predicts.
+
+| Scenario | What the mock does | End state (§5.1) |
+|---|---|---|
+| `happy_path` | Buyer accepts, three bids, OTP completes, payout settles | **DISBURSED** |
+| `buyer_rejects` | `fu.rejected` instead of `fu.accepted` | **BUYER_DECLINED** (terminal; Option 2 offered) |
+| `buyer_window_expires` | `fu.expired` — the window closes with no decision | **BUYER_DECLINED** (terminal) |
+| `no_bids` | The bidding window closes with zero bids (`bidding.closed`) | **NO_BIDS** (terminal) |
+| `bids_expire` | Three bids are announced, then `bids.expired` | **BIDDING_OPEN** (re-opened once; a second expiry is what reaches `NO_BIDS`) |
+| `esign_wrong_otp` | Every OTP is rejected; three failures send `esign.failed` | **BIDS_AVAILABLE** (back to bid selection) |
+| `esign_expires` | The session opens already past its 10-minute window | **BIDS_AVAILABLE** |
+| `webhook_duplicate` | `esign.completed` is sent three times with the same signed body | **AWAITING_DISBURSEMENT** → **DISBURSED** once the payout lands; exactly one transition, never three |
+| `webhook_out_of_order` | The payout is announced *before* the signature | **DISBURSED** (the payout is parked, then applied when the signature arrives) |
+| `webhook_bad_signature` | `esign.completed` is signed with the wrong secret | **AWAITING_ESIGN** (401; nothing applied, nothing stored) |
+| `webhook_delayed` | `esign.completed` arrives after `MOCK_DELAYED_S` (30 s by default) | **AWAITING_DISBURSEMENT** → **DISBURSED** |
+| `payout_failed_then_succeeds` | `payout.failed`, then `payout.retry`, then `payout.processed` | **DISBURSED** (via `DISBURSEMENT_FAILED`) |
+| `buyer_defaults_after_disbursal` | After the payout, `buyer.default` | **SETTLED_WITHOUT_RECOURSE** (terminal; the financier's issue, the supplier keeps the money) |
+
+Two of these accept an intermediate state in the assertion (`AWAITING_DISBURSEMENT`
+or `DISBURSED`) because the payout webhook and the check race by design; the table
+states the settled end state.
+
+## `GET /mock/deliveries`
+
+The last 50 deliveries, newest first, each with `status` (`DELIVERED`,
+`DEAD_LETTER` or `PENDING`), `attempt_count`, the target URL and every attempt's
+status code. Dead letters are listed separately. This is what the judge console
+points at to show a retry actually happened.
+
 ## Honest limits
 
 - In-memory state. A restart forgets every unit, session and payout; that is fine for

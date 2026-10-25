@@ -123,14 +123,17 @@ class DeliveryService:
         provider: str,
         *,
         duplicate: int = 1,
+        corrupt_signature: bool = False,
     ) -> Delivery:
         """Deliver one event, retrying non-2xx. Returns the delivery record.
 
         `duplicate=N` sends the exact same signed body N times, which is how the
         `webhook_duplicate` scenario proves the API's dedupe does nothing twice.
+        `corrupt_signature=True` deliberately signs wrongly, which is how
+        `webhook_bad_signature` proves a forged delivery changes nothing.
         """
         delivery = self.build(event_type, payload, target_url, provider)
-        secret = signer.secret_for(provider)
+        secret = signer.secret_for(provider) if not corrupt_signature else "wrong-secret"
 
         for _ in range(max(1, duplicate)):
             self._attempt_until_done(delivery, secret)
@@ -198,6 +201,7 @@ class DeliveryService:
         provider: str,
         *,
         duplicate: int = 1,
+        corrupt_signature: bool = False,
     ) -> Delivery:
         """Wait, then deliver. This is what makes the mock look asynchronous.
 
@@ -207,7 +211,14 @@ class DeliveryService:
         """
         if delay_seconds > 0:
             self._sleep(delay_seconds)
-        return self.deliver(event_type, payload, target_url, provider, duplicate=duplicate)
+        return self.deliver(
+            event_type,
+            payload,
+            target_url,
+            provider,
+            duplicate=duplicate,
+            corrupt_signature=corrupt_signature,
+        )
 
     def reset(self) -> None:
         self.log.clear()

@@ -1,4 +1,4 @@
-"""The §7.1–7.3 contract: OTP outcomes, delayed decisions, deterministic bids, payout.
+﻿"""The Â§7.1â€“7.3 contract: OTP outcomes, delayed decisions, deterministic bids, payout.
 
 Delays are set to 0 and the transport is stubbed, so these assert the *contract*
 (timing is configuration, not behaviour we want to wait for). The retry/back-off
@@ -273,7 +273,9 @@ def test_no_bids_scenario_announces_nothing(sent):
     client.post(f"/marketplace/factoring-units/{unit_id}/bidding", json={})
 
     assert client.get(f"/marketplace/factoring-units/{unit_id}/bids").json()["bids"] == []
-    assert len(captured) == before, "no bids, so no bids.available event"
+    announced = _types(captured[before:])
+    assert "bids.available" not in announced, "no bids, so no bids.available"
+    assert announced == ["bidding.closed"], "a closed window with zero bids is what reaches NO_BIDS"
 
 
 def test_accepting_a_bid_twice_announces_it_once(sent):
@@ -344,8 +346,11 @@ def test_the_payout_failed_scenario_announces_a_failure(sent):
     session_id, _ = _walk_to_bid_accepted(client, captured)
     client.post(f"/esign/sessions/{session_id}/otp", json={"otp": "123456"})
 
-    assert "payout.failed" in _types(captured)
-    assert "payout.processed" not in _types(captured)
+    types = _types(captured)
+    assert "payout.failed" in types, "it fails first"
+    assert "payout.retry" in types, "then the rail is retried"
+    assert "payout.processed" in types, "and then it settles"
+    assert types.index("payout.failed") < types.index("payout.retry") < types.index("payout.processed")
 
 
 def test_a_payout_is_scheduled_once_even_if_both_triggers_repeat(sent):

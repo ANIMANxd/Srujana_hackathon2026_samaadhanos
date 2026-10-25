@@ -155,7 +155,7 @@ def test_a_payout_carries_a_mock_utr(client):
 
 def test_the_buyer_rejects_scenario_changes_the_outcome(client):
     unit_id = _create_unit(client)
-    client.post("/mock/scenarios", json={"unit_id": unit_id, "scenario": "buyer_rejects"})
+    client.post("/mock/scenarios", json={"case_id": unit_id, "scenario": "buyer_rejects"})
     client.post(f"/marketplace/factoring-units/{unit_id}/acceptance-request", json={})
     acceptance = client.get(f"/marketplace/factoring-units/{unit_id}/acceptance").json()
     assert acceptance["status"] == "REJECTED"
@@ -164,7 +164,7 @@ def test_the_buyer_rejects_scenario_changes_the_outcome(client):
 def test_an_unknown_scenario_is_refused(client):
     response = client.post("/mock/scenarios", json={"case_id": "x", "scenario": "make_me_rich"})
     assert response.status_code == 422
-    assert "Unknown scenario" in response.json()["detail"]
+    assert response.json()["error"]["code"] == "UNKNOWN_SCENARIO"
 
 
 def test_reset_clears_every_object(client):

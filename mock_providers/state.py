@@ -102,6 +102,10 @@ class Store:
         # acceptance are known for a case (architecture_v4 section 7.3).
         self.payout_triggers: dict[str, dict[str, Any]] = {}
         self.utr_counter = 0
+        # The case the judge is currently driving. `POST /mock/scenarios {case_id}`
+        # sets it, so every outgoing webhook can be routed even when the API adapter
+        # does not send a case id of its own.
+        self.active_case_id: str | None = None
 
     def next_utr(self) -> str:
         """`MOCKUTR<digits>`: digits only, so it can never be read as a real UTR."""
@@ -116,6 +120,7 @@ class Store:
         self.scenarios.clear()
         self.payout_triggers.clear()
         self.utr_counter = 0
+        self.active_case_id = None
 
 
 store = Store()

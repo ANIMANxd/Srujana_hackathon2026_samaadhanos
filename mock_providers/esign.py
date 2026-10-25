@@ -1,4 +1,4 @@
-"""Mock eSign (architecture_v4 section 7.1).
+﻿"""Mock eSign (architecture_v4 section 7.1).
 
 `POST /esign/sessions` opens a session; `POST /esign/sessions/{id}/otp` completes it
 with a test OTP. Three wrong attempts fail the session; ten minutes and it expires.
@@ -19,6 +19,7 @@ from fastapi import APIRouter, BackgroundTasks, HTTPException
 from pydantic import BaseModel, ConfigDict
 
 from mock_providers import bank, signer
+from mock_providers.routing import case_id_for
 from mock_providers.delivery import service
 from mock_providers.state import ESignSession, store
 
@@ -65,6 +66,25 @@ def _otp() -> str:
     return os.environ.get("MOCK_ESIGN_OTP", "123456")
 
 
+def _scenario(case_id: str | None) -> str:
+    from mock_providers.state import store as _store
+
+    return (
+        (case_id and _store.scenarios.get(case_id))
+        or (_store.active_case_id and _store.scenarios.get(_store.active_case_id))
+        or os.environ.get("MOCK_SCENARIO")
+        or "happy_path"
+    )
+
+
+def _delayed_seconds() -> float:
+    """`webhook_delayed` waits 30 s by default; a test can shorten it."""
+    try:
+        return float(os.environ.get("MOCK_DELAYED_S", "30"))
+    except ValueError:
+        return 30.0
+
+
 def _expired(session: ESignSession) -> bool:
     if session.status != "PENDING":
         return False
@@ -78,6 +98,7 @@ def _expired(session: ESignSession) -> bool:
 def _fail(session: ESignSession, background: BackgroundTasks, case_id: str | None) -> None:
     """Mark the session failed and tell the API, so the track can move on."""
     session.status = "FAILED"
+    case_id = case_id_for(explicit=case_id)
     background.add_task(
         service.deliver,
         "esign.failed",
@@ -95,11 +116,19 @@ def _fail(session: ESignSession, background: BackgroundTasks, case_id: str | Non
 @router.post("/sessions")
 def create_session(payload: CreateSession) -> dict:
     session_id = signer.new_id("ESIGN")
+    scenario = _scenario(payload.case_id)
+    # `esign_expires` opens a session that is already past its window, so the very
+    # next OTP attempt takes the expiry path instead of the happy one.
+    minutes = 0 if scenario == "esign_expires" else SESSION_MINUTES
+    expires = _now() + timedelta(minutes=minutes)
+    if scenario == "esign_expires":
+        expires = _now() - timedelta(seconds=1)
+
     session = ESignSession(
         session_id=session_id,
         status="PENDING",
         signing_url=f"/mock/esign/{session_id}",
-        expires_at=_stamp(_now() + timedelta(minutes=SESSION_MINUTES)),
+        expires_at=_stamp(expires),
         case_id=payload.case_id,
         doc_sha256=payload.doc_sha256,
     )
@@ -138,7 +167,7 @@ def submit_otp(session_id: str, payload: OtpIn, background: BackgroundTasks):
             service.deliver,
             "esign.failed",
             {
-                "case_id": session.case_id,
+                "case_id": case_id_for(explicit=session.case_id),
                 "session_id": session.session_id,
                 "reason": "expired",
                 "failed_at": _stamp(_now()),
@@ -152,7 +181,10 @@ def submit_otp(session_id: str, payload: OtpIn, background: BackgroundTasks):
         return JSONResponse(status_code=409, content={"detail": f"Session is {session.status}"})
 
     session.attempts += 1
-    if payload.otp != _otp():
+    # `esign_wrong_otp` makes every guess wrong, so the failure path is exercised
+    # even if a judge types the documented test OTP.
+    expected_otp = _otp() if _scenario(session.case_id) != "esign_wrong_otp" else "\x00never"
+    if payload.otp != expected_otp:
         remaining = OTP_ATTEMPTS - session.attempts
         if remaining <= 0:
             _fail(session, background, session.case_id)
@@ -170,19 +202,48 @@ def submit_otp(session_id: str, payload: OtpIn, background: BackgroundTasks):
     # A simulated signature: the hash of the document bytes, nothing more.
     session.signed_doc_sha256 = session.doc_sha256 or ""
 
+    resolved_case = case_id_for(explicit=session.case_id)
     payload_out = {
-        "case_id": session.case_id,
+        "case_id": resolved_case,
         "session_id": session.session_id,
         "signed_doc_sha256": session.signed_doc_sha256,
         "signer_display": "Demo Signer",
         "signed_at": signed_at,
     }
-    background.add_task(service.deliver, "esign.completed", payload_out, api_url(), "esign")
+    scenario = _scenario(session.case_id)
+
+    if scenario == "webhook_bad_signature":
+        # Deliberately forged: the API must answer 401 and change nothing.
+        background.add_task(
+            service.deliver_after,
+            0.0,
+            "esign.completed",
+            payload_out,
+            api_url(),
+            "esign",
+            corrupt_signature=True,
+        )
+    elif scenario == "webhook_duplicate":
+        # The same signed body three times: the API must apply it once.
+        background.add_task(
+            service.deliver, "esign.completed", payload_out, api_url(), "esign", duplicate=3
+        )
+    elif scenario == "webhook_delayed":
+        background.add_task(
+            service.deliver_after,
+            _delayed_seconds(),
+            "esign.completed",
+            payload_out,
+            api_url(),
+            "esign",
+        )
+    else:
+        background.add_task(service.deliver, "esign.completed", payload_out, api_url(), "esign")
 
     # A payout is due only once the esign is known; the bid acceptance usually comes
     # first or second, and the bank waits for both (section 7.3).
-    if session.case_id:
-        bank.note_esign(session.case_id, background)
+    if resolved_case:
+        bank.note_esign(resolved_case, background)
 
     return session.as_dict()
 
