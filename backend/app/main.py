@@ -133,11 +133,15 @@ from backend.app.routes.cases import router as cases_router  # noqa: E402
 from backend.app.routes.financing import router as financing_router  # noqa: E402
 from backend.app.routes.webhooks import router as webhooks_router  # noqa: E402
 from backend.app.routes.events import router as events_router  # noqa: E402
+from backend.app.routes.options import router as options_router  # noqa: E402
+from backend.app.routes.mock import router as mock_router  # noqa: E402
 
 app.include_router(cases_router)
 app.include_router(financing_router)
 app.include_router(webhooks_router)
 app.include_router(events_router)
+app.include_router(options_router)
+app.include_router(mock_router)
 
 
 # ------------------------------------------------------------- errors ----

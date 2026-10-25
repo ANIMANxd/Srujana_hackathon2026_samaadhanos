@@ -43,6 +43,15 @@ class OffsetClock:
         self._offset += delta
         return self.now()
 
+    def reset(self) -> datetime:
+        """Put the clock back to real time (offset zero) and return the new `now`.
+
+        This is how a demo is wound back: `advance` is forward-only so a timeline can
+        never be rewritten, and a fresh run starts from `reset`.
+        """
+        self._offset = timedelta(0)
+        return self.now()
+
     @property
     def offset(self) -> timedelta:
         return self._offset

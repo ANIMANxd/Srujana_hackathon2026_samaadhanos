@@ -900,6 +900,21 @@
         "title": "Citation",
         "type": "object"
       },
+      "ClockAdvance": {
+        "description": "`advance_days` is forward-only; use `/mock/clock/reset` to wind back.",
+        "properties": {
+          "advance_days": {
+            "description": "Days to move the simulated clock forward. Negative values are refused; reset instead.",
+            "title": "Advance Days",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "advance_days"
+        ],
+        "title": "ClockAdvance",
+        "type": "object"
+      },
       "ConfigOverrides": {
         "properties": {
           "appropriation_mode": {
@@ -1959,8 +1974,7 @@
               {
                 "type": "null"
               }
-            ],
-            "default": null
+            ]
           },
           "notes": {
             "items": {
@@ -2397,7 +2411,6 @@
             "$ref": "#/components/schemas/GetPaidEarlyOption"
           },
           "recommendation": {
-            "default": null,
             "title": "Recommendation",
             "type": "null"
           },
@@ -2671,7 +2684,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Current Stage"
           },
           "expected_payment_date": {
@@ -2684,7 +2696,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Expected Payment Date"
           },
           "interest_to_expected_date": {
@@ -2696,7 +2707,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Interest To Expected Date"
           },
           "notes": {
@@ -2715,7 +2725,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Principal"
           },
           "total_if_paid": {
@@ -2727,7 +2736,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Total If Paid"
           }
         },
@@ -4010,6 +4018,68 @@
         ]
       }
     },
+    "/api/v1/cases/{case_id}/options": {
+      "get": {
+        "description": "Both options with numbers, and never a recommendation.\n\n`recommendation` is `null` by construction: it is a `None` field on the model and\na test asserts it stays that way (golden rule 20).",
+        "operationId": "get_options_api_v1_cases__case_id__options_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "case_id",
+            "required": true,
+            "schema": {
+              "title": "Case Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "The date Option 2 is measured to. Defaults to as_of + 30 days.",
+            "in": "query",
+            "name": "expected_payment_date",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The date Option 2 is measured to. Defaults to as_of + 30 days.",
+              "title": "Expected Payment Date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OptionsResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Options",
+        "tags": [
+          "options"
+        ]
+      }
+    },
     "/api/v1/cases/{case_id}/stream": {
       "get": {
         "description": "Live track updates for one case. 404 for an unknown case, like the other reads.",
@@ -4210,6 +4280,66 @@
           }
         },
         "summary": "Health"
+      }
+    },
+    "/api/v1/mock/clock": {
+      "post": {
+        "description": "Move the simulated clock. Cases re-evaluate on their next read.",
+        "operationId": "advance_clock_api_v1_mock_clock_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClockAdvance"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Advance Clock",
+        "tags": [
+          "mock"
+        ]
+      }
+    },
+    "/api/v1/mock/clock/reset": {
+      "post": {
+        "description": "Put the clock back to real time, so the next demo run starts clean.",
+        "operationId": "reset_clock_api_v1_mock_clock_reset_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Reset Clock",
+        "tags": [
+          "mock"
+        ]
       }
     },
     "/api/v1/presets": {

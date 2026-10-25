@@ -92,6 +92,9 @@ def compare_options(
         ],
         "citations": [
             {"source": cfg.treds_source, "ref": "config:treds.settlement_days"},
+            {"source": cfg.mock_financing_source, "ref": "config:mock_financing.rate_band"},
+            {"source": cfg.mock_financing_source, "ref": "config:mock_financing.platform_fee_pct"},
+            {"source": cfg.financing_source, "ref": "config:financing.day_count"},
         ],
     }
 
@@ -113,6 +116,7 @@ def compare_options(
         ],
         "citations": [
             {"source": cfg.interest_source, "ref": "config:interest_multiplier"},
+            {"source": cfg.financing_source, "ref": "config:financing.day_count"},
         ],
     }
 

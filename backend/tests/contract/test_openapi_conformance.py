@@ -49,6 +49,7 @@ READ_PATHS = {
     "/api/v1/cases/{case_id}/events",
     "/api/v1/cases/{case_id}/events/verify",
     "/api/v1/cases/{case_id}/financing/bids",
+    "/api/v1/cases/{case_id}/options",
 }
 WRITE_PATHS = {
     "/api/v1/evaluate-case",
@@ -62,6 +63,8 @@ WRITE_PATHS = {
     "/api/v1/webhooks/esign",
     "/api/v1/webhooks/marketplace",
     "/api/v1/webhooks/disbursement",
+    "/api/v1/mock/clock",
+    "/api/v1/mock/clock/reset",
 }
 UPLOAD_PATHS = {"/api/v1/extract-evidence"}
 # `GET /cases/{id}/stream` is an infinite `text/event-stream`. A synchronous client
@@ -257,6 +260,31 @@ def test_webhook_routes_match_the_contract(monkeypatch):
         # Handled, parked or rejected are all legitimate here; the path is exercised
         # and the envelope is checked.
         assert {"duplicate", "outcome", "provider_event_id"} <= set(response.json())
+
+
+def test_options_and_mock_clock_match_the_contract():
+    """The two v1.1 additions are called for real.
+
+    `MOCK_CLOCK` is not set in the contract environment, so the clock routes answer
+    `400 CLOCK_NOT_SIMULATED`; that still exercises the path, and the 200 body is
+    schema-checked when the environment allows it.
+    """
+    case_id = _financing_case()
+
+    options = client.get(f"/api/v1/cases/{case_id}/options")
+    assert options.status_code == 200, options.text[:400]
+    _assert_matches(
+        _response_pointer("/api/v1/cases/{case_id}/options", "GET"),
+        options.json(),
+        "GET /options",
+    )
+    assert options.json()["recommendation"] is None, "recommendation is always null"
+    assert options.json()["recover_with_law"]["expected_payment_date"]
+
+    advance = client.post("/api/v1/mock/clock", json={"advance_days": 1})
+    assert advance.status_code in {200, 400}, advance.text[:300]
+    reset = client.post("/api/v1/mock/clock/reset")
+    assert reset.status_code in {200, 400}, reset.text[:300]
 
 
 def test_create_case_matches_the_contract():

@@ -1,4 +1,4 @@
-﻿"""Contract v1.1 conformance: the frozen v1.0 contract is untouched, and the
+"""Contract v1.1 conformance: the frozen v1.0 contract is untouched, and the
 v1.1 additions are well formed.
 
 The two guarantees this file exists for (architecture.md section 9):
@@ -200,6 +200,9 @@ def test_v1_1_adds_cases_routes_without_touching_a_v1_0_path():
         "/api/v1/webhooks/esign",
         "/api/v1/webhooks/marketplace",
         "/api/v1/webhooks/disbursement",
+        "/api/v1/cases/{case_id}/options",
+        "/api/v1/mock/clock",
+        "/api/v1/mock/clock/reset",
     }, f"unexpected new paths in contract v1.1: {sorted(added_paths)}"
     assert set(base["paths"]) <= set(live["paths"]), "a v1.0 path disappeared"
     added = set(live["components"]["schemas"]) - set(base["components"])

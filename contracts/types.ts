@@ -213,6 +213,29 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/cases/{case_id}/options": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Options
+         * @description Both options with numbers, and never a recommendation.
+         *
+         *     `recommendation` is `null` by construction: it is a `None` field on the model and
+         *     a test asserts it stays that way (golden rule 20).
+         */
+        get: operations["get_options_api_v1_cases__case_id__options_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/cases/{case_id}/stream": {
         parameters: {
             query?: never;
@@ -356,6 +379,46 @@ export interface paths {
         get: operations["health_api_v1_health_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/mock/clock": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Advance Clock
+         * @description Move the simulated clock. Cases re-evaluate on their next read.
+         */
+        post: operations["advance_clock_api_v1_mock_clock_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/mock/clock/reset": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reset Clock
+         * @description Put the clock back to real time, so the next demo run starts clean.
+         */
+        post: operations["reset_clock_api_v1_mock_clock_reset_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -824,6 +887,17 @@ export interface components {
             /** Verified */
             verified: boolean;
         };
+        /**
+         * ClockAdvance
+         * @description `advance_days` is forward-only; use `/mock/clock/reset` to wind back.
+         */
+        ClockAdvance: {
+            /**
+             * Advance Days
+             * @description Days to move the simulated clock forward. Negative values are refused; reset instead.
+             */
+            advance_days: number;
+        };
         /** ConfigOverrides */
         ConfigOverrides: {
             appropriation_mode?: components["schemas"]["AppropriationMode"] | null;
@@ -1233,8 +1307,7 @@ export interface components {
             available: boolean;
             /** Citations */
             citations?: components["schemas"]["OptionCitation"][];
-            /** @default null */
-            indicative: components["schemas"]["IndicativeFinancing"] | null;
+            indicative?: components["schemas"]["IndicativeFinancing"] | null;
             /** Notes */
             notes?: string[];
             /** Unavailable Reasons */
@@ -1418,11 +1491,8 @@ export interface components {
             /** Case Id */
             case_id: string;
             get_paid_early: components["schemas"]["GetPaidEarlyOption"];
-            /**
-             * Recommendation
-             * @default null
-             */
-            recommendation: null;
+            /** Recommendation */
+            recommendation?: null;
             recover_with_law: components["schemas"]["RecoverWithLawOption"];
             /** Simulation */
             simulation: boolean;
@@ -1544,33 +1614,18 @@ export interface components {
             available: boolean;
             /** Citations */
             citations?: components["schemas"]["OptionCitation"][];
-            /**
-             * Current Stage
-             * @default null
-             */
-            current_stage: string | null;
-            /**
-             * Expected Payment Date
-             * @default null
-             */
-            expected_payment_date: string | null;
-            /**
-             * Interest To Expected Date
-             * @default null
-             */
-            interest_to_expected_date: string | null;
+            /** Current Stage */
+            current_stage?: string | null;
+            /** Expected Payment Date */
+            expected_payment_date?: string | null;
+            /** Interest To Expected Date */
+            interest_to_expected_date?: string | null;
             /** Notes */
             notes?: string[];
-            /**
-             * Principal
-             * @default null
-             */
-            principal: string | null;
-            /**
-             * Total If Paid
-             * @default null
-             */
-            total_if_paid: string | null;
+            /** Principal */
+            principal?: string | null;
+            /** Total If Paid */
+            total_if_paid?: string | null;
         };
         /** SettlementPayment */
         SettlementPayment: {
@@ -2152,6 +2207,40 @@ export interface operations {
             };
         };
     };
+    get_options_api_v1_cases__case_id__options_get: {
+        parameters: {
+            query?: {
+                /** @description The date Option 2 is measured to. Defaults to as_of + 30 days. */
+                expected_payment_date?: string | null;
+            };
+            header?: never;
+            path: {
+                case_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OptionsResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     stream_case_api_v1_cases__case_id__stream_get: {
         parameters: {
             query?: never;
@@ -2322,6 +2411,59 @@ export interface operations {
                     "application/json": {
                         [key: string]: string;
                     };
+                };
+            };
+        };
+    };
+    advance_clock_api_v1_mock_clock_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClockAdvance"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reset_clock_api_v1_mock_clock_reset_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
         };
