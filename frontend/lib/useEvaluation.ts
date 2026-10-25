@@ -3,13 +3,25 @@
 // One hook per case screen (architecture §10, F1): resolves the case's input,
 // evaluates it through the engine (debounced), keeps the last good result,
 // and falls back to bundled fixtures offline for unedited presets only.
+//
+// Three kinds of case (contract v1.1 made the first one the normal one):
+//   server  a stored case with a server-issued id: input and latest evaluation
+//           come from GET /cases/{id}, kept live by useTrack; only a local edit
+//           re-evaluates, statelessly.
+//   preset  a bundled sample case (case_01...), always stateless.
+//   upload  an approved upload kept on this device, stateless. Also what the
+//           Approve step falls back to when the backend has no /cases route.
+// `?legacy=1` forces the stateless path for any id.
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ApiError, BackendUnreachable, evaluate, getPresetRequest, offlineResponseFor, type Source } from "./api";
 import { getEdited, getUploaded, sameRequest, setEdited } from "./caseStore";
+import { asRequest, asResponse, fixtureFor } from "./fixtures";
 import type { CaseRequest, CaseResponse } from "./types";
+import { useTrack, type TrackView } from "./useTrack";
 
-export type CaseOrigin = "preset" | "upload";
+export type CaseOrigin = "preset" | "upload" | "server";
 
 export type EvaluationStatus = "loading" | "ready" | "needs_backend" | "error" | "not_found";
 
@@ -27,6 +39,8 @@ export type Evaluation = {
   isEdited: boolean;
   /** The preset id whose saved samples may stand in offline, or null (edited or uploaded). */
   offlineId: string | null;
+  /** Live case + track for server cases; null for preset and upload cases. */
+  tracking: TrackView | null;
   setRequest: (next: CaseRequest) => void;
   reset: () => void;
   retry: () => void;
@@ -47,7 +61,19 @@ async function resolveBase(caseId: string): Promise<Resolved | null> {
   }
 }
 
+type Mode = "pending" | "local" | "server";
+
 export function useEvaluation(caseId: string): Evaluation {
+  const search = useSearchParams();
+  const legacy = search.get("legacy") === "1";
+  const offlineState = search.get("state");
+  // Storage is only readable on the client; the server render is the loading skeleton either way.
+  const mode = useMemo<Mode>(() => {
+    if (typeof window === "undefined") return "pending";
+    return legacy || getUploaded(caseId) || fixtureFor(caseId) ? "local" : "server";
+  }, [caseId, legacy]);
+  const tracking = useTrack(caseId, mode === "server", offlineState);
+  const serverEval = useMemo(() => asResponse(tracking.caseDetail?.latest_evaluation), [tracking.caseDetail]);
   const [resolved, setResolved] = useState<Resolved | null>(null);
   const [request, setRequestState] = useState<CaseRequest | null>(null);
   const [response, setResponse] = useState<CaseResponse | null>(null);
@@ -59,8 +85,22 @@ export function useEvaluation(caseId: string): Evaluation {
   const seq = useRef(0);
   const firstLoad = useRef(true);
 
-  // 1. Resolve the case input.
+  // 1b. A server case resolves from GET /cases/{id}. The stored input never changes,
+  // so it is resolved once (adjusting state while rendering, not in an effect);
+  // later reads only refresh the stored evaluation.
+  const storedInput = mode === "server" ? tracking.caseDetail?.case.input_json : undefined;
+  const storedBase = storedInput ? asRequest(storedInput) : null;
+  const storedBad = Boolean(storedInput) && !storedBase;
+  const [syncedFor, setSyncedFor] = useState<string | null>(null);
+  if (storedBase && syncedFor !== caseId) {
+    setSyncedFor(caseId);
+    setResolved({ title: null, origin: "server", base: storedBase });
+    setRequestState(getEdited(caseId) ?? storedBase);
+  }
+
+  // 1c. A local case resolves from this device or the preset files.
   useEffect(() => {
+    if (mode !== "local") return;
     let cancelled = false;
     resolveBase(caseId).then((r) => {
       if (cancelled) return;
@@ -74,7 +114,7 @@ export function useEvaluation(caseId: string): Evaluation {
     return () => {
       cancelled = true;
     };
-  }, [caseId]);
+  }, [caseId, mode]);
 
   // 2. Evaluate whenever the request changes (debounced for live edits).
   useEffect(() => {
@@ -84,6 +124,11 @@ export function useEvaluation(caseId: string): Evaluation {
     // The first evaluation of a case is not an edit: start at once so a slow
     // backend is not made slower by the typing debounce. Edits keep the debounce.
     const delay = firstLoad.current ? 0 : DEBOUNCE_MS;
+    // An unedited server case already has its stored evaluation (shown below): do not recompute.
+    if (resolved.origin === "server" && unedited && serverEval) {
+      firstLoad.current = false;
+      return;
+    }
     const timer = setTimeout(async () => {
       firstLoad.current = false;
       setRefreshing(true);
@@ -119,7 +164,7 @@ export function useEvaluation(caseId: string): Evaluation {
       }
     }, delay);
     return () => clearTimeout(timer);
-  }, [request, resolved, caseId, attempt]);
+  }, [request, resolved, caseId, attempt, serverEval]);
 
   const setRequest = useCallback(
     (next: CaseRequest) => {
@@ -135,9 +180,29 @@ export function useEvaluation(caseId: string): Evaluation {
     setRequestState(resolved.base);
   }, [caseId, resolved]);
 
-  const retry = useCallback(() => setAttempt((n) => n + 1), []);
+  const refreshTrack = tracking.refresh;
+  const retry = useCallback(() => {
+    setAttempt((n) => n + 1);
+    refreshTrack();
+  }, [refreshTrack]);
 
   const isEdited = Boolean(request && resolved && !sameRequest(request, resolved.base));
+
+  // Server cases: the stored evaluation is the answer until the person edits the input,
+  // and the server's own lookup decides "not found" and "could not load".
+  const showStored = resolved?.origin === "server" && !isEdited && serverEval !== null;
+  let outStatus: EvaluationStatus = showStored ? "ready" : status;
+  let outError = showStored ? null : error;
+  if (mode === "server" && !resolved) {
+    if (tracking.status === "not_found") outStatus = "not_found";
+    else if (storedBad) {
+      outStatus = "error";
+      outError = "The stored case did not match the contract.";
+    } else if (tracking.status === "error") {
+      outStatus = "error";
+      outError = tracking.error;
+    }
+  }
 
   return {
     caseId,
@@ -145,13 +210,14 @@ export function useEvaluation(caseId: string): Evaluation {
     origin: resolved?.origin ?? null,
     base: resolved?.base ?? null,
     request,
-    response,
-    status,
-    source,
-    error,
+    response: showStored ? serverEval : response,
+    status: outStatus,
+    source: showStored ? (tracking.source ?? "live") : source,
+    error: outError,
     refreshing,
     isEdited,
     offlineId: resolved?.origin === "preset" && !isEdited ? caseId : null,
+    tracking: mode === "server" ? tracking : null,
     setRequest,
     reset,
     retry,

@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useRef, useState, type DragEvent } from "react";
-import { ApiError, BackendUnreachable, extractEvidence } from "@/lib/api";
+import { ApiError, BackendUnreachable, createCase, extractEvidence, type MutationOptions } from "@/lib/api";
 import { saveUploaded } from "@/lib/caseStore";
 import { FIELD_KEYS, looksLikeText, REQUIRED_FIELDS, reviewFields, type FieldKey, type ReviewField } from "@/lib/extraction";
 import { EXTRACTION_SAMPLES, type ExtractionSample } from "@/lib/fixtures";
@@ -12,6 +12,7 @@ import type { MessageKey } from "@/lib/i18n/en";
 import { useHref } from "@/lib/params";
 import { configEntry, useConfig } from "@/lib/useConfig";
 import type { Activity, CaseRequest, EnterpriseClass, ExtractionResponse } from "@/lib/types";
+import { IdempotentButton } from "../common/IdempotentButton";
 import { Icon } from "../common/Icon";
 import { StatusIcon } from "../common/StatusIcon";
 import { Banner } from "../shell/Banners";
@@ -109,10 +110,12 @@ function Review({ result, onCancel }: { result: Result; onCancel: () => void }) 
     setFields((prev) => ({ ...prev, [key]: { ...prev[key], value: value === "" ? null : value, edited: true } }));
   }
 
-  function approve() {
-    if (!canApprove) return;
+  // A working reference for the draft only; the server issues the real case id.
+  const [draftId] = useState(() => `upload_${Date.now()}`);
+
+  function buildRequest(): CaseRequest {
     const v = (k: FieldKey) => fields[k].value;
-    const id = `upload_${Date.now()}`;
+    const id = draftId;
     const credit = v("written_credit_days");
     const request: CaseRequest = {
       contract_version: "1.0",
@@ -153,8 +156,26 @@ function Review({ result, onCancel }: { result: Result; onCancel: () => void }) 
       },
       config_overrides: null,
     };
-    saveUploaded(request);
-    router.push(href(`/case/${id}`));
+    return request;
+  }
+
+  // The same body must keep the same Idempotency-Key on retry; a different body is a new action.
+  const request = canApprove ? buildRequest() : null;
+  const actionId = `cases.create:${JSON.stringify(request)}`;
+
+  /** POST /cases, then open the stored case. Without a /cases route the case stays on this device (?legacy=1). */
+  async function approve(opts: MutationOptions) {
+    if (!request) return;
+    try {
+      const detail = await createCase(request, opts);
+      router.push(href(`/case/${encodeURIComponent(detail.case.id)}`));
+    } catch (e) {
+      const noRoute = e instanceof ApiError && (e.status === 404 || e.status === 405);
+      if (!(e instanceof BackendUnreachable) && !noRoute) throw e;
+      saveUploaded(request);
+      const target = href(`/case/${request.case_id}`);
+      router.push(`${target}${target.includes("?") ? "&" : "?"}legacy=1`);
+    }
   }
 
   const sel = fields[selected];
@@ -327,10 +348,10 @@ function Review({ result, onCancel }: { result: Result; onCancel: () => void }) 
       </section>
 
       <div className="sticky bottom-3 z-10 flex flex-wrap items-center gap-3 rounded-xl border border-rule bg-paper-raised/95 px-4 py-3 shadow-float backdrop-blur">
-        <button type="button" className="btn btn-primary" disabled={!canApprove} onClick={approve}>
+        <IdempotentButton actionId={actionId} run={approve} onConflict={() => undefined} disabled={!canApprove}>
           <Icon name="ok" className="h-4 w-4" />
           {t("upload.approve")}
-        </button>
+        </IdempotentButton>
         <button type="button" className="btn btn-quiet" onClick={onCancel}>
           {t("common.close")}
         </button>

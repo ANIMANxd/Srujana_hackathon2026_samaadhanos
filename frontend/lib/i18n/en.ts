@@ -726,6 +726,19 @@ export const en = {
 
   "notfound.title": "Page not found",
   "notfound.body": "That page does not exist.",
+
+  "action.conflict": "This changed in another tab. Refreshed.",
+  "action.unreachable": "Could not reach the server. Nothing was changed twice; try again.",
+  "action.failed": "That did not go through.",
+  "action.offline_disabled": "Offline: changes are switched off until the backend is back. You are looking at a saved sample.",
+
+  "track.offline_sample": "Backend offline: showing a saved sample case, not your own. Changes are switched off.",
+  "track.live_stream": "Live updates on",
+  "track.live_polling": "Checking for updates every 3 seconds",
+  "track.live_off": "Updates paused while offline",
+  "track.option.FINANCING": "Active option: Get paid early",
+  "track.option.RECOVERY": "Active option: Recover with the law",
+  "track.option.none": "No option started yet",
 } as const;
 
 export type MessageKey = keyof typeof en;

@@ -17,6 +17,7 @@ import { CfoCostLines } from "../cfo/CfoCostLines";
 import { SendPanel } from "../send/SendPanel";
 import { AssumptionsDrawer } from "./AssumptionsDrawer";
 import { CaseHeader } from "./CaseHeader";
+import { TrackStrip } from "./TrackStrip";
 import { ReadingGuide } from "./ReadingGuide";
 import { CaseTabs } from "./CaseTabs";
 import { EvidenceTab } from "../evidence/EvidenceTab";
@@ -51,6 +52,7 @@ export function CaseScreen({ caseId }: { caseId: string }) {
   return (
     <div className="flex flex-col gap-6">
       <CaseHeader caseId={caseId} request={ev.request} response={res} showViewToggle={Boolean(res)} />
+      {ev.tracking && <TrackStrip tracking={ev.tracking} />}
       <DataBanners placeholder={placeholder} needsBackend={ev.status === "needs_backend"} />
       {ev.error && res && <ErrorState message={ev.error} onRetry={ev.retry} />}
 
