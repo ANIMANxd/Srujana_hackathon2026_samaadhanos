@@ -11,6 +11,12 @@ The authoritative list of *installed* packages is `requirements.txt`; this file 
 | `sqlmodel` | `>=0.0.48` | ORM and table models for the v4 store (`backend/store/models.py`). Chosen because it keeps one Pydantic model per table, so the store's rows and the contract models stay in the same idiom. | Money columns are `TEXT` through `DecimalText`, never `REAL`. The schema must stay Postgres-compatible. The engine stays stateless: the store persists engine input and output, it never computes a legal number. |
 | `sqlalchemy` | 2.x (transitive, via `sqlmodel`) | Engine, sessions, the partial unique index on `tracks`. | Not imported directly outside `backend/store/`. |
 
+## Added by the provider ports and adapters (backend/ports/, backend/adapters/)
+
+| Library | Version | Why it is here | Constraints |
+|---|---|---|---|
+| `httpx` | `>=0.27` | HTTP client for the mock provider service (`backend/adapters/mock/client.py`) and the `/health` reachability probe. | Mock-only: the live adapters are stubs that raise `NotImplementedError`. 5 s timeout, retries on **connect errors only** (never a timeout or a 5xx, which could double-book), `X-Correlation-Id` forwarded. `httpx` was already present as starlette's TestClient transport; it is now an explicit dependency because production code imports it. |
+
 ## Present before the v4 work
 
 Recorded here from the comments in `requirements.txt`. These entries are **not** a

@@ -38,6 +38,7 @@ from backend.extraction.extract import extract_evidence as run_extraction
 from backend.extraction.llm import settings_from_env
 from backend.extraction.text import ExtractionInputError
 from backend.app.schemas_v4 import component_schemas as v1_1_component_schemas
+from backend.app import deps
 from backend.store.db import init_db as init_store
 
 PRESETS_DIR = Path(__file__).resolve().parent.parent / "presets"
@@ -48,8 +49,10 @@ async def _lifespan(_app: FastAPI) -> AsyncIterator[None]:
     """Create the v4 store tables if they do not exist (backend/store/db.py).
 
     Runs on server start only, never at import, so importing the app in tests
-    does not create a database file.
+    does not create a database file. The provider guard runs first: a production
+    deployment wired to mock adapters must exit before it serves a single request.
     """
+    deps.validate_startup()
     init_store()
     yield
 
@@ -65,6 +68,19 @@ app = FastAPI(
         "unreferenced components until their routes land."
     ),
 )
+
+
+@app.middleware("http")
+async def _simulation_header(request: Request, call_next):
+    """Label every response as simulated outside production (golden rule 16).
+
+    The header is what makes a screenshot of the demo impossible to mistake for a
+    live integration, so it is applied centrally rather than per route.
+    """
+    response = await call_next(request)
+    if deps.simulation_enabled():
+        response.headers[deps.SIMULATION_HEADER] = "true"
+    return response
 
 
 # ------------------------------------------------------ contract v1.1 ----
@@ -136,11 +152,21 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException) 
 @app.get("/api/v1/health")
 def health() -> dict[str, str]:
     """Liveness plus config load status (section 8.1)."""
+    # v4 adds store health, provider mode, mock reachability and the config version
+    # (architecture_v4 section 8). Every value stays a string: this path's declared
+    # schema is `additionalProperties: {type: string}`, so a bool or an int here
+    # would break a v1.0 consumer. `mock_providers` is `not_used` when the mode is
+    # live. The docstring above is deliberately unchanged: FastAPI copies it into
+    # the frozen v1.0 operation description, and contract v1.1 is additive-only.
     cfg = load_config()
     return {
         "status": "ok",
         "contract_version": CONTRACT_VERSION,
         "config_load": "stub" if cfg.get("_stub") else "loaded",
+        "config_version": deps.config_version(),
+        "db": deps.database_state(),
+        "provider_mode": deps.provider_mode(),
+        "mock_providers": deps.probe_mock_providers(),
     }
 
 

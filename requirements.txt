@@ -16,3 +16,6 @@ reportlab>=4.0
 # schema. Money is TEXT, never REAL. See docs/architecture_v4_two_options.md
 # section 4 and docs/dependencies.md.
 sqlmodel>=0.0.48
+# HTTP client for the mock provider adapters (backend/adapters/mock/) and the
+# health probe. Also the transport behind starlette's TestClient.
+httpx>=0.27
