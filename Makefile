@@ -4,23 +4,36 @@
 # make may fall back to cmd.exe, so no sh syntax ($$, [], backslash
 # continuations) and no cmd-only syntax. Logic lives in one-line python.
 
-.PHONY: dev backend frontend test fixtures demo openapi types contract-fixtures contract db-reset
+.PHONY: dev backend frontend mock test fixtures demo openapi types contract-fixtures contract db-reset
 
 PYTHON ?= python
 
-dev: backend
-	@echo --- frontend: not yet implemented until F0 ---
+# Three processes: api :8000, mock providers :8100, frontend :3000.
+# `mock_providers/dev.py` is the launcher, because a Makefile recipe cannot start
+# concurrent processes portably (its own header forbids `&`, `$$` and continuations).
+dev:
+	@echo --- api :8000 | mock providers :8100 | frontend :3000 ---
+	$(PYTHON) mock_providers/dev.py
 
 backend:
 	@echo Starting backend on http://127.0.0.1:8000 - Ctrl+C to stop
 	$(PYTHON) -m uvicorn backend.app.main:app --reload --app-dir .
 
+# SIMULATION ONLY. Signed webhooks, fictional financiers, no real money.
+mock:
+	@echo Starting mock providers on http://127.0.0.1:8100 - Ctrl+C to stop
+	@echo SIMULATION ONLY - no real money, no real signatures, no Aadhaar data
+	$(PYTHON) -m uvicorn mock_providers.app:app --reload --port 8100 --app-dir .
+
 frontend:
-	@echo not yet implemented - frontend arrives with prompt F0
+	@echo Starting frontend on http://127.0.0.1:3000 - Ctrl+C to stop
+	npm --prefix frontend run dev
 
 # pytest exits 5 when zero tests are collected; that counts as success here.
+# `mock_providers/tests` is included because that service must not import backend/,
+# so its suite lives beside it rather than under backend/tests.
 test:
-	$(PYTHON) -c "import subprocess, sys; rc = subprocess.call([sys.executable, '-m', 'pytest', 'backend/tests', '-q']); sys.exit(0 if rc in (0, 5) else rc)"
+	$(PYTHON) -c "import subprocess, sys; rc = subprocess.call([sys.executable, '-m', 'pytest', 'backend/tests', 'mock_providers/tests', '-q']); sys.exit(0 if rc in (0, 5) else rc)"
 
 # Regenerate contracts/fixtures from the real engine: every preset's request +
 # response, plus the CASE-01 artifact samples, then copy to frontend/fixtures.

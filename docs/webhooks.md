@@ -23,8 +23,31 @@ The signature is **HMAC-SHA256 over `timestamp + "." + raw_body`**, keyed by
 3. Reject when the timestamp is more than **300 s** old (replay protection).
 4. Only then parse and validate the payload.
 
-## 3. Delivery semantics
+## 2a. Shared test vector (both sides assert this)
 
+The signing algorithm exists twice, on purpose: the API verifies deliveries and the
+mock provider service (`mock_providers/`) creates them, and the mock imports nothing
+from `backend/`. This fixed vector is what stops the two drifting apart.
+
+```
+secret     = vector-secret-do-not-use
+timestamp  = 1793000000
+body       = {"event_id":"MOCK_EVT_01JAV4E7K3M9Q2R5T8V0W1XCZD","type":"esign.completed",
+              "created_at":"2026-10-25T09:18:12Z","data":{"session_id":"MOCK_ESIGN_01JAV4E7K3M9Q2R5T8V0W1XCZD"}}
+signature  = v1=89992520a190b25823e1c050c28b441e07d2cce49b1449286d6167ef1d88cbe9
+```
+
+(The body is shown wrapped here only for readability; the signed bytes are the single
+173-byte line with no spaces or newlines.)
+
+Both test suites assert these exact values:
+
+- `mock_providers/tests/test_signer.py` — the producer
+- `backend/tests/dev/webhooks/test_signature_vector.py` — the verifier
+
+If either implementation changes, one of them fails on these numbers.
+
+## 3. Delivery semantics
 | Situation | Response |
 |---|---|
 | Handled | `2xx` |

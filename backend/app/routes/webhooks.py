@@ -111,16 +111,23 @@ def _apply_event(
 ) -> tuple[str, str | None, str | None]:
     """Try to apply one event. Returns (outcome, track_id, reason).
 
+    `payload` is the delivery envelope `{event_id, type, created_at, data}` as
+    `docs/webhooks.md` defines it, so the routing fields live under `data`. A flat
+    payload is still accepted, because a hand-rolled test delivery uses that shape.
+
     `PARKED` means the event is valid but the track is not in a state that accepts it
     yet - an out-of-order delivery. It is stored, not applied, and not dropped.
     """
-    event_type = str(payload.get("type") or payload.get("event") or "")
+    nested = payload.get("data")
+    data: dict[str, Any] = nested if isinstance(nested, dict) else payload
+
+    event_type = str(payload.get("type") or data.get("type") or data.get("event") or "")
     mapped = EVENT_MAP.get(provider, {}).get(event_type)
     if mapped is None:
         return "REJECTED", None, f"unknown event type {event_type!r} for provider {provider!r}"
 
     if case_id is None:
-        case_id = payload.get("case_id")
+        case_id = data.get("case_id")
     if not case_id:
         return "REJECTED", None, "the payload carries no case_id"
 
@@ -130,7 +137,7 @@ def _apply_event(
 
     if provider == "marketplace" and event_type == "bids.available":
         cfg = finance_config(__import__("backend.app.config_loader", fromlist=["load_config"]).load_config())
-        _store_bids(session, case_id=case_id, track_id=track_row.id, payload=payload, cfg=cfg)
+        _store_bids(session, case_id=case_id, track_id=track_row.id, payload=data, cfg=cfg)
 
     try:
         track_row = tracks.apply_transition(
@@ -214,7 +221,8 @@ def handle_with_body(provider: str, raw: bytes, headers: Any) -> JSONResponse:
         if session.get(WebhookInbox, provider_event_id) is not None:
             return _ok({"duplicate": True, "provider_event_id": provider_event_id})
 
-        case_id = payload.get("case_id")
+        nested = payload.get("data")
+        case_id = payload.get("case_id") or (nested.get("case_id") if isinstance(nested, dict) else None)
         inbox = WebhookInbox(
             provider_event_id=str(provider_event_id),
             provider=provider,
