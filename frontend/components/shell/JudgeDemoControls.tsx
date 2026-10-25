@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { ApiError, getDeliveries, setMockClock, setMockScenario, verifyEvents, type Source } from "@/lib/api";
 import { announceCaseChange } from "@/lib/useCases";
+import { simSetScenario, useSimulation } from "@/lib/sim";
 import { useT } from "@/lib/i18n";
 import type { MessageKey } from "@/lib/i18n/en";
 import type { ChainVerifyResult, WebhookDelivery } from "@/lib/types";
@@ -103,6 +104,7 @@ function DeliveryLog({ open }: { open: boolean }) {
  */
 export function JudgeDemoControls({ caseId, open }: { caseId: string | null; open: boolean }) {
   const { t } = useT();
+  const simulated = useSimulation();
   const [scenario, setScenario] = useState<string>(SCENARIOS[0]);
   const [days, setDays] = useState("7");
   const [note, setNote] = useState<string | null>(null);
@@ -134,7 +136,8 @@ export function JudgeDemoControls({ caseId, open }: { caseId: string | null; ope
             run={async (opts) => {
               if (!caseId) return;
               try {
-                await setMockScenario({ case_id: caseId, scenario }, opts);
+                if (simulated) simSetScenario(caseId, scenario);
+                else await setMockScenario({ case_id: caseId, scenario }, opts);
                 setNote(t("judge.demo.scenario_set", { name: scenario }));
               } catch (e) {
                 if (e instanceof ApiError && e.status !== 409) setNote(failMessage(e));

@@ -10,6 +10,11 @@ import { count, paiseToMoney, toPaise } from "@/lib/format";
 import { useT } from "@/lib/i18n";
 import { useHref } from "@/lib/params";
 import { useCases } from "@/lib/useCases";
+import { useSimulatedCases } from "@/lib/sim";
+import { demoInvoiceRequest } from "@/lib/demoInvoice";
+import { createCase } from "@/lib/api";
+import { useRouter } from "next/navigation";
+import { IdempotentButton } from "../common/IdempotentButton";
 import type { CaseRequest, CaseResponse } from "@/lib/types";
 import { Icon } from "../common/Icon";
 import { Money } from "../common/Money";
@@ -141,6 +146,8 @@ export function DuesScreen() {
   const href = useHref();
   const [rows, setRows] = useState<Row[] | null>(null);
   const stored = useCases();
+  const router = useRouter();
+  const simCases = useSimulatedCases(stored.cases ?? []);
 
   useEffect(() => {
     let alive = true;
@@ -161,7 +168,7 @@ export function DuesScreen() {
   }, null);
 
   // Stored cases, most overdue first. A sum of the amounts the server reports for paid-early cases; no rate or interest is worked out here.
-  const cases = useMemo(() => [...(stored.cases ?? [])].sort((a, b) => (b.days_overdue ?? 0) - (a.days_overdue ?? 0)), [stored.cases]);
+  const cases = useMemo(() => [...simCases].sort((a, b) => (b.days_overdue ?? 0) - (a.days_overdue ?? 0)), [simCases]);
   const paidEarlyPaise = cases.reduce((sum, c) => (paidEarly(c.active_track) ? sum + (toPaise(c.accepted_amount) ?? BigInt(0)) : sum), BigInt(0));
   const storedOverdue = cases.filter((c) => (c.days_overdue ?? 0) > 0);
   const storedMax = storedOverdue.reduce<number | null>((m, c) => (m === null || c.days_overdue > m ? c.days_overdue : m), null);
@@ -182,10 +189,23 @@ export function DuesScreen() {
           <h1 className="text-[2rem] font-semibold leading-tight tracking-[-0.025em] text-ink-950">{t("dues.title")}</h1>
           <p className="text-sm text-ink-500">{t("dues.subtitle")}</p>
         </div>
-        <Link href={href("/upload")} className="btn btn-primary self-start sm:self-auto">
-          <Icon name="upload" className="h-4 w-4" />
-          {t("nav.upload")}
-        </Link>
+        <div className="flex flex-wrap items-start gap-2 self-start sm:self-auto">
+          <IdempotentButton
+            actionId={`demo.invoice:${new Date().toDateString()}`}
+            run={async (opts) => {
+              const d = await createCase(await demoInvoiceRequest(), opts);
+              router.push(href(`/case/${d.case.id}`));
+            }}
+            onConflict={() => undefined}
+            className="btn btn-secondary"
+          >
+            {t("dues.demo_invoice")}
+          </IdempotentButton>
+          <Link href={href("/upload")} className="btn btn-primary">
+            <Icon name="upload" className="h-4 w-4" />
+            {t("nav.upload")}
+          </Link>
+        </div>
       </header>
 
       <DataBanners placeholder={placeholder} />

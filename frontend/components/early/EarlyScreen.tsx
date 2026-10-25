@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, type ReactNode } from "react";
-import { cancelFinancing, getEsignSession, getPayout, listBids, startFinancing, startRecovery } from "@/lib/api";
+import { startRecovery } from "@/lib/api";
+import { useEarlyActions } from "@/lib/earlyActions";
+import { simClear } from "@/lib/sim";
 import { currentStage } from "@/lib/derive";
 import { EARLY_STEPS, earlyView, stepIndex, type EarlyStep } from "@/lib/earlyFlow";
 import { useT } from "@/lib/i18n";
@@ -13,7 +15,6 @@ import { useEvaluation } from "@/lib/useEvaluation";
 import { useOptions } from "@/lib/useOptions";
 import { useRead } from "@/lib/useRead";
 import { CaseHeader } from "../case/CaseHeader";
-import { TrackStrip } from "../case/TrackStrip";
 import { Icon } from "../common/Icon";
 import { IdempotentButton } from "../common/IdempotentButton";
 import { CaseSkeleton, ErrorState, NotFoundState } from "../common/States";
@@ -43,6 +44,7 @@ export function EarlyScreen({ caseId }: { caseId: string }) {
   const tracking = ev.tracking;
   const [signOpen, setSignOpen] = useState(false);
   const [signedWaiting, setSignedWaiting] = useState(false);
+  const act = useEarlyActions();
 
   const detail = tracking?.caseDetail ?? null;
   const track = tracking?.track ?? null;
@@ -55,10 +57,10 @@ export function EarlyScreen({ caseId }: { caseId: string }) {
   const readKey = `${caseId}:${version ?? "-"}`;
 
   const bidsOn = state === "BIDS_AVAILABLE" || state === "AWAITING_ESIGN";
-  const bids = useRead(`bids:${readKey}`, bidsOn, () => listBids(caseId));
-  const esign = useRead(`esign:${readKey}`, state === "AWAITING_ESIGN", () => getEsignSession(caseId));
+  const bids = useRead(`bids:${readKey}`, bidsOn, () => act.bids(caseId));
+  const esign = useRead(`esign:${readKey}`, state === "AWAITING_ESIGN", () => act.esign(caseId));
   const payoutOn = state === "DISBURSED" || state === "SETTLED" || state === "SETTLED_WITHOUT_RECOURSE" || state === "AWAITING_DISBURSEMENT";
-  const payout = useRead(`payout:${readKey}`, payoutOn, () => getPayout(caseId));
+  const payout = useRead(`payout:${readKey}`, payoutOn, () => act.payout(caseId));
   const options = useOptions(caseId, view.failure === "NOT_FINANCEABLE", null, version, search.get("options"));
 
   if (ev.status === "not_found") return <NotFoundState />;
@@ -108,7 +110,7 @@ export function EarlyScreen({ caseId }: { caseId: string }) {
           <IdempotentButton
             actionId={`financing.start:${caseId}`}
             run={async (opts) => {
-              await startFinancing(caseId, opts);
+              await act.start(caseId, opts);
               await refresh();
             }}
             onConflict={refresh}
@@ -176,7 +178,7 @@ export function EarlyScreen({ caseId }: { caseId: string }) {
               <IdempotentButton
                 actionId={`financing.cancel:${caseId}`}
                 run={async (opts) => {
-                  await cancelFinancing(caseId, opts);
+                  await act.cancel(caseId, opts);
                   await refresh();
                 }}
                 version={version}
@@ -205,11 +207,9 @@ export function EarlyScreen({ caseId }: { caseId: string }) {
 
   return shell(
     <>
-      <TrackStrip tracking={tracking} />
       {offline && <Banner tone="warn" icon="lock" message="early.offline" />}
       <header className="flex flex-col gap-1">
         <h2 className="text-xl font-semibold tracking-[-0.015em] text-ink-950">{t("early.title")}</h2>
-        <p className="text-sm text-ink-600">{t("early.intro")}</p>
       </header>
       <Banner tone="warn" icon="info" message="early.demo_banner" />
 
@@ -226,6 +226,7 @@ export function EarlyScreen({ caseId }: { caseId: string }) {
                   actionId={`recovery.switch:${caseId}`}
                   run={async (opts) => {
                     await startRecovery(caseId, ev.response ? currentStage(ev.response) : 1, opts);
+                    simClear(caseId);
                     await refresh();
                     goOption2();
                   }}
@@ -254,6 +255,20 @@ export function EarlyScreen({ caseId }: { caseId: string }) {
         {EARLY_STEPS.map((step, n) => {
           const st = statusOf(step);
           const body = bodyOf(step);
+          // Only the step happening now is open; finished and upcoming steps are one quiet line each.
+          const compact = step === "done" ? st === "later" : st === "done" || st === "later";
+          if (compact) {
+            return (
+              <li key={step} className="flex items-center justify-between gap-2 rounded-lg border border-rule bg-paper-raised px-4 py-2.5 text-sm text-ink-700">
+                <span className="flex items-center gap-2">
+                  <span className="font-mono text-xs text-ink-500" aria-hidden="true">{n + 1}</span>
+                  {t(`early.step.${step}` as MessageKey)}
+                  <span className="sr-only">{t("early.step_of", { n: n + 1, total: EARLY_STEPS.length })}</span>
+                </span>
+                <StepStatusPill status={st} />
+              </li>
+            );
+          }
           return (
             <li
               key={step}

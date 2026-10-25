@@ -7,10 +7,11 @@
 // and never a half-applied event. When the backend is unreachable it shows a
 // saved sample case, labelled offline, and keeps retrying quietly.
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ApiError, getCase, streamUrl, type Source, type Sourced } from "./api";
 import type { CaseDetail, Track } from "./types";
 import { announceCaseChange } from "./useCases";
+import { simActions, simTrack, useSimRecord, useSimulation } from "./sim";
 
 export type TrackStatus = "idle" | "loading" | "ready" | "not_found" | "error";
 
@@ -156,7 +157,14 @@ export function useTrack(caseId: string, enabled: boolean, offlineState?: string
     };
   }, [enabled, started, source, caseId, refresh]);
 
-  const track = caseDetail?.active_track ?? null;
+  // Demo simulation of Option 1 (only when the backend's mock providers are down): shown in place of the server's track.
+  const simOn = useSimulation();
+  const rec = useSimRecord(caseId);
+  const shown = useMemo<CaseDetail | null>(
+    () => (simOn && rec && caseDetail ? { ...caseDetail, active_track: simTrack(caseId, rec), available_actions: simActions(rec.state) } : caseDetail),
+    [simOn, rec, caseDetail, caseId],
+  );
+  const track = shown?.active_track ?? null;
   const live: LiveMode = source === "offline" ? "off" : liveMode;
-  return { caseDetail, track, version: track?.version ?? null, source, status, error, live, refresh };
+  return { caseDetail: shown, track, version: track?.version ?? null, source, status, error, live, refresh };
 }

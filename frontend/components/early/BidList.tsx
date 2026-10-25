@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { selectBid } from "@/lib/api";
+import { useEarlyActions } from "@/lib/earlyActions";
 import { toPaise } from "@/lib/format";
 import { useT } from "@/lib/i18n";
 import type { Bid } from "@/lib/types";
@@ -39,6 +39,7 @@ export function BidList({
   onSelected: () => Promise<void> | void;
 }) {
   const { t } = useT();
+  const act = useEarlyActions();
   const [selecting, setSelecting] = useState<string | null>(null);
   const sorted = [...bids].sort(byYouReceive);
   return (
@@ -56,7 +57,7 @@ export function BidList({
             onSelect={async (opts) => {
               setSelecting(bid.id);
               try {
-                await selectBid(caseId, bid.id, opts);
+                await act.select(caseId, bid.id, opts);
                 await onSelected();
               } finally {
                 setSelecting(null);

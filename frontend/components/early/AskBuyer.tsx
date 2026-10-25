@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { requestBuyerAcceptance } from "@/lib/api";
+import { useEarlyActions } from "@/lib/earlyActions";
 import { useT } from "@/lib/i18n";
 import { IdempotentButton } from "../common/IdempotentButton";
 import { StatusIcon } from "../common/StatusIcon";
@@ -34,6 +34,7 @@ export function AskBuyer({
   onConflict: () => Promise<void> | void;
 }) {
   const { t } = useT();
+  const act = useEarlyActions();
   const [edited, setEdited] = useState<string | null>(null);
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
@@ -94,7 +95,7 @@ export function AskBuyer({
           <IdempotentButton
             actionId={`financing.accept:${caseId}`}
             run={async (opts) => {
-              await requestBuyerAcceptance(caseId, opts);
+              await act.requestAcceptance(caseId, opts);
               await onConflict();
             }}
             version={version}

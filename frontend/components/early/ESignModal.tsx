@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { ApiError, esignTemplateUrl, submitEsignOtp } from "@/lib/api";
+import { ApiError, esignTemplateUrl } from "@/lib/api";
+import { useEarlyActions } from "@/lib/earlyActions";
 import { money } from "@/lib/format";
 import { useT } from "@/lib/i18n";
 import type { Bid, ESignSession } from "@/lib/types";
@@ -59,6 +60,7 @@ export function ESignModal({
   onConflict: () => Promise<void> | void;
 }) {
   const { t } = useT();
+  const act = useEarlyActions();
   const [otp, setOtp] = useState("");
   const [wrong, setWrong] = useState(0);
   const [reported, setReported] = useState<number | null>(null);
@@ -178,7 +180,7 @@ export function ESignModal({
                 actionId={`esign.otp:${caseId}:${session.session_id}:${otp}:${wrong}`}
                 run={async (opts) => {
                   try {
-                    await submitEsignOtp(caseId, otp, opts);
+                    await act.submitOtp(caseId, otp, opts);
                   } catch (e) {
                     // A refused code is a definite answer, not a failure of the button.
                     if (e instanceof ApiError && e.status !== 409 && e.status < 500) {

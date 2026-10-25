@@ -64,6 +64,7 @@ export const en = {
   "common.date_format": "YYYY-MM-DD",
 
   // ----------------------------------------------------------- dues ----
+  "dues.demo_invoice": "Try a demo invoice",
   "dues.title": "Dues",
   "dues.subtitle": "Most overdue first.",
   "dues.summary.buyers": "Buyers",

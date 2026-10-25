@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, type ReactNode } from "react";
-import { startFinancing, startRecovery } from "@/lib/api";
+import { startRecovery } from "@/lib/api";
+import { useEarlyActions } from "@/lib/earlyActions";
+import { simClear } from "@/lib/sim";
 import { date as fmtDate, money } from "@/lib/format";
 import { useT } from "@/lib/i18n";
 import type { MessageKey } from "@/lib/i18n/en";
@@ -111,6 +113,7 @@ export function ChoiceCard({ caseId, tracking, stage }: { caseId: string; tracki
   const router = useRouter();
   const search = useSearchParams();
   const [picked, setPicked] = useState<string | null>(null);
+  const actions_ = useEarlyActions();
   const offline = tracking.source === "offline";
   const track = tracking.track;
   const actions = tracking.caseDetail?.available_actions ?? [];
@@ -146,6 +149,7 @@ export function ChoiceCard({ caseId, tracking, stage }: { caseId: string; tracki
   // Starting recovery opens the first message, ready to send from your own app.
   const startRecoveryNow = async (opts: Parameters<typeof startRecovery>[2]) => {
     await startRecovery(caseId, stage, opts);
+    simClear(caseId); // an ended demo financing track gives way to the real recovery one
     await tracking.refresh();
     router.push(stage === 4 ? href(`/case/${caseId}/pack`) : href(`/case/${caseId}`, { send: stage }));
   };
@@ -177,7 +181,7 @@ export function ChoiceCard({ caseId, tracking, stage }: { caseId: string; tracki
       <IdempotentButton
         actionId={`financing.start:${caseId}`}
         run={async (opts) => {
-          await startFinancing(caseId, opts);
+          await actions_.start(caseId, opts);
           await tracking.refresh();
           router.push(href(`/case/${caseId}/early`));
         }}
