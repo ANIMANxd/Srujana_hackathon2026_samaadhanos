@@ -19,6 +19,7 @@ import { AssumptionsDrawer } from "./AssumptionsDrawer";
 import { CaseHeader } from "./CaseHeader";
 import { CaseTabs } from "./CaseTabs";
 import { EvidenceTab } from "../evidence/EvidenceTab";
+import { EscalationTab } from "../escalation/EscalationTab";
 import { MathTab } from "../math/MathTab";
 import { EscalationLadder } from "./EscalationLadder";
 import { GuidanceCard } from "./GuidanceCard";
@@ -71,11 +72,9 @@ export function CaseScreen({ caseId }: { caseId: string }) {
         <div className={`flex flex-col gap-4 transition-opacity ${ev.refreshing ? "opacity-70" : ""}`} aria-busy={ev.refreshing}>
           {view === "cfo" ? (
             <CfoCostLines caseId={caseId} request={ev.request} response={res} placeholder={placeholder} onChangeRequest={ev.setRequest} />
-          ) : notCovered ? (
-            <NotCovered request={ev.request} response={res} />
           ) : (
             <>
-              {res.jurisdiction.status === "INSUFFICIENT_DATA" && (
+              {!notCovered && res.jurisdiction.status === "INSUFFICIENT_DATA" && (
                 <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-ink-600">
                   <Icon name="info" className="h-4 w-4 text-warn" />
                   {t("eligibility.unconfirmed_note")}
@@ -97,6 +96,10 @@ export function CaseScreen({ caseId }: { caseId: string }) {
                   configIsStub={cfg.isStub}
                   onChange={ev.setRequest}
                 />
+              ) : tab === "escalation" ? (
+                <EscalationTab caseId={caseId} request={ev.request} response={res} offlineId={ev.offlineId} log={log} />
+              ) : notCovered ? (
+                <NotCovered request={ev.request} response={res} />
               ) : (
                 <>
                   <GuidanceCard caseId={caseId} response={res} config={cfg.config} placeholder={placeholder} />

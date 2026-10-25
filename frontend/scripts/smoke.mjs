@@ -24,6 +24,9 @@ const ROUTES = [
   "/case/case_06?tab=evidence",
   "/case/case_04?tab=math",
   "/case/case_05a?view=cfo",
+  "/case/case_01?tab=escalation&step=4",
+  "/case/case_05a?tab=escalation",
+  "/case/case_06?tab=escalation&step=4",
   "/eligibility/case_05a",
   "/case/does_not_exist",
 ];

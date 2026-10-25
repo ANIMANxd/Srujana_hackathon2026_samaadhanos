@@ -4,10 +4,10 @@ import Link from "next/link";
 import { useT } from "@/lib/i18n";
 import { useHref, useUrlState, type CaseTab } from "@/lib/params";
 
-const TABS: CaseTab[] = ["overview", "evidence", "math"];
-const LABEL = { overview: "tab.overview", evidence: "tab.evidence", math: "tab.math" } as const;
+const TABS: CaseTab[] = ["overview", "evidence", "math", "escalation"];
+const LABEL = { overview: "tab.overview", evidence: "tab.evidence", math: "tab.math", escalation: "tab.escalation" } as const;
 
-/** Overview / Evidence & timeline / Math. Links, not buttons, so each tab has a URL (?tab=). */
+/** Overview / Evidence & timeline / Math / Escalation. Links, not buttons, so each tab has a URL (?tab=). */
 export function CaseTabs({ caseId }: { caseId: string }) {
   const { t } = useT();
   const href = useHref();

@@ -85,3 +85,43 @@ export function showDeemedAcceptance(res: CaseResponse): boolean {
 export function hasCode(res: CaseResponse, code: string): boolean {
   return res.warnings.some((w) => w.code === code);
 }
+
+// ------------------------------------------------------- escalation stages ----
+
+/**
+ * Why a stage cannot be drafted. Read from the engine's own output (gate
+ * verdict, blocked_stages, which blocks it returned); never a legal judgement.
+ */
+export type StageLock =
+  | { code: "GATE" }
+  | { code: "BLOCKED_STAGE"; reasons: string[] }
+  | { code: "NO_FIGURES" };
+
+/** Readiness reason codes that explain why the engine shut Stage 4 (6.6). */
+const STAGE4_REASON_CODES = ["MISSING_DELIVERY_PROOF", "GATE_BLOCKED"];
+
+export function stageLock(res: CaseResponse, stage: Stage): StageLock | null {
+  if (isNotCovered(res)) return { code: "GATE" };
+  if (isStageBlocked(res, stage)) {
+    const reasons = res.evidence_readiness.reasons.filter((r) => STAGE4_REASON_CODES.includes(r.code)).map((r) => r.text);
+    return { code: "BLOCKED_STAGE", reasons: stage === 4 ? reasons : [] };
+  }
+  if (stage === 2 && (res.financials === null || res.buyer_cost === null)) return { code: "NO_FIGURES" };
+  if ((stage === 3 || stage === 4) && res.financials === null) return { code: "NO_FIGURES" };
+  return null;
+}
+
+/**
+ * Which of the engine's structural facts put the recommended stage where it
+ * is (readiness.py `_recommended_stage`). Returned as an i18n key suffix; null
+ * when nothing is recommended (the gate stopped the case).
+ */
+export function recommendedWhy(res: CaseResponse): "NO_PROOF" | "NO_DATE" | "ELIGIBILITY_OPEN" | "EVIDENCE_COMPLETE" | "SETTLE" | null {
+  if (isNotCovered(res)) return null;
+  const stage = currentStage(res);
+  const tl = res.timeline;
+  if (stage === 1) return tl?.objection_status === "NO_DELIVERY_PROOF" ? "NO_PROOF" : "NO_DATE";
+  if (stage === 2) return "ELIGIBILITY_OPEN";
+  if (stage === 4) return "EVIDENCE_COMPLETE";
+  return "SETTLE";
+}

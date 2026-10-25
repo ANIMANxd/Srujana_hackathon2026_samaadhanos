@@ -1,13 +1,16 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { ApiError, generateArtifact, type SourcedArtifact } from "@/lib/api";
 import { logPrepared } from "@/lib/caseStore";
-import { evidencePresent, isStageBlocked } from "@/lib/derive";
+import { evidencePresent, stageLock } from "@/lib/derive";
 import { useT } from "@/lib/i18n";
-import type { ArtifactKind, CaseRequest, CaseResponse } from "@/lib/types";
-import type { SendStage } from "@/lib/params";
+import { useHref } from "@/lib/params";
+import type { ArtifactKind, CaseRequest, CaseResponse, Stage } from "@/lib/types";
 import { Icon } from "../common/Icon";
+import { Markdown } from "../common/Markdown";
 import { StatusIcon } from "../common/StatusIcon";
 import { Banner } from "../shell/Banners";
 
@@ -19,9 +22,10 @@ function todayLocal(): string {
 }
 
 /** Stage 1 asks for receipt first when there is no delivery proof (B8). */
-function kindFor(stage: SendStage, req: CaseRequest, res: CaseResponse): ArtifactKind {
+function kindFor(stage: Stage, req: CaseRequest, res: CaseResponse): ArtifactKind {
   if (stage === 2) return "STAGE2_CFO_MEMO";
   if (stage === 3) return "STAGE3_SETTLEMENT_TERMSHEET";
+  if (stage === 4) return "STAGE4_EVIDENCE_PACK";
   const noProof = !evidencePresent(req, "DELIVERY_PROOF") || res.timeline?.objection_status === "NO_DELIVERY_PROOF";
   return noProof ? "STAGE1_ACCEPTANCE_NOTE" : "STAGE1_BALANCE_CONFIRMATION";
 }
@@ -33,8 +37,10 @@ type Draft =
   | { state: "error"; message: string };
 
 /**
- * F11: the engine drafts, the owner edits and opens their own app.
- * Nothing auto-sends: every send button stays disabled until "I have read this".
+ * The engine drafts a stage; the owner previews it, edits it if they like, and
+ * opens their own app. Nothing auto-sends: copy, WhatsApp, email and print stay
+ * disabled until "I have reviewed this draft" is ticked. Stage 4 is a checklist
+ * and evidence bundle, so it has no WhatsApp or email actions.
  */
 export function SendPanel({
   caseId,
@@ -44,19 +50,23 @@ export function SendPanel({
   offlineId,
 }: {
   caseId: string;
-  stage: SendStage;
+  stage: Stage;
   request: CaseRequest;
   response: CaseResponse;
   offlineId: string | null;
 }) {
   const { t, tCode } = useT();
+  const href = useHref();
   const kind = kindFor(stage, request, response);
+  const isPack = stage === 4;
   const [draft, setDraft] = useState<Draft>({ state: "loading" });
+  const [mode, setMode] = useState<"preview" | "edit">("preview");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [subjectEdit, setSubject] = useState<string | null>(null);
   const [reviewed, setReviewed] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [printing, setPrinting] = useState(false);
 
   useEffect(() => {
     let alive = true;
@@ -74,11 +84,26 @@ export function SendPanel({
     };
   }, [kind, request, offlineId, t]);
 
-  const blocked = isStageBlocked(response, stage);
+  // Print fallback: mark the body so print CSS shows only the portal'd draft.
+  useEffect(() => {
+    if (!printing) return;
+    document.body.dataset.print = "draft";
+    const done = () => setPrinting(false);
+    window.addEventListener("afterprint", done);
+    const timer = setTimeout(() => window.print(), 60);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("afterprint", done);
+      delete document.body.dataset.print;
+    };
+  }, [printing]);
+
+  const locked = stageLock(response, stage) !== null;
   const subject = subjectEdit ?? t("send.subject_default", { title: t(`stage.${stage}.title`), supplier: request.supplier.name });
   const text = draft.state === "ready" ? draft.text : "";
+  const edited = draft.state === "ready" && draft.text !== draft.artifact.data.markdown;
   const phoneValid = phone === "" || PHONE.test(phone);
-  const canSend = reviewed && text.trim().length > 0 && !blocked;
+  const canAct = reviewed && text.trim().length > 0 && !locked;
   const waHref = `https://wa.me/${phoneValid ? phone : ""}?text=${encodeURIComponent(text)}`;
   const mailHref = `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(text)}`;
   const prepared = () => logPrepared(caseId, stage, todayLocal());
@@ -94,9 +119,10 @@ export function SendPanel({
     }
   }
 
-  if (blocked) return <Banner tone="block" icon="lock" message="send.blocked" />;
+  if (locked) return <Banner tone="block" icon="lock" message="send.blocked" />;
 
   const artifact = draft.state === "ready" ? draft.artifact : null;
+  const pdf = artifact?.data.pdf_base64 ?? null;
 
   return (
     <div className="flex flex-col gap-6">
@@ -105,6 +131,12 @@ export function SendPanel({
         <p className="text-sm text-ink-600">{t(`stage.${stage}.purpose`)}</p>
       </div>
 
+      {isPack && (
+        <p className="flex items-start gap-2 rounded-lg border border-warn/25 bg-warn-wash px-3.5 py-2 text-sm text-warn">
+          <Icon name="warn" className="mt-0.5 h-4 w-4 shrink-0" />
+          {t("esc.stage4.note")}
+        </p>
+      )}
       {artifact?.source === "offline" && <Banner tone="info" icon="info" message="send.sample_draft" />}
       {draft.state === "needs_backend" && <Banner tone="warn" icon="lock" message="send.needs_backend" />}
       {draft.state === "error" && (
@@ -113,11 +145,33 @@ export function SendPanel({
         </div>
       )}
 
-      <label className="flex flex-col">
-        <span className="field-label">{t("send.draft_label")}</span>
+      <div className="flex flex-col gap-2">
+        <div className="flex items-center justify-between gap-3">
+          <span className="field-label mb-0">{t("send.draft_label")}</span>
+          <div role="radiogroup" aria-label={t("send.draft_label")} className="inline-flex rounded-lg border border-rule bg-paper-sunk p-0.5 text-xs">
+            {(["preview", "edit"] as const).map((m) => (
+              <button
+                key={m}
+                type="button"
+                role="radio"
+                aria-checked={mode === m}
+                onClick={() => setMode(m)}
+                className={`rounded-md px-2.5 py-1 font-medium transition-colors ${
+                  mode === m ? "bg-paper-raised text-ink-950 shadow-[0_1px_2px_rgb(13_13_12/0.08)]" : "text-ink-500 hover:text-ink-950"
+                }`}
+              >
+                {t(m === "preview" ? "esc.preview" : "esc.edit")}
+              </button>
+            ))}
+          </div>
+        </div>
         {draft.state === "loading" ? (
           <div className="flex h-72 items-center justify-center rounded-lg border border-rule bg-paper text-sm text-ink-500" aria-busy="true">
             {t("send.loading")}
+          </div>
+        ) : mode === "preview" ? (
+          <div className="max-h-[32rem] overflow-y-auto rounded-lg border border-rule bg-paper-raised p-5">
+            {text ? <Markdown source={text} /> : null}
           </div>
         ) : (
           <textarea
@@ -127,7 +181,7 @@ export function SendPanel({
             onChange={(e) => draft.state === "ready" && setDraft({ ...draft, text: e.target.value })}
           />
         )}
-      </label>
+      </div>
 
       {artifact && (artifact.data.warnings ?? []).length > 0 && (
         <details className="text-sm">
@@ -140,30 +194,32 @@ export function SendPanel({
         </details>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <label>
-          <span className="field-label">{t("send.phone")}</span>
-          <input
-            className="field-input num"
-            inputMode="numeric"
-            value={phone}
-            aria-invalid={!phoneValid}
-            aria-describedby="phone-hint"
-            onChange={(e) => setPhone(e.target.value.replace(/\s/g, ""))}
-          />
-          <span id="phone-hint" className={`mt-1.5 block text-xs ${phoneValid ? "text-ink-500" : "text-block"}`}>
-            {t(phoneValid ? "send.phone_hint" : "send.phone_invalid")}
-          </span>
-        </label>
-        <label>
-          <span className="field-label">{t("send.email")}</span>
-          <input className="field-input" type="email" value={email} onChange={(e) => setEmail(e.target.value.trim())} />
-        </label>
-        <label className="sm:col-span-2">
-          <span className="field-label">{t("send.subject")}</span>
-          <input className="field-input" value={subject} onChange={(e) => setSubject(e.target.value)} />
-        </label>
-      </div>
+      {!isPack && (
+        <div className="grid gap-4 sm:grid-cols-2">
+          <label>
+            <span className="field-label">{t("send.phone")}</span>
+            <input
+              className="field-input num"
+              inputMode="numeric"
+              value={phone}
+              aria-invalid={!phoneValid}
+              aria-describedby="phone-hint"
+              onChange={(e) => setPhone(e.target.value.replace(/\s/g, ""))}
+            />
+            <span id="phone-hint" className={`mt-1.5 block text-xs ${phoneValid ? "text-ink-500" : "text-block"}`}>
+              {t(phoneValid ? "send.phone_hint" : "send.phone_invalid")}
+            </span>
+          </label>
+          <label>
+            <span className="field-label">{t("send.email")}</span>
+            <input className="field-input" type="email" value={email} onChange={(e) => setEmail(e.target.value.trim())} />
+          </label>
+          <label className="sm:col-span-2">
+            <span className="field-label">{t("send.subject")}</span>
+            <input className="field-input" value={subject} onChange={(e) => setSubject(e.target.value)} />
+          </label>
+        </div>
+      )}
 
       <label className="flex items-start gap-3 rounded-lg border border-rule bg-paper px-4 py-3">
         <input type="checkbox" className="mt-0.5 h-4 w-4 accent-ink-950" checked={reviewed} onChange={(e) => setReviewed(e.target.checked)} />
@@ -171,45 +227,79 @@ export function SendPanel({
       </label>
 
       <div className="flex flex-wrap gap-2">
-        <a
-          href={canSend && phoneValid ? waHref : undefined}
-          aria-disabled={!canSend || !phoneValid}
-          target="_blank"
-          rel="noreferrer noopener"
-          onClick={(e) => (canSend && phoneValid ? prepared() : e.preventDefault())}
-          className="btn btn-primary"
-        >
-          <Icon name="send" className="h-4 w-4" />
-          {t("send.open_whatsapp")}
-        </a>
-        <a
-          href={canSend ? mailHref : undefined}
-          aria-disabled={!canSend}
-          onClick={(e) => (canSend ? prepared() : e.preventDefault())}
-          className="btn btn-secondary"
-        >
-          <Icon name="doc" className="h-4 w-4" />
-          {t("send.open_email")}
-        </a>
-        <button type="button" className="btn btn-secondary" disabled={!canSend} onClick={copy}>
+        {!isPack && (
+          <>
+            <a
+              href={canAct && phoneValid ? waHref : undefined}
+              aria-disabled={!canAct || !phoneValid}
+              target="_blank"
+              rel="noreferrer noopener"
+              onClick={(e) => (canAct && phoneValid ? prepared() : e.preventDefault())}
+              className="btn btn-primary"
+            >
+              <Icon name="send" className="h-4 w-4" />
+              {t("send.open_whatsapp")}
+            </a>
+            <a
+              href={canAct ? mailHref : undefined}
+              aria-disabled={!canAct}
+              onClick={(e) => (canAct ? prepared() : e.preventDefault())}
+              className="btn btn-secondary"
+            >
+              <Icon name="doc" className="h-4 w-4" />
+              {t("send.open_email")}
+            </a>
+          </>
+        )}
+        <button type="button" className={`btn ${isPack ? "btn-primary" : "btn-secondary"}`} disabled={!canAct} onClick={copy}>
           <Icon name="copy" className="h-4 w-4" />
           {copied ? t("send.copied") : t("send.copy")}
         </button>
-        {artifact?.data.pdf_base64 && (
+        {pdf ? (
           <a
-            href={`data:application/pdf;base64,${artifact.data.pdf_base64}`}
-            download={artifact.data.pdf_filename ?? `${caseId}-stage${stage}.pdf`}
+            href={`data:application/pdf;base64,${pdf}`}
+            download={artifact?.data.pdf_filename ?? `${caseId}-stage${stage}.pdf`}
             className="btn btn-quiet"
           >
             <Icon name="download" className="h-4 w-4" />
             {t("send.download_pdf")}
           </a>
+        ) : (
+          <button
+            type="button"
+            className="btn btn-quiet"
+            disabled={!canAct}
+            title={t("esc.print_hint")}
+            onClick={() => {
+              prepared();
+              setPrinting(true);
+            }}
+          >
+            <Icon name="download" className="h-4 w-4" />
+            {t("esc.print")}
+          </button>
+        )}
+        {isPack && (
+          <Link href={href(`/case/${caseId}/pack`)} className="btn btn-quiet">
+            {t("esc.stage4.full_pack")}
+            <Icon name="arrow-right" className="h-4 w-4" />
+          </Link>
         )}
       </div>
+      {pdf && edited && <p className="text-xs text-ink-500">{t("esc.edited_pdf_note")}</p>}
       <p className="flex items-center gap-2 text-xs text-ink-500">
         <Icon name="lock" className="h-3.5 w-3.5" />
         {t("send.disclaimer")}
       </p>
+
+      {printing &&
+        createPortal(
+          <div className="print-draft">
+            <p className="print-draft-banner">{t("pack.print_banner")}</p>
+            <Markdown source={text} />
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }

@@ -326,3 +326,37 @@ body {
   html, body { background: #ffffff; }
   .panel { border-color: #999999; }
 }
+
+/*
+ * Draft print fallback (Escalation tab): SendPanel portals the draft into
+ * <body> and sets body[data-print="draft"] just before window.print(), so only
+ * that draft prints. Hidden on screen and in every other print (the evidence
+ * pack page prints through .no-print instead).
+ */
+.print-draft {
+  display: none;
+}
+@media print {
+  body[data-print="draft"] * {
+    visibility: hidden !important;
+  }
+  body[data-print="draft"] .print-draft,
+  body[data-print="draft"] .print-draft * {
+    visibility: visible !important;
+  }
+  body[data-print="draft"] .print-draft {
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 0;
+    color: #000000;
+  }
+  .print-draft-banner {
+    margin-bottom: 1rem;
+    border: 1px solid #000000;
+    padding: 0.5rem 0.75rem;
+    font-weight: 600;
+  }
+}

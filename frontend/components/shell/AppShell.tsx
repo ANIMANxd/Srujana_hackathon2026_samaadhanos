@@ -65,14 +65,14 @@ function NavLink({ to, children }: { to: string; children: ReactNode }) {
 function LangToggle() {
   const { t, lang } = useT();
   const href = useHref();
-  const { tab, send } = useUrlState();
+  const { tab, send, step } = useUrlState();
   const path = usePathname();
   return (
     <div role="group" aria-label={t("nav.language")} className="inline-flex h-7 items-center rounded-full border border-rule bg-paper-raised p-0.5 text-xs">
       {(["en", "kn"] as const).map((l) => (
         <Link
           key={l}
-          href={href(path, { lang: l, tab, send })}
+          href={href(path, { lang: l, tab, send, step })}
           scroll={false}
           lang={l}
           aria-current={lang === l ? "true" : undefined}
