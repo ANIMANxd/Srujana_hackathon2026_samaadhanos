@@ -18,9 +18,9 @@ A short note on where the supply under our invoice dated ####-##-## stands, and 
 | --- | --- |
 | Supply delivered | ####-##-## |
 | Payment due | ####-##-## |
-| Days past due | ## |
+| Days past due | ### |
 | Outstanding principal | ₹##,##,###.## |
-| Interest so far | ₹#,###.## |
+| Interest so far | ₹#,##,###.## |
 | Total outstanding | ₹##,##,###.## |
 | Movement on this balance per day | ₹###.## |
 
@@ -33,7 +33,7 @@ These are three separate lines. They are kept separate on purpose: they are diff
 
 | Line | Figure |
 | --- | --- |
-| Interest accrued and not deductible as on ####-##-## | ₹#,###.## |
+| Interest accrued and not deductible as on ####-##-## | ₹#,##,###.## |
 | Pre-tax equivalent of the rate used | ##.##% |
 | Rate in force on ####-##-## | ##.##% a year (Bank Rate #.##%) |
 

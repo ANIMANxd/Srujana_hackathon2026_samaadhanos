@@ -15,7 +15,7 @@
 | The claim as on ####-##-## | Amount |
 | --- | --- |
 | Principal outstanding | ₹##,##,###.## |
-| Interest to ####-##-## | ₹#,###.## |
+| Interest to ####-##-## | ₹#,##,###.## |
 | Total claim | ₹##,##,###.## |
 
 ## Proposed terms
@@ -25,7 +25,7 @@ This draft proposes #% of the outstanding interest waived and the whole amount p
 | Proposed term | Value |
 | --- | --- |
 | Interest waived (#%) | ₹#.## |
-| Interest payable after the waiver | ₹#,###.## |
+| Interest payable after the waiver | ₹#,##,###.## |
 | Principal payable (not waived) | ₹##,##,###.## |
 | Total payable | ₹##,##,###.## |
 | Single payment (today) | ₹##,##,###.## |

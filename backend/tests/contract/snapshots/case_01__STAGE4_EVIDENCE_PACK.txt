@@ -54,20 +54,27 @@ The V## capture - the portal's own field list - is not in this repo's statute sh
 | From | To | Bank Rate | Rate applied |
 | --- | --- | --- | --- |
 | ####-##-## | ####-##-## | #.##% | ##.##% |
+| ####-##-## | ####-##-## | #.##% | ##.##% |
 
 ### Ledger
 
 | Row | From | To | Opening | Interest | Payment | Closing | Rate | Note |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| STUB | ####-##-## | ####-##-## | ₹##,##,###.## | ₹#,###.## | ₹#.## | ₹##,##,###.## | ##.##% | Interest accrued from the last rest to the calculation date; not capitalised further. |
+| REST | ####-##-## | ####-##-## | ₹##,##,###.## | ₹##,###.## | ₹#.## | ₹##,##,###.## | ##.##% | Monthly rest: interest capitalised onto the balance. |
+| REST | ####-##-## | ####-##-## | ₹##,##,###.## | ₹##,###.## | ₹#.## | ₹##,##,###.## | ##.##% | Monthly rest: interest capitalised onto the balance. |
+| REST | ####-##-## | ####-##-## | ₹##,##,###.## | ₹##,###.## | ₹#.## | ₹##,##,###.## | ##.##% | Monthly rest: interest capitalised onto the balance. |
+| REST | ####-##-## | ####-##-## | ₹##,##,###.## | ₹##,###.## | ₹#.## | ₹##,##,###.## | ##.##% | Monthly rest: interest capitalised onto the balance. |
+| REST | ####-##-## | ####-##-## | ₹##,##,###.## | ₹##,###.## | ₹#.## | ₹##,##,###.## | ##.##% | Monthly rest: interest capitalised onto the balance. |
+| REST | ####-##-## | ####-##-## | ₹##,##,###.## | ₹##,###.## | ₹#.## | ₹##,##,###.## | ##.##% | Monthly rest: interest capitalised onto the balance. |
+| STUB | ####-##-## | ####-##-## | ₹##,##,###.## | ₹##,###.## | ₹#.## | ₹##,##,###.## | ##.##% | Rate changed during this row; see rate_segments for the split. Interest accrued from the last rest to the calculation date; not capitalised further. |
 
 ### Totals
 
 | Total | Amount |
 | --- | --- |
-| Interest accrued across the rows | ₹#,###.## |
+| Interest accrued across the rows | ₹#,##,###.## |
 | Principal outstanding | ₹##,##,###.## |
-| Interest still outstanding | ₹#,###.## |
+| Interest still outstanding | ₹#,##,###.## |
 | Total claim | ₹##,##,###.## |
 | Movement on this balance per day | ₹###.## |
 

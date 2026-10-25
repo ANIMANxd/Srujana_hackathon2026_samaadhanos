@@ -2,7 +2,7 @@
 
 > **DRAFT** — prepared in SamadhaanOS from your case inputs and your case's own calculation.
 > Nothing is sent from here: review it, edit it and approve it before you use it.
-> Case case_01 · figures as on 2026-04-15
+> Case case_01 · figures as on 2026-10-24
 > Prepared as a checklist and evidence bundle. Not a government form, and no portal field is asserted before V10 is captured.
 
 ## Portal fields
@@ -27,7 +27,7 @@ The V10 capture - the portal's own field list - is not in this repo's statute sh
 | 2026-04-02 | Payment due | from this case's calculation |
 | 2026-04-03 | Appointed day (the due date plus one) | from this case's calculation |
 | 2026-04-10 | WhatsApp promise | not signed · synthetic whatsapp thread |
-| 2026-04-15 | Calculation date for this pack | all figures are as on this date |
+| 2026-10-24 | Calculation date for this pack | all figures are as on this date |
 
 ### Documents in this case
 
@@ -47,29 +47,36 @@ The V10 capture - the portal's own field list - is not in this repo's statute sh
 - Rate mode: FLOATING
 - Appropriation of payments: INTEREST_FIRST
 - Part-payments: PAYMENT_DATE_IS_REST_BOUNDARY
-- Every figure below is as on 2026-04-15.
+- Every figure below is as on 2026-10-24.
 
 ### Rate segments
 
 | From | To | Bank Rate | Rate applied |
 | --- | --- | --- | --- |
-| 2026-04-03 | 2026-04-15 | 5.50% | 16.50% |
+| 2026-04-03 | 2026-10-07 | 5.50% | 16.50% |
+| 2026-10-07 | 2026-10-24 | 5.75% | 17.25% |
 
 ### Ledger
 
 | Row | From | To | Opening | Interest | Payment | Closing | Rate | Note |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| STUB | 2026-04-03 | 2026-04-15 | ₹12,50,000.00 | ₹6,780.82 | ₹0.00 | ₹12,56,780.82 | 16.50% | Interest accrued from the last rest to the calculation date; not capitalised further. |
+| REST | 2026-04-03 | 2026-05-03 | ₹12,50,000.00 | ₹16,952.05 | ₹0.00 | ₹12,66,952.05 | 16.50% | Monthly rest: interest capitalised onto the balance. |
+| REST | 2026-05-03 | 2026-06-03 | ₹12,66,952.05 | ₹17,754.68 | ₹0.00 | ₹12,84,706.73 | 16.50% | Monthly rest: interest capitalised onto the balance. |
+| REST | 2026-06-03 | 2026-07-03 | ₹12,84,706.73 | ₹17,422.74 | ₹0.00 | ₹13,02,129.47 | 16.50% | Monthly rest: interest capitalised onto the balance. |
+| REST | 2026-07-03 | 2026-08-03 | ₹13,02,129.47 | ₹18,247.65 | ₹0.00 | ₹13,20,377.12 | 16.50% | Monthly rest: interest capitalised onto the balance. |
+| REST | 2026-08-03 | 2026-09-03 | ₹13,20,377.12 | ₹18,503.37 | ₹0.00 | ₹13,38,880.49 | 16.50% | Monthly rest: interest capitalised onto the balance. |
+| REST | 2026-09-03 | 2026-10-03 | ₹13,38,880.49 | ₹18,157.42 | ₹0.00 | ₹13,57,037.91 | 16.50% | Monthly rest: interest capitalised onto the balance. |
+| STUB | 2026-10-03 | 2026-10-24 | ₹13,57,037.91 | ₹13,356.60 | ₹0.00 | ₹13,70,394.51 | 16.50% | Rate changed during this row; see rate_segments for the split. Interest accrued from the last rest to the calculation date; not capitalised further. |
 
 ### Totals
 
 | Total | Amount |
 | --- | --- |
-| Interest accrued across the rows | ₹6,780.82 |
+| Interest accrued across the rows | ₹1,20,394.51 |
 | Principal outstanding | ₹12,50,000.00 |
-| Interest still outstanding | ₹6,780.82 |
-| Total claim | ₹12,56,780.82 |
-| Movement on this balance per day | ₹568.13 |
+| Interest still outstanding | ₹1,20,394.51 |
+| Total claim | ₹13,70,394.51 |
+| Movement on this balance per day | ₹647.65 |
 
 Each ledger row is rounded to 0.01 (half-up) by the engine as it computes it; the totals above are the engine's own totals.
 
@@ -87,7 +94,7 @@ Signature: ______________________________    Date: _____________________________
 
 ## Assumptions this draft was made under
 
-- Every date, amount and rate in this pack comes from your case inputs and this case's calculation as on 2026-04-15; nothing is worked out here.
+- Every date, amount and rate in this pack comes from your case inputs and this case's calculation as on 2026-10-24; nothing is worked out here.
 - The portal section names no field until the V10 capture exists, so each row asks for confirmation against the live portal instead.
 - The certificate section is a blank template to complete and sign; its wording still has to be checked against the primary source.
 - Documents the case does not hold are listed as missing rather than left out, so the pack shows the gaps as well as the evidence.
@@ -99,7 +106,7 @@ Signature: ______________________________    Date: _____________________________
 - rate_segments cover [from, to): `from` is the first day at that rate and `to` is the exclusive end, so segment days sum to the delay length.
 - The three buyer-cost lines are reported separately and are never added into one number: what the buyer loses permanently, what it defers, and what it must disclose are different things.
 - The interest figure is interest only. The s.43B(h) tax timing effect is reported on the deferral line and is never added to interest (trap 3).
-- pretax_equivalent_rate_pct = statutory rate / (1 - buyer tax rate), rounded half-up to 0.01: 16.50 / (1 - 0.312) = 23.98.
+- pretax_equivalent_rate_pct = statutory rate / (1 - buyer tax rate), rounded half-up to 0.01: 17.25 / (1 - 0.312) = 25.07.
 - Each deferral checkpoint is a 31 March in [due_date, calculation_date] on or after section_43bh_first_fy; its cost is rounded to 0.01 first and the line total is their sum, matching the ledger's per-row rounding.
 - Checkpoint figures use the request's cost_of_capital_pct and years_deferred as given; the engine does not pick those defaults.
 - Deferral does not apply here because no qualifying 31 March checkpoint fell in the window with principal still unpaid.
@@ -139,4 +146,4 @@ Signature: ______________________________    Date: _____________________________
 
 ---
 
-*Not legal advice. This draft was generated by SamadhaanOS from the data entered for case_01 and the figures the engine returned as on 2026-04-15. It is decision support, not a lawyer's opinion, not a filing, and not a government form. Nothing is sent automatically: the owner reviews, edits and approves every draft.*
+*Not legal advice. This draft was generated by SamadhaanOS from the data entered for case_01 and the figures the engine returned as on 2026-10-24. It is decision support, not a lawyer's opinion, not a filing, and not a government form. Nothing is sent automatically: the owner reviews, edits and approves every draft.*

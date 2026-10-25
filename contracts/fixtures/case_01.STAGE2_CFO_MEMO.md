@@ -2,27 +2,27 @@
 
 > **DRAFT** — prepared in SamadhaanOS from your case inputs and your case's own calculation.
 > Nothing is sent from here: review it, edit it and approve it before you use it.
-> Case case_01 · figures as on 2026-04-15
+> Case case_01 · figures as on 2026-10-24
 
 **To:** Finance team, Sample Buyer Corp (synthetic) (GSTIN 29SYN000000000Z1)
 
 **From:** Sample Supplies Pvt Ltd (synthetic) · Udyam registration UDYAM-SYN-000000000
 
-**Subject:** Our invoice dated 2026-02-16 — the balance as on 2026-04-15
+**Subject:** Our invoice dated 2026-02-16 — the balance as on 2026-10-24
 
 A short note on where the supply under our invoice dated 2026-02-16 stands, and what the delay is costing your side. We would rather agree a date than argue one.
 
 ## Where things stand
 
-| Where things stand | As on 2026-04-15 |
+| Where things stand | As on 2026-10-24 |
 | --- | --- |
 | Supply delivered | 2026-02-16 |
 | Payment due | 2026-04-02 |
-| Days past due | 13 |
+| Days past due | 205 |
 | Outstanding principal | ₹12,50,000.00 |
-| Interest so far | ₹6,780.82 |
-| Total outstanding | ₹12,56,780.82 |
-| Movement on this balance per day | ₹568.13 |
+| Interest so far | ₹1,20,394.51 |
+| Total outstanding | ₹13,70,394.51 |
+| Movement on this balance per day | ₹647.65 |
 
 ## What the delay is costing you
 
@@ -33,15 +33,15 @@ These are three separate lines. They are kept separate on purpose: they are diff
 
 | Line | Figure |
 | --- | --- |
-| Interest accrued and not deductible as on 2026-04-15 | ₹6,780.82 |
-| Pre-tax equivalent of the rate used | 23.98% |
-| Rate in force on 2026-04-15 | 16.50% a year (Bank Rate 5.50%) |
+| Interest accrued and not deductible as on 2026-10-24 | ₹1,20,394.51 |
+| Pre-tax equivalent of the rate used | 25.07% |
+| Rate in force on 2026-10-24 | 17.25% a year (Bank Rate 5.75%) |
 
-At this balance the outstanding figure moves by ₹568.13 a day.
+At this balance the outstanding figure moves by ₹647.65 a day.
 
 ### 2. Deferral — the tax timing effect at each year end
 
-No qualifying 31 March checkpoint fell in this window with principal still unpaid, so this line reads nil as on 2026-04-15. That is an absence of a cost in this case, not a finding that deferral never applies. If a checkpoint appears, the inputs are cost of capital 12.00% and 1.00 year(s) deferred.
+No qualifying 31 March checkpoint fell in this window with principal still unpaid, so this line reads nil as on 2026-10-24. That is an absence of a cost in this case, not a finding that deferral never applies. If a checkpoint appears, the inputs are cost of capital 12.00% and 1.00 year(s) deferred.
 
 ### 3. Disclosure — what the buyer's accounts carry
 
@@ -54,7 +54,7 @@ We would like to agree a date for clearing the balance above. If a split suits y
 
 ## Assumptions this draft was made under
 
-- Every figure above comes from this case's calculation as on 2026-04-15; none of it is worked out in this draft.
+- Every figure above comes from this case's calculation as on 2026-10-24; none of it is worked out in this draft.
 - The three cost lines are shown separately and are never totalled into one number: what is lost permanently, what is deferred, and what must be disclosed are different things.
 - The rate, the buyer tax rate and the cost of capital are the values in this case's inputs and statute config; where one is not yet verified against the statute sheet, the open points below say so.
 - A written credit period of 90 days was supplied and is treated as a written agreement, such as a purchase order or a signed document. What counts as a written agreement is still open (OQ-5).
@@ -65,7 +65,7 @@ We would like to agree a date for clearing the balance above. If a split suits y
 - rate_segments cover [from, to): `from` is the first day at that rate and `to` is the exclusive end, so segment days sum to the delay length.
 - The three buyer-cost lines are reported separately and are never added into one number: what the buyer loses permanently, what it defers, and what it must disclose are different things.
 - The interest figure is interest only. The s.43B(h) tax timing effect is reported on the deferral line and is never added to interest (trap 3).
-- pretax_equivalent_rate_pct = statutory rate / (1 - buyer tax rate), rounded half-up to 0.01: 16.50 / (1 - 0.312) = 23.98.
+- pretax_equivalent_rate_pct = statutory rate / (1 - buyer tax rate), rounded half-up to 0.01: 17.25 / (1 - 0.312) = 25.07.
 - Each deferral checkpoint is a 31 March in [due_date, calculation_date] on or after section_43bh_first_fy; its cost is rounded to 0.01 first and the line total is their sum, matching the ledger's per-row rounding.
 - Checkpoint figures use the request's cost_of_capital_pct and years_deferred as given; the engine does not pick those defaults.
 - Deferral does not apply here because no qualifying 31 March checkpoint fell in the window with principal still unpaid.
@@ -105,4 +105,4 @@ We would like to agree a date for clearing the balance above. If a split suits y
 
 ---
 
-*Not legal advice. This draft was generated by SamadhaanOS from the data entered for case_01 and the figures the engine returned as on 2026-04-15. It is decision support, not a lawyer's opinion, not a filing, and not a government form. Nothing is sent automatically: the owner reviews, edits and approves every draft.*
+*Not legal advice. This draft was generated by SamadhaanOS from the data entered for case_01 and the figures the engine returned as on 2026-10-24. It is decision support, not a lawyer's opinion, not a filing, and not a government form. Nothing is sent automatically: the owner reviews, edits and approves every draft.*
