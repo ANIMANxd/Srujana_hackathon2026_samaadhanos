@@ -1,13 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { BackendUnreachable, evaluate, getPresetRequest, listPresets, offlineResponseFor } from "@/lib/api";
 import { getUploaded, listUploadedIds } from "@/lib/caseStore";
 import { currentStage, isNotCovered, isPlaceholder } from "@/lib/derive";
-import { count } from "@/lib/format";
+import { paidEarly } from "@/lib/dueChip";
+import { count, paiseToMoney, toPaise } from "@/lib/format";
 import { useT } from "@/lib/i18n";
 import { useHref } from "@/lib/params";
+import { useCases } from "@/lib/useCases";
 import type { CaseRequest, CaseResponse } from "@/lib/types";
 import { Icon } from "../common/Icon";
 import { Money } from "../common/Money";
@@ -16,6 +18,7 @@ import { StatusIcon } from "../common/StatusIcon";
 import { DataBanners } from "../shell/Banners";
 import { JudgeConsole } from "../shell/JudgeConsole";
 import { EligibilityPill } from "../case/EligibilityPill";
+import { CaseRow, GRID } from "./CaseRow";
 
 type Row = {
   id: string;
@@ -60,9 +63,6 @@ function byUrgency(a: Row, b: Row): number {
   const db = b.response?.timeline?.days_overdue ?? -1;
   return db - da;
 }
-
-const GRID =
-  "md:grid-cols-[minmax(0,2fr)_minmax(0,1.8fr)_minmax(0,0.75fr)_minmax(0,1.05fr)_minmax(0,1.4fr)_1.25rem]";
 
 function BuyerRow({ row }: { row: Row }) {
   const { t } = useT();
@@ -140,6 +140,7 @@ export function DuesScreen() {
   const { t } = useT();
   const href = useHref();
   const [rows, setRows] = useState<Row[] | null>(null);
+  const stored = useCases();
 
   useEffect(() => {
     let alive = true;
@@ -157,10 +158,20 @@ export function DuesScreen() {
     return d !== null && (m === null || d > m) ? d : m;
   }, null);
 
+  // Stored cases, most overdue first. A sum of the amounts the server reports for paid-early cases; no rate or interest is worked out here.
+  const cases = useMemo(() => [...(stored.cases ?? [])].sort((a, b) => (b.days_overdue ?? 0) - (a.days_overdue ?? 0)), [stored.cases]);
+  const paidEarlyPaise = cases.reduce((sum, c) => (paidEarly(c.active_track) ? sum + (toPaise(c.accepted_amount) ?? BigInt(0)) : sum), BigInt(0));
+  const storedOverdue = cases.filter((c) => (c.days_overdue ?? 0) > 0);
+  const storedMax = storedOverdue.reduce<number | null>((m, c) => (m === null || c.days_overdue > m ? c.days_overdue : m), null);
+  const ready = rows !== null && (stored.cases !== null || stored.error !== null);
+  const overdueAll = overdue.length + storedOverdue.length;
+  const oldest = maxDays === null ? storedMax : storedMax === null ? maxDays : Math.max(maxDays, storedMax);
+
   const stats = [
-    { label: t("dues.summary.buyers"), value: rows ? count(buyers) : null },
-    { label: t("dues.summary.overdue"), value: rows ? count(overdue.length) : null },
-    { label: t("dues.summary.oldest"), value: rows ? (maxDays === null ? "—" : t("dues.summary.days", { n: count(maxDays) })) : null },
+    { label: t("dues.summary.buyers"), value: ready ? count(buyers + cases.length) : null },
+    { label: t("dues.summary.overdue"), value: ready ? count(overdueAll) : null },
+    { label: t("dues.summary.oldest"), value: ready ? (oldest === null ? "—" : t("dues.summary.days", { n: count(oldest) })) : null },
+    { label: t("dues.summary.paid_early"), value: ready ? paiseToMoney(paidEarlyPaise) : null },
   ];
 
   return (
@@ -179,7 +190,7 @@ export function DuesScreen() {
       <DataBanners placeholder={placeholder} />
 
       <div className="flex flex-col gap-2">
-        <dl className="panel grid grid-cols-3 divide-x divide-rule">
+        <dl className="panel grid grid-cols-2 divide-rule sm:grid-cols-4 sm:divide-x">
           {stats.map((s) => (
             <div key={s.label} className="flex flex-col gap-2 px-5 py-4 sm:px-6 sm:py-5">
               <dt className="text-xs text-ink-500">{s.label}</dt>
@@ -187,7 +198,7 @@ export function DuesScreen() {
             </div>
           ))}
         </dl>
-        <p className="px-1 text-xs text-ink-500">{t("dues.summary.note")}</p>
+        <p className="px-1 text-xs text-ink-500">{t("dues.summary.note")} {t("dues.summary.paid_early_note")}</p>
       </div>
 
       {rows === null ? (
@@ -197,7 +208,7 @@ export function DuesScreen() {
           <Skeleton className="h-10" />
           <Skeleton className="h-10" />
         </div>
-      ) : rows.length === 0 ? (
+      ) : rows.length === 0 && cases.length === 0 ? (
         <EmptyState title={t("dues.empty.title")} body={t("dues.empty.body")}>
           <Link href={href("/upload")} className="btn btn-primary">{t("nav.upload")}</Link>
         </EmptyState>
@@ -212,6 +223,9 @@ export function DuesScreen() {
             <span />
           </div>
           <ul aria-label={t("dues.list_label")} className="divide-y divide-rule">
+            {cases.map((c) => (
+              <CaseRow key={c.id} row={c} />
+            ))}
             {rows.map((r) => (
               <BuyerRow key={r.id} row={r} />
             ))}

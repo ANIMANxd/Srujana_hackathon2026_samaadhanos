@@ -10,6 +10,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ApiError, getCase, streamUrl, type Source, type Sourced } from "./api";
 import type { CaseDetail, Track } from "./types";
+import { announceCaseChange } from "./useCases";
 
 export type TrackStatus = "idle" | "loading" | "ready" | "not_found" | "error";
 
@@ -46,6 +47,7 @@ export function useTrack(caseId: string, enabled: boolean, offlineState?: string
   const [liveMode, setLive] = useState<LiveMode>("polling");
   const seq = useRef(0);
   const alive = useRef(true);
+  const lastJson = useRef<string | null>(null);
 
   useEffect(() => {
     alive.current = true;
@@ -58,7 +60,10 @@ export function useTrack(caseId: string, enabled: boolean, offlineState?: string
     // A slower, older answer must not overwrite a newer one.
     if (!alive.current || mine !== seq.current) return;
     // Keep the old object when nothing changed, so a quiet poll does not re-render the screen.
-    setCaseDetail((prev) => (prev && JSON.stringify(prev) === JSON.stringify(res.data) ? prev : res.data));
+    const json = JSON.stringify(res.data);
+    if (lastJson.current !== null && lastJson.current !== json && res.source === "live") announceCaseChange(res.data.case.id);
+    lastJson.current = json;
+    setCaseDetail((prev) => (prev && JSON.stringify(prev) === json ? prev : res.data));
     setSource(res.source);
     setStatus("ready");
     setError(null);

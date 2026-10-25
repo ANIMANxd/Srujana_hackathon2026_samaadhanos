@@ -6,6 +6,7 @@ import { useEffect, type ReactNode } from "react";
 import { I18nProvider, useT } from "@/lib/i18n";
 import { ParamsProvider, useHref, useUrlState, type UrlState } from "@/lib/params";
 import { JUDGE_EVENT, useConnection, type Connection } from "@/lib/useConnection";
+import { useProductionMode } from "@/lib/useHealth";
 import { DemoHint } from "../demo/DemoHint";
 import { Icon } from "../common/Icon";
 
@@ -93,6 +94,7 @@ function TopNav() {
   const { t } = useT();
   const href = useHref();
   const conn = useConnection();
+  const production = useProductionMode();
   const { demo, judge } = useUrlState();
   return (
     <header className="no-print sticky top-0 z-40 border-b border-rule bg-paper-raised/90 backdrop-blur-md">
@@ -108,7 +110,7 @@ function TopNav() {
           <LangToggle />
           <ConnectionPill conn={conn} />
           {/* Demo mode: the judge console is a rehearsal tool, not part of the script. ?judge=1 still shows it. */}
-          {(!demo || judge) && (
+          {(!demo || judge) && !production && (
             <button
               type="button"
               onClick={() => window.dispatchEvent(new Event(JUDGE_EVENT))}

@@ -7,7 +7,9 @@ import { artifactFixture, asExtraction, asRequest, asResponse, fixtureFor, FIXTU
 import {
   offlineBids,
   offlineCaseDetail,
+  offlineCases,
   offlineChainResult,
+  offlineDeliveries,
   offlineEsign,
   offlineEvents,
   offlineOptions,
@@ -20,12 +22,14 @@ import type {
   Bid,
   CaseDetail,
   CaseRequest,
+  CaseSummary,
   CaseResponse,
   ChainVerifyResult,
   ESignSession,
   ExtractionResponse,
   OptionsResponse,
   PayoutStatus,
+  WebhookDelivery,
   PresetSummary,
   SettlementSimulationResponse,
   StatuteConfig,
@@ -118,6 +122,15 @@ export async function health(): Promise<boolean> {
     return true;
   } catch {
     return false;
+  }
+}
+
+/** GET /health as the backend sent it (string values), or null when unreachable. */
+export async function getHealth(): Promise<Record<string, string> | null> {
+  try {
+    return await call<Record<string, string>>("/health");
+  } catch {
+    return null;
   }
 }
 
@@ -246,6 +259,18 @@ export function createCase(request: CaseRequest, opts: MutationOptions): Promise
   return mutate<CaseDetail>("/cases", opts, request);
 }
 
+/** GET /cases: one summary per stored case (the Dues home). Offline: the saved sample case. */
+export function listCases(): Promise<Sourced<CaseSummary[]>> {
+  return readOrSample(
+    async () => {
+      const body = await call<{ cases: CaseSummary[] }>("/cases");
+      if (!Array.isArray(body?.cases)) throw new ApiError(500, "BAD_RESPONSE", "The case list did not match the contract.");
+      return body.cases;
+    },
+    offlineCases,
+  );
+}
+
 /** GET /cases/{id}. `offlineState` picks which saved sample stands in when the backend is down. */
 export function getCase(id: string, offlineState?: string | null): Promise<Sourced<CaseDetail>> {
   return readOrSample(
@@ -354,6 +379,14 @@ export function setMockScenario(body: MockBody, opts: MutationOptions): Promise<
 
 export function setMockClock(body: MockBody, opts: MutationOptions): Promise<MockBody> {
   return mutate<MockBody>("/mock/clock", opts, body);
+}
+
+/**
+ * GET /mock/deliveries (ASSUMED route, judge console only): the webhook inbox as
+ * the API saw it, newest first. Offline it shows the saved sample log.
+ */
+export function getDeliveries(): Promise<Sourced<WebhookDelivery[]>> {
+  return readOrSample(() => call<WebhookDelivery[]>("/mock/deliveries"), offlineDeliveries);
 }
 
 // POST /webhooks/{esign,marketplace,disbursement} are signed provider-to-server

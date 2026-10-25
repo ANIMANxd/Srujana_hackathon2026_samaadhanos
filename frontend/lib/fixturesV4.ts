@@ -8,11 +8,13 @@ import type {
   AuditEvent,
   Bid,
   CaseDetail,
+  CaseSummary,
   ChainVerifyResult,
   ESignSession,
   OptionsResponse,
   PayoutStatus,
   TrackState,
+  WebhookDelivery,
 } from "./types";
 
 function payload(name: string): unknown {
@@ -52,6 +54,29 @@ export function offlineCaseDetail(state?: string | null): CaseDetail | null {
 }
 
 /** `variant` "overdue" picks the sample where Option 1 is blocked; anything else the financeable one. */
+/** The saved sample case as a Dues row. Every field is copied from the sample, nothing is worked out. */
+export function offlineCases(): CaseSummary[] | null {
+  const d = offlineCaseDetail("FINANCEABLE");
+  if (!d) return null;
+  const tl = d.latest_evaluation?.timeline;
+  return [
+    {
+      id: d.case.id,
+      invoice_no: d.case.invoice_no,
+      supplier_ref: d.case.supplier_ref,
+      buyer_gstin: d.case.buyer_gstin,
+      accepted_amount: d.case.accepted_amount,
+      calculation_date: d.latest_evaluation?.calculation_date ?? d.case.invoice_date,
+      days_overdue: tl?.days_overdue ?? 0,
+      due_date: tl?.due_date ?? null,
+      state: d.active_track?.state ?? "NEW",
+      active_track: d.active_track,
+      available_actions: d.available_actions,
+      stage: null,
+    },
+  ];
+}
+
 export function offlineOptions(variant?: string | null): OptionsResponse | null {
   const v = payload(variant === "overdue" ? "options-not-financeable-overdue" : "options-financeable");
   return isObject(v) && isObject(v.get_paid_early) ? (v as unknown as OptionsResponse) : null;
@@ -65,6 +90,11 @@ export function offlineEsign(): ESignSession | null {
 export function offlinePayout(): PayoutStatus | null {
   const v = payload("payout");
   return isObject(v) && typeof v.payout_ref === "string" ? (v as unknown as PayoutStatus) : null;
+}
+
+export function offlineDeliveries(): WebhookDelivery[] | null {
+  const v = payload("webhook-deliveries");
+  return Array.isArray(v) ? (v as WebhookDelivery[]) : null;
 }
 
 export function offlineBids(): Bid[] | null {
