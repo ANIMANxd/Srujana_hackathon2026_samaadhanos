@@ -12,6 +12,7 @@ import type { ArtifactKind, CaseRequest, CaseResponse, Stage } from "@/lib/types
 import { Icon } from "../common/Icon";
 import { Markdown } from "../common/Markdown";
 import { StatusIcon } from "../common/StatusIcon";
+import { toPlainMessage } from "@/lib/outgoing";
 import { financingLocksRecovery } from "@/lib/recoveryFlow";
 import type { TrackView } from "@/lib/useTrack";
 import { LockedNotice } from "../early/LockedNotice";
@@ -35,7 +36,7 @@ function kindFor(stage: Stage, req: CaseRequest, res: CaseResponse): ArtifactKin
 
 type Draft =
   | { state: "loading" }
-  | { state: "ready"; artifact: SourcedArtifact; text: string }
+  | { state: "ready"; artifact: SourcedArtifact; text: string; base: string }
   | { state: "needs_backend" }
   | { state: "error"; message: string };
 
@@ -80,7 +81,14 @@ export function SendPanel({
     generateArtifact(kind, request, offlineId)
       .then((a) => {
         if (!alive) return;
-        setDraft(a ? { state: "ready", artifact: a, text: a.data.markdown } : { state: "needs_backend" });
+        if (!a) {
+          setDraft({ state: "needs_backend" });
+          return;
+        }
+        // The message the owner sends is plain text without the owner-only banner, notes and footer;
+        // the evidence pack (stage 4) is a checklist for the owner and stays as written.
+        const base = kind === "STAGE4_EVIDENCE_PACK" ? a.data.markdown : toPlainMessage(a.data.markdown);
+        setDraft({ state: "ready", artifact: a, text: base, base });
       })
       .catch((e: unknown) => {
         if (!alive) return;
@@ -108,7 +116,7 @@ export function SendPanel({
   const locked = stageLock(response, stage) !== null;
   const subject = subjectEdit ?? t("send.subject_default", { title: t(`stage.${stage}.title`), supplier: request.supplier.name });
   const text = draft.state === "ready" ? draft.text : "";
-  const edited = draft.state === "ready" && draft.text !== draft.artifact.data.markdown;
+  const edited = draft.state === "ready" && draft.text !== draft.base;
   const phoneValid = isPhoneValid(phone);
   const canAct = reviewed && text.trim().length > 0 && !locked;
   const used = usedNow || sendLog.some((e) => e.stage === stage);
@@ -170,7 +178,7 @@ export function SendPanel({
           </div>
         ) : mode === "preview" ? (
           <div className="max-h-[32rem] overflow-y-auto rounded-lg border border-rule bg-paper-raised p-5">
-            {text ? <Markdown source={text} /> : null}
+            {text ? isPack ? <Markdown source={text} /> : <p className="whitespace-pre-wrap text-[0.9375rem] leading-relaxed text-ink-900">{text}</p> : null}
           </div>
         ) : (
           <textarea
@@ -279,7 +287,7 @@ export function SendPanel({
         createPortal(
           <div className="print-draft">
             <p className="print-draft-banner">{t("pack.print_banner")}</p>
-            <Markdown source={text} />
+            {isPack ? <Markdown source={text} /> : <p className="whitespace-pre-wrap">{text}</p>}
           </div>,
           document.body,
         )}
