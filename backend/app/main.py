@@ -8,6 +8,8 @@ itself (golden rule 6).
 
 import json
 import os
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI, File, HTTPException, Request, UploadFile
@@ -36,12 +38,26 @@ from backend.extraction.extract import extract_evidence as run_extraction
 from backend.extraction.llm import settings_from_env
 from backend.extraction.text import ExtractionInputError
 from backend.app.schemas_v4 import component_schemas as v1_1_component_schemas
+from backend.store.db import init_db as init_store
 
 PRESETS_DIR = Path(__file__).resolve().parent.parent / "presets"
+
+
+@asynccontextmanager
+async def _lifespan(_app: FastAPI) -> AsyncIterator[None]:
+    """Create the v4 store tables if they do not exist (backend/store/db.py).
+
+    Runs on server start only, never at import, so importing the app in tests
+    does not create a database file.
+    """
+    init_store()
+    yield
+
 
 app = FastAPI(
     title="SamadhaanOS API",
     version=CONTRACT_VERSION,
+    lifespan=_lifespan,
     description=(
         "MSME payment-rights evaluation API. Contract v1.0; frozen and "
         "additive-only after the contract-v1 tag (architecture.md section 9). "

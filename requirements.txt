@@ -12,3 +12,7 @@ jsonschema>=4.18
 # Pure-Python PDF rendering for /generate-artifact (backend/artifacts/pdf.py).
 # The endpoint degrades to markdown + a warning if it is missing or fails.
 reportlab>=4.0
+# v4 state store (backend/store/): SQLite through SQLModel, Postgres-compatible
+# schema. Money is TEXT, never REAL. See docs/architecture_v4_two_options.md
+# section 4 and docs/dependencies.md.
+sqlmodel>=0.0.48

@@ -1,4 +1,4 @@
-# Python
+﻿# Python
 __pycache__/
 *.py[cod]
 *.egg-info/
@@ -31,3 +31,11 @@ Thumbs.db
 .DS_Store
 .idea/
 .vscode/
+
+# v4 store (backend/store/): SQLite demo database, never committed.
+# Money lives in the DB as TEXT; the file is disposable via make db-reset.
+data/
+*.db
+*.db-journal
+*.db-wal
+*.db-shm

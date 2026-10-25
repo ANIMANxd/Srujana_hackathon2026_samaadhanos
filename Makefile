@@ -1,10 +1,10 @@
-# SamadhaanOS build/dev tasks. Layout: architecture.md section 3.
+﻿# SamadhaanOS build/dev tasks. Layout: architecture.md section 3.
 # Frontend targets print "not yet implemented" until prompt F0 lands.
 # Recipes are shell-agnostic on purpose: this repo is built on Windows where
 # make may fall back to cmd.exe, so no sh syntax ($$, [], backslash
 # continuations) and no cmd-only syntax. Logic lives in one-line python.
 
-.PHONY: dev backend frontend test fixtures demo openapi types contract-fixtures contract
+.PHONY: dev backend frontend test fixtures demo openapi types contract-fixtures contract db-reset
 
 PYTHON ?= python
 
@@ -51,3 +51,8 @@ contract-fixtures:
 
 # Rebuild the whole frozen contract: openapi.json then types.ts then fixtures.
 contract: openapi types contract-fixtures
+
+# Delete the v4 store database, recreate every table and seed the demo presets
+# as cases (backend/store/seed.py). Destructive by design: demo data only.
+db-reset:
+	$(PYTHON) -m backend.store
