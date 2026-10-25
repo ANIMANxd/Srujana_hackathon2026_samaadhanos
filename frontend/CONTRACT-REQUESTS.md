@@ -31,4 +31,4 @@ Status key: **open** = not done yet. **done** = shipped by the backend and used 
   (default `http://127.0.0.1:8000`; see `next.config.ts`).
 - Fixtures come from `contracts/fixtures/` and are never edited on the frontend.
   Regenerate them with `make fixtures` on the backend side.
-- The top bar shows **Engine live** or **Offline · saved results** from `GET /health`.
+- The top bar shows **Engine live** or **Offline** from `GET /health`; while offline a persistent "Offline demo data" banner sits under it.

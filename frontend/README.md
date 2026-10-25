@@ -15,7 +15,7 @@ npm run dev          # http://localhost:3000
 
 With the backend running (`make backend` in the repo root, port 8000), every
 screen uses live engine output and the top bar says **Engine live**. Without it,
-the top bar says **Offline · saved results**: preset cases render the engine
+a persistent **"Offline demo data"** banner sits under the top bar: preset cases render the engine
 output saved in `contracts/fixtures/` (including the draft samples), the upload
 samples show the extractor's saved results, and edited or uploaded cases say
 "Recompute needs the backend" instead of showing numbers.
