@@ -1,0 +1,51 @@
+{
+  "_fixture": {
+    "schema": "Bid[]",
+    "contract_version": "1.1",
+    "synthetic": true,
+    "placeholder": true,
+    "placeholder_fields": [
+      "[].annual_rate",
+      "[].discount",
+      "[].fee",
+      "[].net_amount"
+    ],
+    "why": "Option 1 figures are hand-computed with the architecture_v4 section 1.1 formula (discount = amount*rate*tenor/365, net = amount-discount-fee) because backend/finance (B2) does not exist yet. Option 2 figures are real engine output at the stated expected_payment_date. Rates are the illustrative mock_financing.rate_band, not market data.",
+    "regenerate_with": "python -m backend.app.export_v4_fixtures"
+  },
+  "payload": [
+    {
+      "id": "MOCK-BID-A",
+      "track_id": "TRK-FIN-0001",
+      "financier_alias": "Financier A",
+      "annual_rate": "12.00",
+      "discount": "12328.77",
+      "fee": "1250.00",
+      "net_amount": "1236421.23",
+      "valid_until": "2026-10-26T09:14:10Z",
+      "status": "AVAILABLE"
+    },
+    {
+      "id": "MOCK-BID-B",
+      "track_id": "TRK-FIN-0001",
+      "financier_alias": "Financier B",
+      "annual_rate": "8.00",
+      "discount": "8219.18",
+      "fee": "1250.00",
+      "net_amount": "1240530.82",
+      "valid_until": "2026-10-26T09:14:10Z",
+      "status": "AVAILABLE"
+    },
+    {
+      "id": "MOCK-BID-C",
+      "track_id": "TRK-FIN-0001",
+      "financier_alias": "Financier C",
+      "annual_rate": "10.25",
+      "discount": "10530.82",
+      "fee": "1250.00",
+      "net_amount": "1238219.18",
+      "valid_until": "2026-10-26T09:14:10Z",
+      "status": "SELECTED"
+    }
+  ]
+}

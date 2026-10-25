@@ -259,6 +259,41 @@ export interface components {
             /** Warnings */
             warnings?: components["schemas"]["Warning"][];
         };
+        /**
+         * Bid
+         * @description `bids` row. Financier aliases are fictional only (golden rule 17).
+         *
+         *     Discount, fee and net_amount are computed by `backend/finance/`, never by the
+         *     mock provider, so a mock cannot introduce maths bugs.
+         */
+        Bid: {
+            /** Annual Rate */
+            annual_rate: string;
+            /** Discount */
+            discount: string;
+            /** Fee */
+            fee: string;
+            /** Financier Alias */
+            financier_alias: string;
+            /** Id */
+            id: string;
+            /** Net Amount */
+            net_amount: string;
+            /** @default AVAILABLE */
+            status: components["schemas"]["BidStatus"];
+            /** Track Id */
+            track_id: string;
+            /**
+             * Valid Until
+             * Format: date-time
+             */
+            valid_until: string;
+        };
+        /**
+         * BidStatus
+         * @enum {string}
+         */
+        BidStatus: "AVAILABLE" | "SELECTED" | "EXPIRED" | "WITHDRAWN";
         /** Body_extract_evidence_api_v1_extract_evidence_post */
         Body_extract_evidence_api_v1_extract_evidence_post: {
             /** File */
@@ -275,6 +310,11 @@ export interface components {
             /** Tax Rate Pct */
             tax_rate_pct: string;
         };
+        /**
+         * BuyerAcceptanceStatus
+         * @enum {string}
+         */
+        BuyerAcceptanceStatus: "NOT_REQUESTED" | "AWAITING" | "ACCEPTED" | "REJECTED" | "EXPIRED";
         /** BuyerCost */
         BuyerCost: {
             deferral: components["schemas"]["Deferral"];
@@ -283,6 +323,70 @@ export interface components {
             /** Other Pressure Points */
             other_pressure_points: components["schemas"]["OtherPressurePoint"][];
             permanent_loss: components["schemas"]["PermanentLoss"];
+        };
+        /**
+         * Case
+         * @description A stored case (architecture_v4 section 4, `cases` table).
+         */
+        Case: {
+            /** Accepted Amount */
+            accepted_amount: string;
+            /**
+             * Buyer Gstin
+             * @default null
+             */
+            buyer_gstin: string | null;
+            /** Config Version */
+            config_version: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Delivery Date
+             * @default null
+             */
+            delivery_date: string | null;
+            /** Engine Version */
+            engine_version: string;
+            /**
+             * Id
+             * @description ULID issued by the server, never by the client.
+             */
+            id: string;
+            /**
+             * Input Json
+             * @description The CaseEvaluationRequest stored verbatim, so results are reproducible.
+             */
+            input_json: {
+                [key: string]: unknown;
+            };
+            /**
+             * Invoice Date
+             * Format: date
+             */
+            invoice_date: string;
+            /** Invoice No */
+            invoice_no: string;
+            /** Supplier Ref */
+            supplier_ref: string;
+        };
+        /**
+         * CaseDetail
+         * @description `GET /api/v1/cases/{id}` (architecture_v4 section 9).
+         */
+        CaseDetail: {
+            /** @default null */
+            active_track: components["schemas"]["Track"] | null;
+            /**
+             * Available Actions
+             * @description Action codes the workflow allows from the current state.
+             */
+            available_actions?: string[];
+            case: components["schemas"]["Case"];
+            /** @default null */
+            latest_evaluation: components["schemas"]["CaseEvaluationResponse"] | null;
         };
         /** CaseEvaluationRequest */
         CaseEvaluationRequest: {
@@ -333,6 +437,21 @@ export interface components {
             timeline: components["schemas"]["Timeline"] | null;
             /** Warnings */
             warnings: components["schemas"]["Warning"][];
+        };
+        /**
+         * ChainVerifyResult
+         * @description `GET /api/v1/cases/{id}/events/verify`.
+         */
+        ChainVerifyResult: {
+            /** Checked */
+            checked: number;
+            /**
+             * First Bad Seq
+             * @default null
+             */
+            first_bad_seq: number | null;
+            /** Valid */
+            valid: boolean;
         };
         /** Citation */
         Citation: {
@@ -441,10 +560,116 @@ export interface components {
             verified: boolean;
         };
         /**
+         * ESignSession
+         * @description Mock eSign session (architecture_v4 section 7.1).
+         *
+         *     There is no Aadhaar field and there never will be (golden rule 18).
+         */
+        ESignSession: {
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+            /** Session Id */
+            session_id: string;
+            /**
+             * Signed At
+             * @default null
+             */
+            signed_at: string | null;
+            /**
+             * Signed Doc Sha256
+             * @default null
+             */
+            signed_doc_sha256: string | null;
+            /**
+             * Signer Display
+             * @default null
+             */
+            signer_display: string | null;
+            /** Signing Url */
+            signing_url: string;
+            /** @default PENDING */
+            status: components["schemas"]["ESignStatus"];
+        };
+        /**
+         * ESignStatus
+         * @enum {string}
+         */
+        ESignStatus: "PENDING" | "SIGNED" | "FAILED" | "EXPIRED";
+        /**
          * EnterpriseClass
          * @enum {string}
          */
         EnterpriseClass: "MICRO" | "SMALL" | "MEDIUM" | "UNKNOWN";
+        /**
+         * ErrorEnvelope
+         * @description v1.1 error envelope: `{"error": {"code", "message", "details"}}`.
+         */
+        ErrorEnvelope: {
+            error: components["schemas"]["ErrorEnvelopeDetail"];
+        };
+        /**
+         * ErrorEnvelopeDetail
+         * @description v1.1 error detail (architecture_v4 section 8).
+         *
+         *     v1.0 keeps `ErrorResponse` (`code`, `message`, `field`) untouched; v1.1 adds
+         *     `details` for structured validation output. Two shapes coexist on purpose and
+         *     should be reconciled before any v1.1 route ships.
+         */
+        ErrorEnvelopeDetail: {
+            /** Code */
+            code: string;
+            /**
+             * Details
+             * @default null
+             */
+            details: {
+                [key: string]: unknown;
+            } | null;
+            /** Message */
+            message: string;
+        };
+        /**
+         * Event
+         * @description Append-only, hash-chained audit event (architecture_v4 section 4).
+         *
+         *     `hash = sha256(prev_hash || canonical_json(type, payload, actor, created_at))`.
+         *     Tamper-evident, not tamper-proof.
+         */
+        Event: {
+            actor: components["schemas"]["EventActor"];
+            /** Case Id */
+            case_id: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Hash */
+            hash: string;
+            /** Payload Json */
+            payload_json?: {
+                [key: string]: unknown;
+            };
+            /** Prev Hash */
+            prev_hash: string;
+            /** Seq */
+            seq: number;
+            /**
+             * Track Id
+             * @default null
+             */
+            track_id: string | null;
+            /** Type */
+            type: string;
+        };
+        /**
+         * EventActor
+         * @enum {string}
+         */
+        EventActor: "USER" | "SYSTEM" | "PROVIDER_MOCK";
         /** Evidence */
         Evidence: {
             /** Items */
@@ -578,10 +803,76 @@ export interface components {
             /** Total Claim */
             total_claim: string;
         };
+        /**
+         * FinancingRequest
+         * @description `financing_requests` row (architecture_v4 section 4).
+         */
+        FinancingRequest: {
+            /** Accepted Amount */
+            accepted_amount: string;
+            /** @default NOT_REQUESTED */
+            buyer_acceptance_status: components["schemas"]["BuyerAcceptanceStatus"];
+            /**
+             * Disbursement Ref
+             * @default null
+             */
+            disbursement_ref: string | null;
+            /**
+             * Due Date
+             * Format: date
+             */
+            due_date: string;
+            /**
+             * Esign Session Id
+             * @default null
+             */
+            esign_session_id: string | null;
+            /**
+             * Selected Bid Id
+             * @default null
+             */
+            selected_bid_id: string | null;
+            /** Tenor Days */
+            tenor_days: number;
+            /** Track Id */
+            track_id: string;
+        };
+        /** GetPaidEarlyOption */
+        GetPaidEarlyOption: {
+            /** Available */
+            available: boolean;
+            /** Citations */
+            citations?: components["schemas"]["OptionCitation"][];
+            /** @default null */
+            indicative: components["schemas"]["IndicativeFinancing"] | null;
+            /** Notes */
+            notes?: string[];
+            /** Unavailable Reasons */
+            unavailable_reasons?: string[];
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
+        };
+        /**
+         * IndicativeFinancing
+         * @description The indicative numbers on the Option 1 column.
+         *
+         *     Until `backend/finance/` exists these are placeholders and every fixture
+         *     carries `_fixture.placeholder: true` (golden rule 7).
+         */
+        IndicativeFinancing: {
+            /** Accepted Amount */
+            accepted_amount: string;
+            net_receivable_range: components["schemas"]["NetReceivableRange"];
+            /** Platform Fee Pct */
+            platform_fee_pct: string;
+            rate_band_pct: components["schemas"]["RateBand"];
+            /** Settlement */
+            settlement: string;
+            /** Tenor Days */
+            tenor_days: number;
         };
         /** Jurisdiction */
         Jurisdiction: {
@@ -681,6 +972,13 @@ export interface components {
          * @enum {string}
          */
         MessageTag: "DELIVERY_CONFIRMATION" | "DEFECT_OBJECTION" | "RESOLUTION_ACK" | "LATE_COMPLAINT" | "PAYMENT_PROMISE";
+        /** NetReceivableRange */
+        NetReceivableRange: {
+            /** High */
+            high: string;
+            /** Low */
+            low: string;
+        };
         /** Objection */
         Objection: {
             /** Description */
@@ -700,6 +998,45 @@ export interface components {
          * @enum {string}
          */
         ObjectionStatus: "DEEMED_ACCEPTANCE" | "PENDING_RESOLUTION" | "RESOLVED" | "NO_DELIVERY_PROOF";
+        /**
+         * OptionCitation
+         * @description A citation on the options card (architecture_v4 section 9).
+         *
+         *     Distinct from v1's `Citation`, which carries an engine rule id, statute ref
+         *     and verified flag. This one is the short `{source, ref}` pair the options
+         *     payload shows. Kept separate so v1's `Citation` stays byte-identical.
+         */
+        OptionCitation: {
+            /** Ref */
+            ref: string;
+            /** Source */
+            source: string;
+        };
+        /**
+         * OptionsResponse
+         * @description `GET /api/v1/cases/{id}/options` — the two-option comparison.
+         *
+         *     `recommendation` is always null and must stay that way (golden rule 20,
+         *     architecture_v4 section 9). A test asserts it.
+         */
+        OptionsResponse: {
+            /**
+             * As Of
+             * Format: date
+             */
+            as_of: string;
+            /** Case Id */
+            case_id: string;
+            get_paid_early: components["schemas"]["GetPaidEarlyOption"];
+            /**
+             * Recommendation
+             * @default null
+             */
+            recommendation: null;
+            recover_with_law: components["schemas"]["RecoverWithLawOption"];
+            /** Simulation */
+            simulation: boolean;
+        };
         /** OtherPressurePoint */
         OtherPressurePoint: {
             /** Id */
@@ -724,12 +1061,56 @@ export interface components {
          * @enum {string}
          */
         PaymentBoundaryConvention: "PAYMENT_DATE_IS_REST_BOUNDARY";
+        /**
+         * PayoutState
+         * @enum {string}
+         */
+        PayoutState: "PENDING" | "PROCESSED" | "FAILED";
+        /**
+         * PayoutStatus
+         * @description Disbursement status (architecture_v4 section 7.3). `utr` is MOCK-prefixed.
+         */
+        PayoutStatus: {
+            /** Amount */
+            amount: string;
+            /**
+             * Currency
+             * @default INR
+             */
+            currency: string;
+            /** Payout Ref */
+            payout_ref: string;
+            /**
+             * Settled At
+             * @default null
+             */
+            settled_at: string | null;
+            /** @default PENDING */
+            status: components["schemas"]["PayoutState"];
+            /**
+             * Utr
+             * @default null
+             */
+            utr: string | null;
+        };
         /** PermanentLoss */
         PermanentLoss: {
             /** Interest Non Deductible */
             interest_non_deductible: string;
             /** Pretax Equivalent Rate Pct */
             pretax_equivalent_rate_pct: string;
+        };
+        /** RateBand */
+        RateBand: {
+            /** High */
+            high: string;
+            /**
+             * Label
+             * @description Always "illustrative" until real market data exists.
+             */
+            label: string;
+            /** Low */
+            low: string;
         };
         /**
          * RateMode
@@ -766,6 +1147,40 @@ export interface components {
             delta: number;
             /** Text */
             text: string;
+        };
+        /** RecoverWithLawOption */
+        RecoverWithLawOption: {
+            /** Available */
+            available: boolean;
+            /** Citations */
+            citations?: components["schemas"]["OptionCitation"][];
+            /**
+             * Current Stage
+             * @default null
+             */
+            current_stage: string | null;
+            /**
+             * Expected Payment Date
+             * @default null
+             */
+            expected_payment_date: string | null;
+            /**
+             * Interest To Expected Date
+             * @default null
+             */
+            interest_to_expected_date: string | null;
+            /** Notes */
+            notes?: string[];
+            /**
+             * Principal
+             * @default null
+             */
+            principal: string | null;
+            /**
+             * Total If Paid
+             * @default null
+             */
+            total_if_paid: string | null;
         };
         /** SettlementPayment */
         SettlementPayment: {
@@ -887,6 +1302,54 @@ export interface components {
             /** Objection Window End */
             objection_window_end: string | null;
         };
+        /**
+         * Track
+         * @description One active track per case (architecture_v4 section 4, `tracks` table).
+         */
+        Track: {
+            /** Case Id */
+            case_id: string;
+            /**
+             * Closed At
+             * @default null
+             */
+            closed_at: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Id */
+            id: string;
+            kind: components["schemas"]["TrackKind"];
+            state: components["schemas"]["TrackState"];
+            /**
+             * Version
+             * @description Optimistic lock; clients send If-Match: <version>.
+             */
+            version: number;
+        };
+        /**
+         * TrackKind
+         * @enum {string}
+         */
+        TrackKind: "FINANCING" | "RECOVERY";
+        /**
+         * TrackState
+         * @description Every state of both machines (architecture_v4 section 5).
+         *
+         *     Financing (Option 1): NEW, FINANCEABLE, NOT_FINANCEABLE,
+         *     AWAITING_BUYER_ACCEPTANCE, BIDDING_OPEN, BIDS_AVAILABLE, NO_BIDS,
+         *     AWAITING_ESIGN, AWAITING_DISBURSEMENT, DISBURSED, DISBURSEMENT_FAILED,
+         *     SETTLED, SETTLED_WITHOUT_RECOURSE, BUYER_DECLINED, CANCELLED.
+         *
+         *     Recovery (Option 2): NEW, STAGE_1_PREPARED, STAGE_1_SENT_BY_OWNER,
+         *     STAGE_2_PREPARED, STAGE_2_SENT_BY_OWNER, STAGE_3_PREPARED,
+         *     STAGE_3_SENT_BY_OWNER, STAGE_4_PACK_READY, ODR_FILED_BY_OWNER, PAID,
+         *     SETTLED, CLOSED.
+         * @enum {string}
+         */
+        TrackState: "NEW" | "FINANCEABLE" | "NOT_FINANCEABLE" | "AWAITING_BUYER_ACCEPTANCE" | "BIDDING_OPEN" | "BIDS_AVAILABLE" | "NO_BIDS" | "AWAITING_ESIGN" | "AWAITING_DISBURSEMENT" | "DISBURSED" | "DISBURSEMENT_FAILED" | "SETTLED_WITHOUT_RECOURSE" | "BUYER_DECLINED" | "CANCELLED" | "STAGE_1_PREPARED" | "STAGE_1_SENT_BY_OWNER" | "STAGE_2_PREPARED" | "STAGE_2_SENT_BY_OWNER" | "STAGE_3_PREPARED" | "STAGE_3_SENT_BY_OWNER" | "STAGE_4_PACK_READY" | "ODR_FILED_BY_OWNER" | "SETTLED" | "PAID" | "CLOSED";
         /** Transaction */
         Transaction: {
             /**
@@ -938,6 +1401,34 @@ export interface components {
          * @enum {string}
          */
         WarningSeverity: "INFO" | "WARN" | "BLOCK";
+        /**
+         * WebhookDelivery
+         * @description `webhook_inbox` row (architecture_v4 section 8, `docs/webhooks.md`).
+         */
+        WebhookDelivery: {
+            outcome: components["schemas"]["WebhookOutcome"];
+            /**
+             * Processed At
+             * @default null
+             */
+            processed_at: string | null;
+            /** Provider */
+            provider: string;
+            /** Provider Event Id */
+            provider_event_id: string;
+            /**
+             * Received At
+             * Format: date-time
+             */
+            received_at: string;
+            /** Signature Ok */
+            signature_ok: boolean;
+        };
+        /**
+         * WebhookOutcome
+         * @enum {string}
+         */
+        WebhookOutcome: "APPLIED" | "DUPLICATE" | "PARKED" | "REJECTED";
     };
     responses: never;
     parameters: never;

@@ -1,0 +1,16 @@
+{
+  "_fixture": {
+    "schema": "ChainVerifyResult",
+    "contract_version": "1.1",
+    "synthetic": true,
+    "placeholder": false,
+    "placeholder_fields": [],
+    "why": "The result of recomputing the chain in events.json: every link checks out.",
+    "regenerate_with": "python -m backend.app.export_v4_fixtures"
+  },
+  "payload": {
+    "valid": true,
+    "checked": 12,
+    "first_bad_seq": null
+  }
+}

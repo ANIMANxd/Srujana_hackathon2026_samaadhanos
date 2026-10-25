@@ -1,0 +1,55 @@
+{
+  "_fixture": {
+    "schema": "OptionsResponse",
+    "contract_version": "1.1",
+    "synthetic": true,
+    "placeholder": true,
+    "placeholder_fields": [
+      "get_paid_early.indicative.accepted_amount",
+      "get_paid_early.indicative.rate_band_pct",
+      "get_paid_early.indicative.platform_fee_pct",
+      "get_paid_early.indicative.net_receivable_range",
+      "get_paid_early.available",
+      "get_paid_early.unavailable_reasons"
+    ],
+    "why": "Option 1 figures are hand-computed with the architecture_v4 section 1.1 formula (discount = amount*rate*tenor/365, net = amount-discount-fee) because backend/finance (B2) does not exist yet. Option 2 figures are real engine output at the stated expected_payment_date. Option 1 is unavailable because the invoice is past its due date (financing.max_overdue_days = 0, OQ-11).",
+    "regenerate_with": "python -m backend.app.export_v4_fixtures"
+  },
+  "payload": {
+    "case_id": "01JAV4E7K3M9Q2R5T8V0W1XCZD",
+    "as_of": "2026-11-02",
+    "simulation": true,
+    "get_paid_early": {
+      "available": false,
+      "unavailable_reasons": [
+        "The due date has passed. This build only finances invoices before the due date.",
+        "Interest accrued before financing would not be covered."
+      ],
+      "indicative": null,
+      "notes": [
+        "Your buyer must accept the invoice on the platform first."
+      ],
+      "citations": []
+    },
+    "recover_with_law": {
+      "available": true,
+      "expected_payment_date": "2026-12-02",
+      "principal": "1250000.00",
+      "interest_to_expected_date": "19512.18",
+      "total_if_paid": "1269512.18",
+      "current_stage": "STAGE_2_PREPARED",
+      "notes": [
+        "Overdue since 2026-10-29.",
+        "Only received if the buyer pays.",
+        "You send every message yourself."
+      ],
+      "citations": [
+        {
+          "source": "MSMED Act s.16",
+          "ref": "config:interest_multiplier"
+        }
+      ]
+    },
+    "recommendation": null
+  }
+}

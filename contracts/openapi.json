@@ -154,6 +154,70 @@
         "title": "ArtifactResponse",
         "type": "object"
       },
+      "Bid": {
+        "description": "`bids` row. Financier aliases are fictional only (golden rule 17).\n\nDiscount, fee and net_amount are computed by `backend/finance/`, never by the\nmock provider, so a mock cannot introduce maths bugs.",
+        "properties": {
+          "annual_rate": {
+            "title": "Annual Rate",
+            "type": "string"
+          },
+          "discount": {
+            "title": "Discount",
+            "type": "string"
+          },
+          "fee": {
+            "title": "Fee",
+            "type": "string"
+          },
+          "financier_alias": {
+            "title": "Financier Alias",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "net_amount": {
+            "title": "Net Amount",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/BidStatus",
+            "default": "AVAILABLE"
+          },
+          "track_id": {
+            "title": "Track Id",
+            "type": "string"
+          },
+          "valid_until": {
+            "format": "date-time",
+            "title": "Valid Until",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "track_id",
+          "financier_alias",
+          "annual_rate",
+          "discount",
+          "fee",
+          "net_amount",
+          "valid_until"
+        ],
+        "title": "Bid",
+        "type": "object"
+      },
+      "BidStatus": {
+        "enum": [
+          "AVAILABLE",
+          "SELECTED",
+          "EXPIRED",
+          "WITHDRAWN"
+        ],
+        "title": "BidStatus",
+        "type": "string"
+      },
       "Body_extract_evidence_api_v1_extract_evidence_post": {
         "properties": {
           "file": {
@@ -202,6 +266,17 @@
         "title": "Buyer",
         "type": "object"
       },
+      "BuyerAcceptanceStatus": {
+        "enum": [
+          "NOT_REQUESTED",
+          "AWAITING",
+          "ACCEPTED",
+          "REJECTED",
+          "EXPIRED"
+        ],
+        "title": "BuyerAcceptanceStatus",
+        "type": "string"
+      },
       "BuyerCost": {
         "properties": {
           "deferral": {
@@ -232,6 +307,133 @@
           "other_pressure_points"
         ],
         "title": "BuyerCost",
+        "type": "object"
+      },
+      "Case": {
+        "description": "A stored case (architecture_v4 section 4, `cases` table).",
+        "properties": {
+          "accepted_amount": {
+            "title": "Accepted Amount",
+            "type": "string"
+          },
+          "buyer_gstin": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Buyer Gstin"
+          },
+          "config_version": {
+            "title": "Config Version",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "delivery_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Delivery Date"
+          },
+          "engine_version": {
+            "title": "Engine Version",
+            "type": "string"
+          },
+          "id": {
+            "description": "ULID issued by the server, never by the client.",
+            "title": "Id",
+            "type": "string"
+          },
+          "input_json": {
+            "additionalProperties": true,
+            "description": "The CaseEvaluationRequest stored verbatim, so results are reproducible.",
+            "title": "Input Json",
+            "type": "object"
+          },
+          "invoice_date": {
+            "format": "date",
+            "title": "Invoice Date",
+            "type": "string"
+          },
+          "invoice_no": {
+            "title": "Invoice No",
+            "type": "string"
+          },
+          "supplier_ref": {
+            "title": "Supplier Ref",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "supplier_ref",
+          "invoice_no",
+          "invoice_date",
+          "accepted_amount",
+          "input_json",
+          "engine_version",
+          "config_version",
+          "created_at"
+        ],
+        "title": "Case",
+        "type": "object"
+      },
+      "CaseDetail": {
+        "description": "`GET /api/v1/cases/{id}` (architecture_v4 section 9).",
+        "properties": {
+          "active_track": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Track"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "available_actions": {
+            "description": "Action codes the workflow allows from the current state.",
+            "items": {
+              "type": "string"
+            },
+            "title": "Available Actions",
+            "type": "array"
+          },
+          "case": {
+            "$ref": "#/components/schemas/Case"
+          },
+          "latest_evaluation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CaseEvaluationResponse"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          }
+        },
+        "required": [
+          "case"
+        ],
+        "title": "CaseDetail",
         "type": "object"
       },
       "CaseEvaluationRequest": {
@@ -398,6 +600,37 @@
           "warnings"
         ],
         "title": "CaseEvaluationResponse",
+        "type": "object"
+      },
+      "ChainVerifyResult": {
+        "description": "`GET /api/v1/cases/{id}/events/verify`.",
+        "properties": {
+          "checked": {
+            "title": "Checked",
+            "type": "integer"
+          },
+          "first_bad_seq": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "First Bad Seq"
+          },
+          "valid": {
+            "title": "Valid",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "valid",
+          "checked"
+        ],
+        "title": "ChainVerifyResult",
         "type": "object"
       },
       "Citation": {
@@ -714,6 +947,82 @@
         "title": "DisclosureFlag",
         "type": "object"
       },
+      "ESignSession": {
+        "description": "Mock eSign session (architecture_v4 section 7.1).\n\nThere is no Aadhaar field and there never will be (golden rule 18).",
+        "properties": {
+          "expires_at": {
+            "format": "date-time",
+            "title": "Expires At",
+            "type": "string"
+          },
+          "session_id": {
+            "title": "Session Id",
+            "type": "string"
+          },
+          "signed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Signed At"
+          },
+          "signed_doc_sha256": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Signed Doc Sha256"
+          },
+          "signer_display": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Signer Display"
+          },
+          "signing_url": {
+            "title": "Signing Url",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ESignStatus",
+            "default": "PENDING"
+          }
+        },
+        "required": [
+          "session_id",
+          "signing_url",
+          "expires_at"
+        ],
+        "title": "ESignSession",
+        "type": "object"
+      },
+      "ESignStatus": {
+        "enum": [
+          "PENDING",
+          "SIGNED",
+          "FAILED",
+          "EXPIRED"
+        ],
+        "title": "ESignStatus",
+        "type": "string"
+      },
       "EnterpriseClass": {
         "enum": [
           "MICRO",
@@ -722,6 +1031,121 @@
           "UNKNOWN"
         ],
         "title": "EnterpriseClass",
+        "type": "string"
+      },
+      "ErrorEnvelope": {
+        "description": "v1.1 error envelope: `{\"error\": {\"code\", \"message\", \"details\"}}`.",
+        "properties": {
+          "error": {
+            "$ref": "#/components/schemas/ErrorEnvelopeDetail"
+          }
+        },
+        "required": [
+          "error"
+        ],
+        "title": "ErrorEnvelope",
+        "type": "object"
+      },
+      "ErrorEnvelopeDetail": {
+        "description": "v1.1 error detail (architecture_v4 section 8).\n\nv1.0 keeps `ErrorResponse` (`code`, `message`, `field`) untouched; v1.1 adds\n`details` for structured validation output. Two shapes coexist on purpose and\nshould be reconciled before any v1.1 route ships.",
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "details": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Details"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ],
+        "title": "ErrorEnvelopeDetail",
+        "type": "object"
+      },
+      "Event": {
+        "description": "Append-only, hash-chained audit event (architecture_v4 section 4).\n\n`hash = sha256(prev_hash || canonical_json(type, payload, actor, created_at))`.\nTamper-evident, not tamper-proof.",
+        "properties": {
+          "actor": {
+            "$ref": "#/components/schemas/EventActor"
+          },
+          "case_id": {
+            "title": "Case Id",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "hash": {
+            "title": "Hash",
+            "type": "string"
+          },
+          "payload_json": {
+            "additionalProperties": true,
+            "title": "Payload Json",
+            "type": "object"
+          },
+          "prev_hash": {
+            "title": "Prev Hash",
+            "type": "string"
+          },
+          "seq": {
+            "title": "Seq",
+            "type": "integer"
+          },
+          "track_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Track Id"
+          },
+          "type": {
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "seq",
+          "case_id",
+          "type",
+          "actor",
+          "created_at",
+          "prev_hash",
+          "hash"
+        ],
+        "title": "Event",
+        "type": "object"
+      },
+      "EventActor": {
+        "enum": [
+          "USER",
+          "SYSTEM",
+          "PROVIDER_MOCK"
+        ],
+        "title": "EventActor",
         "type": "string"
       },
       "Evidence": {
@@ -1109,6 +1533,121 @@
         "title": "Financials",
         "type": "object"
       },
+      "FinancingRequest": {
+        "description": "`financing_requests` row (architecture_v4 section 4).",
+        "properties": {
+          "accepted_amount": {
+            "title": "Accepted Amount",
+            "type": "string"
+          },
+          "buyer_acceptance_status": {
+            "$ref": "#/components/schemas/BuyerAcceptanceStatus",
+            "default": "NOT_REQUESTED"
+          },
+          "disbursement_ref": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Disbursement Ref"
+          },
+          "due_date": {
+            "format": "date",
+            "title": "Due Date",
+            "type": "string"
+          },
+          "esign_session_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Esign Session Id"
+          },
+          "selected_bid_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Selected Bid Id"
+          },
+          "tenor_days": {
+            "title": "Tenor Days",
+            "type": "integer"
+          },
+          "track_id": {
+            "title": "Track Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "track_id",
+          "accepted_amount",
+          "tenor_days",
+          "due_date"
+        ],
+        "title": "FinancingRequest",
+        "type": "object"
+      },
+      "GetPaidEarlyOption": {
+        "properties": {
+          "available": {
+            "title": "Available",
+            "type": "boolean"
+          },
+          "citations": {
+            "items": {
+              "$ref": "#/components/schemas/OptionCitation"
+            },
+            "title": "Citations",
+            "type": "array"
+          },
+          "indicative": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/IndicativeFinancing"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "notes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Notes",
+            "type": "array"
+          },
+          "unavailable_reasons": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Unavailable Reasons",
+            "type": "array"
+          }
+        },
+        "required": [
+          "available"
+        ],
+        "title": "GetPaidEarlyOption",
+        "type": "object"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -1120,6 +1659,43 @@
           }
         },
         "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "IndicativeFinancing": {
+        "description": "The indicative numbers on the Option 1 column.\n\nUntil `backend/finance/` exists these are placeholders and every fixture\ncarries `_fixture.placeholder: true` (golden rule 7).",
+        "properties": {
+          "accepted_amount": {
+            "title": "Accepted Amount",
+            "type": "string"
+          },
+          "net_receivable_range": {
+            "$ref": "#/components/schemas/NetReceivableRange"
+          },
+          "platform_fee_pct": {
+            "title": "Platform Fee Pct",
+            "type": "string"
+          },
+          "rate_band_pct": {
+            "$ref": "#/components/schemas/RateBand"
+          },
+          "settlement": {
+            "title": "Settlement",
+            "type": "string"
+          },
+          "tenor_days": {
+            "title": "Tenor Days",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "accepted_amount",
+          "tenor_days",
+          "rate_band_pct",
+          "platform_fee_pct",
+          "net_receivable_range",
+          "settlement"
+        ],
+        "title": "IndicativeFinancing",
         "type": "object"
       },
       "Jurisdiction": {
@@ -1381,6 +1957,24 @@
         "title": "MessageTag",
         "type": "string"
       },
+      "NetReceivableRange": {
+        "properties": {
+          "high": {
+            "title": "High",
+            "type": "string"
+          },
+          "low": {
+            "title": "Low",
+            "type": "string"
+          }
+        },
+        "required": [
+          "low",
+          "high"
+        ],
+        "title": "NetReceivableRange",
+        "type": "object"
+      },
       "Objection": {
         "properties": {
           "description": {
@@ -1432,6 +2026,63 @@
         ],
         "title": "ObjectionStatus",
         "type": "string"
+      },
+      "OptionCitation": {
+        "description": "A citation on the options card (architecture_v4 section 9).\n\nDistinct from v1's `Citation`, which carries an engine rule id, statute ref\nand verified flag. This one is the short `{source, ref}` pair the options\npayload shows. Kept separate so v1's `Citation` stays byte-identical.",
+        "properties": {
+          "ref": {
+            "title": "Ref",
+            "type": "string"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source",
+          "ref"
+        ],
+        "title": "OptionCitation",
+        "type": "object"
+      },
+      "OptionsResponse": {
+        "description": "`GET /api/v1/cases/{id}/options` \u2014 the two-option comparison.\n\n`recommendation` is always null and must stay that way (golden rule 20,\narchitecture_v4 section 9). A test asserts it.",
+        "properties": {
+          "as_of": {
+            "format": "date",
+            "title": "As Of",
+            "type": "string"
+          },
+          "case_id": {
+            "title": "Case Id",
+            "type": "string"
+          },
+          "get_paid_early": {
+            "$ref": "#/components/schemas/GetPaidEarlyOption"
+          },
+          "recommendation": {
+            "default": null,
+            "title": "Recommendation",
+            "type": "null"
+          },
+          "recover_with_law": {
+            "$ref": "#/components/schemas/RecoverWithLawOption"
+          },
+          "simulation": {
+            "title": "Simulation",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "case_id",
+          "as_of",
+          "simulation",
+          "get_paid_early",
+          "recover_with_law"
+        ],
+        "title": "OptionsResponse",
+        "type": "object"
       },
       "OtherPressurePoint": {
         "properties": {
@@ -1488,6 +2139,68 @@
         "title": "PaymentBoundaryConvention",
         "type": "string"
       },
+      "PayoutState": {
+        "enum": [
+          "PENDING",
+          "PROCESSED",
+          "FAILED"
+        ],
+        "title": "PayoutState",
+        "type": "string"
+      },
+      "PayoutStatus": {
+        "description": "Disbursement status (architecture_v4 section 7.3). `utr` is MOCK-prefixed.",
+        "properties": {
+          "amount": {
+            "title": "Amount",
+            "type": "string"
+          },
+          "currency": {
+            "default": "INR",
+            "title": "Currency",
+            "type": "string"
+          },
+          "payout_ref": {
+            "title": "Payout Ref",
+            "type": "string"
+          },
+          "settled_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Settled At"
+          },
+          "status": {
+            "$ref": "#/components/schemas/PayoutState",
+            "default": "PENDING"
+          },
+          "utr": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Utr"
+          }
+        },
+        "required": [
+          "payout_ref",
+          "amount"
+        ],
+        "title": "PayoutStatus",
+        "type": "object"
+      },
       "PermanentLoss": {
         "properties": {
           "interest_non_deductible": {
@@ -1504,6 +2217,30 @@
           "pretax_equivalent_rate_pct"
         ],
         "title": "PermanentLoss",
+        "type": "object"
+      },
+      "RateBand": {
+        "properties": {
+          "high": {
+            "title": "High",
+            "type": "string"
+          },
+          "label": {
+            "description": "Always \"illustrative\" until real market data exists.",
+            "title": "Label",
+            "type": "string"
+          },
+          "low": {
+            "title": "Low",
+            "type": "string"
+          }
+        },
+        "required": [
+          "low",
+          "high",
+          "label"
+        ],
+        "title": "RateBand",
         "type": "object"
       },
       "RateMode": {
@@ -1575,6 +2312,94 @@
           "text"
         ],
         "title": "ReadinessReason",
+        "type": "object"
+      },
+      "RecoverWithLawOption": {
+        "properties": {
+          "available": {
+            "title": "Available",
+            "type": "boolean"
+          },
+          "citations": {
+            "items": {
+              "$ref": "#/components/schemas/OptionCitation"
+            },
+            "title": "Citations",
+            "type": "array"
+          },
+          "current_stage": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Current Stage"
+          },
+          "expected_payment_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Expected Payment Date"
+          },
+          "interest_to_expected_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Interest To Expected Date"
+          },
+          "notes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Notes",
+            "type": "array"
+          },
+          "principal": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Principal"
+          },
+          "total_if_paid": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Total If Paid"
+          }
+        },
+        "required": [
+          "available"
+        ],
+        "title": "RecoverWithLawOption",
         "type": "object"
       },
       "SettlementPayment": {
@@ -1950,6 +2775,98 @@
         "title": "Timeline",
         "type": "object"
       },
+      "Track": {
+        "description": "One active track per case (architecture_v4 section 4, `tracks` table).",
+        "properties": {
+          "case_id": {
+            "title": "Case Id",
+            "type": "string"
+          },
+          "closed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Closed At"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/TrackKind"
+          },
+          "state": {
+            "$ref": "#/components/schemas/TrackState"
+          },
+          "version": {
+            "description": "Optimistic lock; clients send If-Match: <version>.",
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "case_id",
+          "kind",
+          "state",
+          "version",
+          "created_at"
+        ],
+        "title": "Track",
+        "type": "object"
+      },
+      "TrackKind": {
+        "enum": [
+          "FINANCING",
+          "RECOVERY"
+        ],
+        "title": "TrackKind",
+        "type": "string"
+      },
+      "TrackState": {
+        "description": "Every state of both machines (architecture_v4 section 5).\n\nFinancing (Option 1): NEW, FINANCEABLE, NOT_FINANCEABLE,\nAWAITING_BUYER_ACCEPTANCE, BIDDING_OPEN, BIDS_AVAILABLE, NO_BIDS,\nAWAITING_ESIGN, AWAITING_DISBURSEMENT, DISBURSED, DISBURSEMENT_FAILED,\nSETTLED, SETTLED_WITHOUT_RECOURSE, BUYER_DECLINED, CANCELLED.\n\nRecovery (Option 2): NEW, STAGE_1_PREPARED, STAGE_1_SENT_BY_OWNER,\nSTAGE_2_PREPARED, STAGE_2_SENT_BY_OWNER, STAGE_3_PREPARED,\nSTAGE_3_SENT_BY_OWNER, STAGE_4_PACK_READY, ODR_FILED_BY_OWNER, PAID,\nSETTLED, CLOSED.",
+        "enum": [
+          "NEW",
+          "FINANCEABLE",
+          "NOT_FINANCEABLE",
+          "AWAITING_BUYER_ACCEPTANCE",
+          "BIDDING_OPEN",
+          "BIDS_AVAILABLE",
+          "NO_BIDS",
+          "AWAITING_ESIGN",
+          "AWAITING_DISBURSEMENT",
+          "DISBURSED",
+          "DISBURSEMENT_FAILED",
+          "SETTLED_WITHOUT_RECOURSE",
+          "BUYER_DECLINED",
+          "CANCELLED",
+          "STAGE_1_PREPARED",
+          "STAGE_1_SENT_BY_OWNER",
+          "STAGE_2_PREPARED",
+          "STAGE_2_SENT_BY_OWNER",
+          "STAGE_3_PREPARED",
+          "STAGE_3_SENT_BY_OWNER",
+          "STAGE_4_PACK_READY",
+          "ODR_FILED_BY_OWNER",
+          "SETTLED",
+          "PAID",
+          "CLOSED"
+        ],
+        "title": "TrackState",
+        "type": "string"
+      },
       "Transaction": {
         "properties": {
           "calculation_date": {
@@ -2103,11 +3020,68 @@
         ],
         "title": "WarningSeverity",
         "type": "string"
+      },
+      "WebhookDelivery": {
+        "description": "`webhook_inbox` row (architecture_v4 section 8, `docs/webhooks.md`).",
+        "properties": {
+          "outcome": {
+            "$ref": "#/components/schemas/WebhookOutcome"
+          },
+          "processed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Processed At"
+          },
+          "provider": {
+            "title": "Provider",
+            "type": "string"
+          },
+          "provider_event_id": {
+            "title": "Provider Event Id",
+            "type": "string"
+          },
+          "received_at": {
+            "format": "date-time",
+            "title": "Received At",
+            "type": "string"
+          },
+          "signature_ok": {
+            "title": "Signature Ok",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "provider_event_id",
+          "provider",
+          "received_at",
+          "signature_ok",
+          "outcome"
+        ],
+        "title": "WebhookDelivery",
+        "type": "object"
+      },
+      "WebhookOutcome": {
+        "enum": [
+          "APPLIED",
+          "DUPLICATE",
+          "PARKED",
+          "REJECTED"
+        ],
+        "title": "WebhookOutcome",
+        "type": "string"
       }
     }
   },
   "info": {
-    "description": "MSME payment-rights evaluation API. Contract v1.0; frozen and additive-only after the contract-v1 tag (architecture.md section 9).",
+    "description": "MSME payment-rights evaluation API. Contract v1.0; frozen and additive-only after the contract-v1 tag (architecture.md section 9). The v1.1 shapes for the v4 two-option model are published as unreferenced components until their routes land.",
     "title": "SamadhaanOS API",
     "version": "1.0"
   },

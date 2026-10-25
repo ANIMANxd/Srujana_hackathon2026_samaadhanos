@@ -1,0 +1,173 @@
+{
+  "_fixture": {
+    "schema": "Event[]",
+    "contract_version": "1.1",
+    "synthetic": true,
+    "placeholder": false,
+    "placeholder_fields": [],
+    "why": "An append-only, hash-chained audit trail that verifies. hash = sha256(prev_hash || canonical_json(type, payload, actor, created_at)); the first event's prev_hash is 00000000... (genesis). Tamper-evident, not tamper-proof.",
+    "regenerate_with": "python -m backend.app.export_v4_fixtures"
+  },
+  "payload": [
+    {
+      "seq": 1,
+      "case_id": "01JAV4E7K3M9Q2R5T8V0W1XCZD",
+      "track_id": null,
+      "type": "case.created",
+      "payload_json": {
+        "invoice_no": "INV-0042"
+      },
+      "actor": "USER",
+      "created_at": "2026-10-25T09:12:04Z",
+      "prev_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+      "hash": "594c3680a9d185750d002a6708d1e7e6830ea48133768bbfff26d2f0170c02d5"
+    },
+    {
+      "seq": 2,
+      "case_id": "01JAV4E7K3M9Q2R5T8V0W1XCZD",
+      "track_id": null,
+      "type": "evaluation.stored",
+      "payload_json": {
+        "as_of": "2026-10-25"
+      },
+      "actor": "SYSTEM",
+      "created_at": "2026-10-25T09:12:05Z",
+      "prev_hash": "594c3680a9d185750d002a6708d1e7e6830ea48133768bbfff26d2f0170c02d5",
+      "hash": "cf1c469381819b53bbac31cba501885240425d7d0c43cc509669b104b9e93d27"
+    },
+    {
+      "seq": 3,
+      "case_id": "01JAV4E7K3M9Q2R5T8V0W1XCZD",
+      "track_id": "TRK-FIN-0001",
+      "type": "track.created",
+      "payload_json": {
+        "kind": "FINANCING"
+      },
+      "actor": "USER",
+      "created_at": "2026-10-25T09:13:10Z",
+      "prev_hash": "cf1c469381819b53bbac31cba501885240425d7d0c43cc509669b104b9e93d27",
+      "hash": "8e9d62c29f8352efe14e3aa96b4f675853419eede1cc776adf2d4b71f60c73c7"
+    },
+    {
+      "seq": 4,
+      "case_id": "01JAV4E7K3M9Q2R5T8V0W1XCZD",
+      "track_id": "TRK-FIN-0001",
+      "type": "financing.financeable",
+      "payload_json": {
+        "reasons": []
+      },
+      "actor": "SYSTEM",
+      "created_at": "2026-10-25T09:13:11Z",
+      "prev_hash": "8e9d62c29f8352efe14e3aa96b4f675853419eede1cc776adf2d4b71f60c73c7",
+      "hash": "cb48e4a010116f6c1513de15b2eefffd5bdd2362a8dfc7aabf694767ea5b3d4d"
+    },
+    {
+      "seq": 5,
+      "case_id": "01JAV4E7K3M9Q2R5T8V0W1XCZD",
+      "track_id": "TRK-FIN-0001",
+      "type": "financing.acceptance_requested",
+      "payload_json": {
+        "buyer_gstin": "29SYN000000000Z1"
+      },
+      "actor": "USER",
+      "created_at": "2026-10-25T09:14:02Z",
+      "prev_hash": "cb48e4a010116f6c1513de15b2eefffd5bdd2362a8dfc7aabf694767ea5b3d4d",
+      "hash": "9ccbae98555f3f35a5824c725ca9be478da2cebeffeb4b0b920d1d754cd0d175"
+    },
+    {
+      "seq": 6,
+      "case_id": "01JAV4E7K3M9Q2R5T8V0W1XCZD",
+      "track_id": "TRK-FIN-0001",
+      "type": "webhook.fu.accepted",
+      "payload_json": {
+        "provider_event_id": "MOCK-EVT-0001"
+      },
+      "actor": "PROVIDER_MOCK",
+      "created_at": "2026-10-25T09:14:06Z",
+      "prev_hash": "9ccbae98555f3f35a5824c725ca9be478da2cebeffeb4b0b920d1d754cd0d175",
+      "hash": "ef65a75a3b4938275367d5fc2c2c62d2d3675454a25478f8dfc41f8fb2379504"
+    },
+    {
+      "seq": 7,
+      "case_id": "01JAV4E7K3M9Q2R5T8V0W1XCZD",
+      "track_id": "TRK-FIN-0001",
+      "type": "financing.bidding_opened",
+      "payload_json": {
+        "window_hours": 24
+      },
+      "actor": "SYSTEM",
+      "created_at": "2026-10-25T09:14:07Z",
+      "prev_hash": "ef65a75a3b4938275367d5fc2c2c62d2d3675454a25478f8dfc41f8fb2379504",
+      "hash": "02f3e2f7eeae934bfcdabed79170f830ae6b36503d31a578a7dd0bfa40aa96e2"
+    },
+    {
+      "seq": 8,
+      "case_id": "01JAV4E7K3M9Q2R5T8V0W1XCZD",
+      "track_id": "TRK-FIN-0001",
+      "type": "webhook.bids.available",
+      "payload_json": {
+        "provider_event_id": "MOCK-EVT-0002",
+        "bids": 3
+      },
+      "actor": "PROVIDER_MOCK",
+      "created_at": "2026-10-25T09:14:10Z",
+      "prev_hash": "02f3e2f7eeae934bfcdabed79170f830ae6b36503d31a578a7dd0bfa40aa96e2",
+      "hash": "b0eaf54a6e684af6f6a3de77a88595cfa8d76ffcf9824ada9b915ad75a1093e6"
+    },
+    {
+      "seq": 9,
+      "case_id": "01JAV4E7K3M9Q2R5T8V0W1XCZD",
+      "track_id": "TRK-FIN-0001",
+      "type": "financing.bid_selected",
+      "payload_json": {
+        "bid_id": "MOCK-BID-C",
+        "financier_alias": "Financier C"
+      },
+      "actor": "USER",
+      "created_at": "2026-10-25T09:16:31Z",
+      "prev_hash": "b0eaf54a6e684af6f6a3de77a88595cfa8d76ffcf9824ada9b915ad75a1093e6",
+      "hash": "5e08e3d14202a6483e52c836f6de07ccecdc1f091c5576cada7be9cc018ca3ef"
+    },
+    {
+      "seq": 10,
+      "case_id": "01JAV4E7K3M9Q2R5T8V0W1XCZD",
+      "track_id": "TRK-FIN-0001",
+      "type": "webhook.esign.completed",
+      "payload_json": {
+        "provider_event_id": "MOCK-EVT-0003",
+        "session_id": "MOCK-ESIGN-0007"
+      },
+      "actor": "PROVIDER_MOCK",
+      "created_at": "2026-10-25T09:18:12Z",
+      "prev_hash": "5e08e3d14202a6483e52c836f6de07ccecdc1f091c5576cada7be9cc018ca3ef",
+      "hash": "e4db8b578072e7d3aeae0157dab7441999602c5778e08358224781b54b91d6b3"
+    },
+    {
+      "seq": 11,
+      "case_id": "01JAV4E7K3M9Q2R5T8V0W1XCZD",
+      "track_id": "TRK-FIN-0001",
+      "type": "webhook.payout.processed",
+      "payload_json": {
+        "provider_event_id": "MOCK-EVT-0004",
+        "payout_ref": "MOCK-PAYOUT-0007"
+      },
+      "actor": "PROVIDER_MOCK",
+      "created_at": "2026-10-25T09:18:44Z",
+      "prev_hash": "e4db8b578072e7d3aeae0157dab7441999602c5778e08358224781b54b91d6b3",
+      "hash": "3442ae05c474e5ec590521262a80a4a2a45cd15ae980a9c79a719b9d93abe3d7"
+    },
+    {
+      "seq": 12,
+      "case_id": "01JAV4E7K3M9Q2R5T8V0W1XCZD",
+      "track_id": "TRK-FIN-0001",
+      "type": "financing.disbursed",
+      "payload_json": {
+        "net_amount": "1240530.82"
+      },
+      "actor": "SYSTEM",
+      "created_at": "2026-10-25T09:18:45Z",
+      "prev_hash": "3442ae05c474e5ec590521262a80a4a2a45cd15ae980a9c79a719b9d93abe3d7",
+      "hash": "16d209faf7959d64efcaa027f7ba659fc6be837eb82eef25699c2f370aeff81a"
+    }
+  ]
+}

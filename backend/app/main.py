@@ -35,6 +35,7 @@ from backend.engine.settlement import evaluate_settlement
 from backend.extraction.extract import extract_evidence as run_extraction
 from backend.extraction.llm import settings_from_env
 from backend.extraction.text import ExtractionInputError
+from backend.app.schemas_v4 import component_schemas as v1_1_component_schemas
 
 PRESETS_DIR = Path(__file__).resolve().parent.parent / "presets"
 
@@ -43,9 +44,41 @@ app = FastAPI(
     version=CONTRACT_VERSION,
     description=(
         "MSME payment-rights evaluation API. Contract v1.0; frozen and "
-        "additive-only after the contract-v1 tag (architecture.md section 9)."
+        "additive-only after the contract-v1 tag (architecture.md section 9). "
+        "The v1.1 shapes for the v4 two-option model are published as "
+        "unreferenced components until their routes land."
     ),
 )
+
+
+# ------------------------------------------------------ contract v1.1 ----
+# The v1.1 schemas ship before their routes (architecture_v4 section 9). They
+# are registered as components only, so `paths` is untouched and every v1.0
+# operation stays byte-identical. A v1.1 model may never shadow a v1.0 name.
+
+_BASE_OPENAPI = app.openapi
+
+
+def _openapi_with_v1_1() -> dict:
+    if app.openapi_schema is not None:
+        return app.openapi_schema
+    schema = _BASE_OPENAPI()
+    components = schema.setdefault("components", {}).setdefault("schemas", {})
+    v1_1, authored = v1_1_component_schemas()
+    for name, sub in v1_1.items():
+        if name in components:
+            if name in authored:
+                raise RuntimeError(
+                    f"contract v1.1 schema {name!r} collides with the frozen v1.0 schema"
+                )
+            # A v1.0 model pulled in by reference: the frozen definition wins.
+            continue
+        components[name] = sub
+    app.openapi_schema = schema
+    return schema
+
+
+app.openapi = _openapi_with_v1_1
 
 
 # ------------------------------------------------------------- errors ----

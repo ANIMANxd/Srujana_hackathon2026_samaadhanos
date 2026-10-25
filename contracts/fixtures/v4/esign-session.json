@@ -1,0 +1,20 @@
+{
+  "_fixture": {
+    "schema": "ESignSession",
+    "contract_version": "1.1",
+    "synthetic": true,
+    "placeholder": false,
+    "placeholder_fields": [],
+    "why": "A simulated signing session. No Aadhaar field exists and none is stored (golden rule 18); the hash is a synthetic placeholder digest.",
+    "regenerate_with": "python -m backend.app.export_v4_fixtures"
+  },
+  "payload": {
+    "session_id": "MOCK-ESIGN-0007",
+    "status": "SIGNED",
+    "signing_url": "/mock/esign/MOCK-ESIGN-0007",
+    "expires_at": "2026-10-25T09:28:31Z",
+    "signed_doc_sha256": "9f2c1b7d4e6a8c0b3d5f7a9c1e3b5d7f9a1c3e5b7d9f1a3c5e7b9d1f3a5c7e9b",
+    "signer_display": "Demo Signer",
+    "signed_at": "2026-10-25T09:18:12Z"
+  }
+}

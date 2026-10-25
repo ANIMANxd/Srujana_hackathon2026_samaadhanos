@@ -1,0 +1,61 @@
+{
+  "_fixture": {
+    "schema": "WebhookDelivery[]",
+    "contract_version": "1.1",
+    "synthetic": true,
+    "placeholder": false,
+    "placeholder_fields": [],
+    "why": "Every delivery is recorded, including the duplicate (no side effects), the out-of-order event parked until the state catches up, and the bad-signature rejection. See docs/webhooks.md.",
+    "regenerate_with": "python -m backend.app.export_v4_fixtures"
+  },
+  "payload": [
+    {
+      "provider_event_id": "MOCK-EVT-0001",
+      "provider": "marketplace",
+      "received_at": "2026-10-25T09:14:06Z",
+      "signature_ok": true,
+      "processed_at": "2026-10-25T09:14:06Z",
+      "outcome": "APPLIED"
+    },
+    {
+      "provider_event_id": "MOCK-EVT-0002",
+      "provider": "marketplace",
+      "received_at": "2026-10-25T09:14:10Z",
+      "signature_ok": true,
+      "processed_at": "2026-10-25T09:14:10Z",
+      "outcome": "APPLIED"
+    },
+    {
+      "provider_event_id": "MOCK-EVT-0002",
+      "provider": "marketplace",
+      "received_at": "2026-10-25T09:14:11Z",
+      "signature_ok": true,
+      "processed_at": null,
+      "outcome": "DUPLICATE"
+    },
+    {
+      "provider_event_id": "MOCK-EVT-0003",
+      "provider": "esign",
+      "received_at": "2026-10-25T09:18:12Z",
+      "signature_ok": true,
+      "processed_at": "2026-10-25T09:18:12Z",
+      "outcome": "APPLIED"
+    },
+    {
+      "provider_event_id": "MOCK-EVT-0005",
+      "provider": "disbursement",
+      "received_at": "2026-10-25T09:18:40Z",
+      "signature_ok": true,
+      "processed_at": null,
+      "outcome": "PARKED"
+    },
+    {
+      "provider_event_id": "MOCK-EVT-0006",
+      "provider": "marketplace",
+      "received_at": "2026-10-25T09:19:02Z",
+      "signature_ok": false,
+      "processed_at": null,
+      "outcome": "REJECTED"
+    }
+  ]
+}
