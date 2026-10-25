@@ -70,23 +70,23 @@ export function Drawer({
 
   return (
     <div className="no-print fixed inset-0 z-50 flex justify-end">
-      <div className="absolute inset-0 animate-fade bg-ink-950/40" onClick={onClose} aria-hidden="true" />
+      <div className="absolute inset-0 animate-fade bg-ink-950/25 backdrop-blur-[2px]" onClick={onClose} aria-hidden="true" />
       <div
         ref={panel}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className={`relative flex h-full w-full ${widthClass} animate-drawer flex-col border-l border-rule-strong bg-paper-raised`}
+        className={`relative flex h-full w-full ${widthClass} animate-drawer flex-col border-l border-rule bg-paper-raised shadow-float`}
       >
-        <div className="flex items-start justify-between gap-4 border-b border-rule px-5 py-4">
-          <h2 id={titleId} className="font-display text-xl font-semibold leading-tight text-ink-950">
+        <div className="flex items-center justify-between gap-4 border-b border-rule px-6 py-4">
+          <h2 id={titleId} className="text-lg font-semibold leading-tight tracking-[-0.01em] text-ink-950">
             {title}
           </h2>
-          <button type="button" onClick={onClose} className="btn btn-secondary min-h-0 px-2 py-1.5" aria-label={t("common.close")}>
+          <button type="button" onClick={onClose} className="btn btn-quiet min-h-8 px-2" aria-label={t("common.close")}>
             <Icon name="close" className="h-4 w-4" />
           </button>
         </div>
-        <div className="flex-1 overflow-y-auto px-5 py-5">{children}</div>
+        <div className="flex-1 overflow-y-auto px-6 py-6">{children}</div>
       </div>
     </div>
   );

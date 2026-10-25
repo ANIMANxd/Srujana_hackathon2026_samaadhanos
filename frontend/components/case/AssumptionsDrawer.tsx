@@ -39,24 +39,24 @@ export function AssumptionsDrawer({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="panel flex w-full items-center justify-between gap-3 px-5 py-4 text-left hover:border-ink-600"
+        className="panel flex w-full items-center justify-between gap-3 px-6 py-4 text-left transition-colors hover:bg-paper"
       >
-        <span className="flex items-center gap-2 font-semibold text-ink-900">
-          <Icon name="doc" />
+        <span className="flex items-center gap-2.5 text-sm font-medium text-ink-950">
+          <Icon name="doc" className="h-4 w-4 text-ink-500" />
           {t("assumptions.title")}
         </span>
-        <span className="flex items-center gap-2 text-sm text-ink-600">
-          {response.warnings.length} · {response.assumptions.length}
+        <span className="flex items-center gap-2 text-xs text-ink-500">
+          {t("assumptions.summary", { w: response.warnings.length, a: response.assumptions.length })}
           <Icon name="chevron" className="h-4 w-4" />
         </span>
       </button>
 
       <Drawer open={open} onClose={() => setOpen(false)} title={t("assumptions.title")} width="lg">
         <div className="flex flex-col gap-7">
-          <p className="text-ink-700">{t("assumptions.intro")}</p>
+          <p className="text-sm text-ink-600">{t("assumptions.intro")}</p>
 
           <section>
-            <h3 className="ledger-rule font-display text-lg font-semibold">{t("assumptions.section.warnings")}</h3>
+            <h3 className="section-title border-b border-rule pb-2">{t("assumptions.section.warnings")}</h3>
             {response.warnings.length === 0 ? (
               <p className="mt-2 text-sm text-ink-600">{t("assumptions.none")}</p>
             ) : (
@@ -75,7 +75,7 @@ export function AssumptionsDrawer({
           </section>
 
           <section>
-            <h3 className="ledger-rule font-display text-lg font-semibold">{t("assumptions.section.assumptions")}</h3>
+            <h3 className="section-title border-b border-rule pb-2">{t("assumptions.section.assumptions")}</h3>
             {response.assumptions.length === 0 ? (
               <p className="mt-2 text-sm text-ink-600">{t("assumptions.none")}</p>
             ) : (
@@ -88,7 +88,7 @@ export function AssumptionsDrawer({
           </section>
 
           <section>
-            <h3 className="ledger-rule font-display text-lg font-semibold">{t("assumptions.section.citations")}</h3>
+            <h3 className="section-title border-b border-rule pb-2">{t("assumptions.section.citations")}</h3>
             {response.citations.length === 0 ? (
               <p className="mt-2 text-sm text-ink-600">{t("assumptions.none")}</p>
             ) : (
@@ -110,7 +110,7 @@ export function AssumptionsDrawer({
           </section>
 
           <section>
-            <h3 className="ledger-rule font-display text-lg font-semibold">{t("assumptions.section.config")}</h3>
+            <h3 className="section-title border-b border-rule pb-2">{t("assumptions.section.config")}</h3>
             {configLoading ? (
               <p className="mt-2 text-sm text-ink-600">{t("state.loading")}</p>
             ) : !config ? (

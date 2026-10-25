@@ -14,9 +14,11 @@ npm run dev          # http://localhost:3000
 ```
 
 With the backend running (`make backend` in the repo root, port 8000), every
-screen uses live engine output. Without it, preset cases render from
-`contracts/fixtures/` under an **"Offline demo data"** banner, and edited cases
-say "Recompute needs the backend" instead of showing numbers.
+screen uses live engine output and the top bar says **Engine live**. Without it,
+the top bar says **Offline · saved results**: preset cases render the engine
+output saved in `contracts/fixtures/` (including the draft samples), the upload
+samples show the extractor's saved results, and edited or uploaded cases say
+"Recompute needs the backend" instead of showing numbers.
 
 | Env var | Default | Purpose |
 |---|---|---|
@@ -26,7 +28,7 @@ say "Recompute needs the backend" instead of showing numbers.
 
 | Script | What it does |
 |---|---|
-| `npm run sync` | Copies `../contracts/types.ts` → `generated/contract-types.ts` and `../contracts/fixtures/*` → `fixtures/` (both git-ignored). Runs automatically before dev, build and typecheck |
+| `npm run sync` | Copies `../contracts/types.ts` → `generated/contract-types.ts`, and `../contracts/fixtures/*` plus the extractor's demo samples → `fixtures/` (both git-ignored). Runs automatically before dev, build and typecheck |
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm run lint` | ESLint (Next core-web-vitals + TypeScript) |
 | `npm run build` | Production build |
@@ -38,10 +40,10 @@ say "Recompute needs the backend" instead of showing numbers.
 | Route | Question it answers |
 |---|---|
 | `/` Dues | Who owes me, how late, what first? |
-| `/upload` | Did the app read my invoice correctly? (approve before anything is used) |
+| `/upload` | Did the app read my invoice, PO or WhatsApp export correctly? (.txt; approve before anything is used) |
 | `/case/[id]` | What's happening with this invoice and what do I do now? (guidance card, timeline, money, ladder) |
 | `/case/[id]?view=cfo` | What does the buyer's finance team see? (three separate cost lines, never summed) |
-| `/case/[id]/send/[stage]` | What exactly will I send? (editable draft; WhatsApp / email / copy; nothing auto-sends) |
+| `/case/[id]?send=n` (n = 1 to 3) | What exactly will I send? (slide-over drawer: engine draft, editable; WhatsApp / email / copy / PDF; nothing auto-sends). `/case/[id]/send/[stage]` shows the same panel as a page |
 | `/case/[id]/pack` | Am I ready for the MSME ODR portal? (checklist, chronology, interest sheet, certificate **template**) |
 | `/eligibility/[id]` | Does the law cover me? (shown instead of the case when the gate blocks) |
 
@@ -62,8 +64,8 @@ lib/
   format.ts          ₹ Indian grouping, dates, % (formatting only; BigInt paise for the live ticker)
   derive.ts          picks which engine value to show (never computes one)
   i18n/              en.ts holds every user-visible string; kn.ts stub
-  extraction.ts      local mirror of the not-yet-contracted extract endpoint
-demo-cases/          synthetic INPUT files used until backend presets exist
+  extraction.ts      upload review helpers over the contract ExtractionResponse
+  useConnection.ts   engine live / offline pill
 scripts/             sync-contracts.mjs, smoke.mjs
 ```
 

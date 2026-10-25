@@ -18,8 +18,9 @@ const ROUTES = [
   "/case/case_01/send/3",
   "/case/case_01/send/4",
   "/eligibility/case_01",
-  "/case/demo_02",
-  "/case/demo_03",
+  "/case/case_01?send=2",
+  "/case/case_06",
+  "/eligibility/case_05a",
   "/case/does_not_exist",
 ];
 

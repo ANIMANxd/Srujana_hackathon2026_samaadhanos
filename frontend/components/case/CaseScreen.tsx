@@ -1,17 +1,20 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useSendLog } from "@/lib/caseStore";
 import { isNotCovered, isPlaceholder } from "@/lib/derive";
 import { useT } from "@/lib/i18n";
 import { useHref, useUrlState } from "@/lib/params";
 import { useConfig } from "@/lib/useConfig";
 import { useEvaluation } from "@/lib/useEvaluation";
+import { Drawer } from "../common/Drawer";
+import { Icon } from "../common/Icon";
 import { CaseSkeleton, ErrorState, NotFoundState } from "../common/States";
-import { StatusIcon } from "../common/StatusIcon";
 import { DataBanners } from "../shell/Banners";
 import { JudgeConsole } from "../shell/JudgeConsole";
 import { CfoCostLines } from "../cfo/CfoCostLines";
+import { SendPanel } from "../send/SendPanel";
 import { AssumptionsDrawer } from "./AssumptionsDrawer";
 import { CaseHeader } from "./CaseHeader";
 import { EscalationLadder } from "./EscalationLadder";
@@ -21,11 +24,12 @@ import { MoneyCard } from "./MoneyCard";
 import { NotCovered } from "./NotCovered";
 import { StatuteTimeline } from "./StatuteTimeline";
 
-/** The hero screen (frontend-structure §2): guidance, timeline, money, next step. */
+/** The hero screen (frontend-structure §2): claim, timeline, money, next step. */
 export function CaseScreen({ caseId }: { caseId: string }) {
   const { t } = useT();
   const href = useHref();
-  const { view } = useUrlState();
+  const router = useRouter();
+  const { view, send } = useUrlState();
   const ev = useEvaluation(caseId);
   const cfg = useConfig();
   const log = useSendLog(caseId);
@@ -37,17 +41,19 @@ export function CaseScreen({ caseId }: { caseId: string }) {
 
   const res = ev.response;
   const placeholder = isPlaceholder(res);
+  const notCovered = res ? isNotCovered(res) : false;
+  const closeSend = () => router.replace(href(`/case/${caseId}`), { scroll: false });
 
   return (
     <div className="flex flex-col gap-6">
-      <CaseHeader caseId={caseId} request={ev.request} response={res} showViewToggle={Boolean(res && !isNotCovered(res))} />
-      <DataBanners offline={ev.source === "offline"} placeholder={placeholder} needsBackend={ev.status === "needs_backend"} />
+      <CaseHeader caseId={caseId} request={ev.request} response={res} showViewToggle={Boolean(res && !notCovered)} />
+      <DataBanners placeholder={placeholder} needsBackend={ev.status === "needs_backend"} />
       {ev.error && res && <ErrorState message={ev.error} onRetry={ev.retry} />}
 
       {ev.status === "loading" && !res && <CaseSkeleton />}
       {ev.status === "error" && !res && <ErrorState message={ev.error ?? t("state.error_title")} onRetry={ev.retry} />}
       {ev.status === "needs_backend" && (
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-wrap gap-2">
           {ev.isEdited && (
             <button type="button" className="btn btn-secondary" onClick={ev.reset}>
               {t("judge.reset")}
@@ -60,27 +66,27 @@ export function CaseScreen({ caseId }: { caseId: string }) {
       )}
 
       {res && ev.request && ev.status !== "needs_backend" && (
-        <div className={`flex flex-col gap-6 ${ev.refreshing ? "opacity-80 transition-opacity" : ""}`} aria-busy={ev.refreshing}>
-          {isNotCovered(res) ? (
+        <div className={`flex flex-col gap-4 transition-opacity ${ev.refreshing ? "opacity-70" : ""}`} aria-busy={ev.refreshing}>
+          {notCovered ? (
             <NotCovered request={ev.request} response={res} />
           ) : view === "cfo" ? (
             <CfoCostLines request={ev.request} response={res} placeholder={placeholder} onChangeRequest={ev.setRequest} />
           ) : (
             <>
               {res.jurisdiction.status === "INSUFFICIENT_DATA" && (
-                <p className="flex flex-wrap items-center gap-2 text-sm text-ink-700">
-                  <StatusIcon size="sm" tone="warn" label={t("eligibility.INSUFFICIENT_DATA")} />
+                <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-ink-600">
+                  <Icon name="info" className="h-4 w-4 text-warn" />
                   {t("eligibility.unconfirmed_note")}
-                  <Link href={href(`/eligibility/${caseId}`)} className="btn btn-quiet min-h-0 text-sm">
+                  <Link href={href(`/eligibility/${caseId}`)} className="link">
                     {t("eligibility.see_why")}
                   </Link>
                 </p>
               )}
-              <GuidanceCard caseId={caseId} request={ev.request} response={res} config={cfg.config} placeholder={placeholder} />
+              <GuidanceCard caseId={caseId} response={res} config={cfg.config} placeholder={placeholder} />
               <StatuteTimeline response={res} />
-              <div className="grid gap-6 lg:grid-cols-[3fr_2fr]">
+              <div className="grid gap-4 lg:grid-cols-[3fr_2fr]">
                 <MoneyCard response={res} placeholder={placeholder} />
-                <div className="flex flex-col gap-6">
+                <div className="flex flex-col gap-4">
                   <LimitationCard limitation={res.limitation} />
                   <AssumptionsDrawer response={res} config={cfg.config} configLoading={cfg.loading} configIsStub={cfg.isStub} />
                 </div>
@@ -89,6 +95,12 @@ export function CaseScreen({ caseId }: { caseId: string }) {
             </>
           )}
         </div>
+      )}
+
+      {res && ev.request && !notCovered && send && (
+        <Drawer open onClose={closeSend} title={t("send.title", { n: send, title: t(`stage.${send}.title`) })} width="md">
+          <SendPanel key={send} caseId={caseId} stage={send} request={ev.request} response={res} offlineId={ev.offlineId} />
+        </Drawer>
       )}
 
       <JudgeConsole current={judge} />

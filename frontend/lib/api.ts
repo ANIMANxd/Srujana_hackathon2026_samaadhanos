@@ -3,8 +3,16 @@
 // the synced fixtures and the caller is told the data is offline (F1).
 // No legal math here: requests and responses pass through untouched.
 
-import { asRequest, asResponse, demoFor, fixtureFor, FIXTURES } from "./fixtures";
-import type { CaseRequest, CaseResponse, PresetSummary, StatuteConfig } from "./types";
+import { artifactFixture, asExtraction, asRequest, asResponse, fixtureFor, FIXTURES } from "./fixtures";
+import type {
+  ArtifactKind,
+  ArtifactResponse,
+  CaseRequest,
+  CaseResponse,
+  ExtractionResponse,
+  PresetSummary,
+  StatuteConfig,
+} from "./types";
 
 const BASE = "/api/v1";
 const TIMEOUT_MS = 8000;
@@ -125,35 +133,47 @@ export async function getConfig(): Promise<StatuteConfig | null> {
   }
 }
 
-/** Where a case's original request comes from. */
-export function knownCaseTitle(id: string): string | null {
-  return fixtureFor(id)?.title ?? demoFor(id)?.title ?? null;
+/**
+ * POST /extract-evidence (B9): a plain-text upload (invoice or PO text, or a
+ * WhatsApp .txt export) in, machine-suggested candidates out. Nothing here is
+ * evaluated; a person confirms the values first.
+ */
+export async function extractEvidence(file: Blob, filename: string): Promise<ExtractionResponse> {
+  const form = new FormData();
+  form.append("file", file, filename);
+  const body = await call<unknown>("/extract-evidence", { method: "POST", body: form });
+  const response = asExtraction(body);
+  if (!response) throw new ApiError(500, "BAD_RESPONSE", "The extraction result did not match the contract.");
+  return response;
 }
 
-// ---------------------------------------------------- not-yet-built routes ----
-// /generate-artifact (B8) and /extract-evidence (B9-lite) are not in the
-// contract yet. These return null when the route does not exist, so the UI can
-// show a clearly labelled placeholder instead (see CONTRACT-REQUESTS.md).
+// ------------------------------------------------------------ artifacts ----
 
-export type ArtifactKind =
-  | "STAGE1_ACCEPTANCE_NOTE"
-  | "STAGE1_BALANCE_CONFIRMATION"
-  | "STAGE2_CFO_MEMO"
-  | "STAGE3_SETTLEMENT_TERMSHEET"
-  | "STAGE4_EVIDENCE_PACK";
+/** A drafted artifact and where it came from (live engine or saved sample). */
+export type SourcedArtifact = Sourced<ArtifactResponse>;
 
-export type Artifact = { filename: string; markdown: string; pdf_base64?: string | null };
-
-export async function generateArtifact(kind: ArtifactKind, request: CaseRequest): Promise<Artifact | null> {
+/**
+ * POST /generate-artifact (B8). The backend evaluates the case itself, so the
+ * draft only ever carries engine figures. Offline, an UNEDITED preset falls
+ * back to the engine-generated sample saved in contracts/fixtures; anything
+ * else returns null so the caller can say the draft needs the backend.
+ */
+export async function generateArtifact(
+  kind: ArtifactKind,
+  request: CaseRequest,
+  offlineCaseId: string | null,
+): Promise<SourcedArtifact | null> {
   try {
-    const body = await postJson<unknown>("/generate-artifact", { kind, request });
-    if (typeof body === "object" && body !== null && typeof (body as Artifact).markdown === "string") {
-      return body as Artifact;
-    }
-    return null;
+    const body = await postJson<ArtifactResponse>("/generate-artifact", { kind, request });
+    if (typeof body?.markdown !== "string") throw new ApiError(500, "BAD_RESPONSE", "The draft did not match the contract.");
+    return { data: body, source: "live" };
   } catch (e) {
-    if (e instanceof BackendUnreachable) return null;
-    if (e instanceof ApiError && (e.status === 404 || e.status === 405)) return null;
-    throw e;
+    if (!(e instanceof BackendUnreachable)) throw e;
+    const markdown = offlineCaseId ? artifactFixture(offlineCaseId, kind) : null;
+    if (markdown === null) return null;
+    return {
+      data: { contract_version: "1.0", kind, filename: `${offlineCaseId}.${kind}.md`, markdown, warnings: [] },
+      source: "offline",
+    };
   }
 }

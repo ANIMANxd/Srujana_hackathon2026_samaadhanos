@@ -8,24 +8,30 @@ import { Icon } from "./Icon";
 
 /** Skeleton block for loading states (no spinners on the hero card). */
 export function Skeleton({ className = "h-6 w-full" }: { className?: string }) {
-  return <div className={`animate-pulse rounded-sm bg-paper-sunk ${className}`} aria-hidden="true" />;
+  return <div className={`animate-pulse rounded-md bg-paper-sunk ${className}`} aria-hidden="true" />;
 }
 
 export function CaseSkeleton() {
   const { t } = useT();
   return (
-    <div className="flex flex-col gap-5" aria-busy="true">
+    <div className="flex flex-col gap-4" aria-busy="true">
       <span className="sr-only">{t("state.loading")}</span>
-      <Skeleton className="h-8 w-2/3" />
-      <div className="panel flex flex-col gap-3 p-6">
-        <Skeleton className="h-10 w-4/5" />
-        <Skeleton className="h-5 w-3/5" />
-        <Skeleton className="h-5 w-2/5" />
-        <Skeleton className="h-11 w-48" />
+      <div className="panel grid gap-8 p-6 sm:p-8 lg:grid-cols-[1.4fr_1fr]">
+        <div className="flex flex-col gap-3">
+          <Skeleton className="h-3 w-24" />
+          <Skeleton className="h-11 w-64" />
+          <Skeleton className="h-4 w-80 max-w-full" />
+        </div>
+        <div className="flex flex-col gap-3">
+          <Skeleton className="h-3 w-20" />
+          <Skeleton className="h-6 w-48" />
+          <Skeleton className="h-10 w-40" />
+        </div>
       </div>
-      <div className="grid gap-5 md:grid-cols-[3fr_2fr]">
-        <Skeleton className="h-40" />
-        <Skeleton className="h-40" />
+      <Skeleton className="h-28" />
+      <div className="grid gap-4 md:grid-cols-[3fr_2fr]">
+        <Skeleton className="h-44" />
+        <Skeleton className="h-44" />
       </div>
     </div>
   );
@@ -33,11 +39,13 @@ export function CaseSkeleton() {
 
 export function EmptyState({ title, body, children }: { title: string; body: string; children?: ReactNode }) {
   return (
-    <div className="panel flex flex-col items-start gap-3 px-6 py-10">
-      <Icon name="ledger" className="h-8 w-8 text-ink-500" />
-      <h2 className="font-display text-2xl font-semibold text-ink-950">{title}</h2>
-      <p className="max-w-prose text-ink-700">{body}</p>
-      {children && <div className="mt-2 flex flex-wrap gap-3">{children}</div>}
+    <div className="panel flex flex-col items-start gap-3 px-6 py-12 sm:px-10">
+      <span className="grid h-10 w-10 place-items-center rounded-lg border border-rule bg-paper text-ink-500">
+        <Icon name="ledger" className="h-5 w-5" />
+      </span>
+      <h2 className="mt-2 text-xl font-semibold tracking-[-0.01em] text-ink-950">{title}</h2>
+      <p className="max-w-prose text-ink-600">{body}</p>
+      {children && <div className="mt-3 flex flex-wrap gap-3">{children}</div>}
     </div>
   );
 }
@@ -45,14 +53,14 @@ export function EmptyState({ title, body, children }: { title: string; body: str
 export function ErrorState({ message, onRetry }: { message: string; onRetry?: () => void }) {
   const { t } = useT();
   return (
-    <div role="alert" className="panel flex flex-col items-start gap-3 border-block/40 px-6 py-8">
-      <span className="inline-flex items-center gap-2 font-semibold text-block">
-        <Icon name="block" />
+    <div role="alert" className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-lg border border-block/25 bg-block-wash px-4 py-3 text-sm">
+      <span className="inline-flex items-center gap-2 font-medium text-block">
+        <Icon name="block" className="h-4 w-4" />
         {t("state.error_title")}
       </span>
-      <p className="max-w-prose text-ink-700">{message}</p>
+      <p className="flex-1 text-ink-800">{message}</p>
       {onRetry && (
-        <button type="button" className="btn btn-secondary" onClick={onRetry}>
+        <button type="button" className="btn btn-secondary min-h-8 px-3" onClick={onRetry}>
           {t("state.retry")}
         </button>
       )}

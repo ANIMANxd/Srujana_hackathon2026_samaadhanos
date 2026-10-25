@@ -1,156 +1,160 @@
 "use client";
 
 import Link from "next/link";
-import type { ReactNode } from "react";
-import { currentStage, isStageBlocked, latestSegment, showDeemedAcceptance, topDefense } from "@/lib/derive";
-import { date, money, pct } from "@/lib/format";
+import { useState } from "react";
+import { currentStage, isStageBlocked, showDeemedAcceptance, topDefense } from "@/lib/derive";
+import { count, money, moneyParts } from "@/lib/format";
 import { useT } from "@/lib/i18n";
 import { useHref } from "@/lib/params";
-import type { CaseRequest, CaseResponse, StatuteConfig } from "@/lib/types";
+import type { CaseResponse, StatuteConfig } from "@/lib/types";
 import { Icon } from "../common/Icon";
+import { StatusIcon } from "../common/StatusIcon";
 import { PlaceholderBadge } from "../shell/PlaceholderBadge";
-import { SectionChip } from "./SectionChip";
+import { DEFENSE_TONE, DefensesDrawer } from "./DefensesDrawer";
 import { LiveInterestTicker } from "./LiveInterestTicker";
+import { SectionChip } from "./SectionChip";
 
 /**
- * Need-based guidance for the CURRENT stage only (spec C1 / F10):
- * one headline, one law line, one likely objection, one action, one button.
+ * The hero (spec C1 / F10): one monumental figure, the rules behind it as
+ * tags, and ONE next action for the current stage. Every figure is the engine's.
  */
 export function GuidanceCard({
   caseId,
-  request,
   response,
   config,
   placeholder,
 }: {
   caseId: string;
-  request: CaseRequest;
   response: CaseResponse;
   config: StatuteConfig | null;
   placeholder: boolean;
 }) {
-  const { t, tCode } = useT();
+  const { t } = useT();
   const href = useHref();
+  const [defensesOpen, setDefensesOpen] = useState(false);
   const tl = response.timeline;
   const fin = response.financials;
   const stage = currentStage(response);
   const blocked = isStageBlocked(response, stage);
   const defense = topDefense(response.defenses);
-  const segment = latestSegment(fin);
-  const buyer = request.buyer.name;
+  const days = tl?.days_overdue ?? null;
+  const overdue = days !== null && days > 0;
+  const total = moneyParts(fin?.total_claim);
+  const status = tl?.objection_status;
 
-  const overdue = tl?.days_overdue !== null && tl?.days_overdue !== undefined && tl.days_overdue > 0;
-  const principal = money(fin?.principal_outstanding ?? request.transaction.principal, { paise: "auto" });
-
-  let lawLine: ReactNode = null;
-  if (tl?.objection_status === "NO_DELIVERY_PROOF") {
-    lawLine = <span>{t("guidance.no_delivery")}</span>;
-  } else if (tl?.objection_status === "PENDING_RESOLUTION") {
-    lawLine = (
-      <span>
-        {t("guidance.pending")}
-        <SectionChip id="s2b" config={config} />
-      </span>
-    );
-  } else if (tl?.appointed_day) {
-    lawLine = (
-      <span>
-        {segment
-          ? t("guidance.law.s16", { rate: pct(segment.statutory_rate_pct), date: date(tl.appointed_day) })
-          : t("guidance.law.s16_no_rate", { date: date(tl.appointed_day) })}
-        <SectionChip id="s16" config={config} />
-      </span>
-    );
-  } else {
-    lawLine = <span>{t("guidance.law.not_started")}</span>;
-  }
-
-  const actionKey = tl?.objection_status === "NO_DELIVERY_PROOF" ? null : stage;
-  const actionHref = stage === 4 ? href(`/case/${caseId}/pack`) : href(`/case/${caseId}/send/${stage}`);
+  const actionHref = stage === 4 ? href(`/case/${caseId}/pack`) : href(`/case/${caseId}`, { send: stage });
 
   return (
-    <section aria-labelledby="guidance-title" className="panel relative overflow-hidden border-ink-800 bg-paper-raised">
-      <div className="absolute inset-y-0 left-0 w-1.5 bg-saffron-500" aria-hidden="true" />
-      <div className="flex flex-col gap-5 py-6 pl-7 pr-5 sm:pl-9 sm:pr-8">
-        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-ink-500">{t("guidance.label")}</p>
+    <section aria-labelledby="hero-figure" className="panel grid overflow-hidden lg:grid-cols-[1.45fr_1fr]">
+      {/* Left: the claim */}
+      <div className="flex flex-col gap-6 p-6 sm:p-8">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p id="hero-figure" className="eyebrow">{t("hero.claim")}</p>
+          {fin &&
+            (overdue ? (
+              <StatusIcon size="sm" tone="warn" icon="clock" label={t("hero.overdue", { n: count(days) })} />
+            ) : (
+              <StatusIcon size="sm" tone="ok" label={t("hero.not_due")} />
+            ))}
+        </div>
 
-        <h2 id="guidance-title" className="font-display text-2xl font-semibold leading-[1.15] tracking-tight text-ink-950 sm:text-3xl">
-          {overdue
-            ? t("guidance.headline_overdue", {
-                n: tl?.days_overdue ?? 0,
-                buyer,
-                principal,
-                interest: money(fin?.interest_outstanding ?? "0", { paise: "auto" }),
-              })
-            : t("guidance.headline_not_due", { buyer, principal })}
-          {placeholder && <PlaceholderBadge />}
-        </h2>
+        {fin ? (
+          <>
+            <p className="figure flex flex-wrap items-baseline text-[2.5rem] text-ink-950 sm:text-[2.75rem]">
+              <span>{total.whole}</span>
+              <span className="text-[0.5em] font-medium text-ink-500">{total.paise}</span>
+              {placeholder && <PlaceholderBadge />}
+            </p>
 
-        {overdue && fin && (
-          <p className="-mt-2 flex flex-wrap items-baseline gap-x-2 text-sm text-ink-600">
-            <span>{t("money.ticker_label")}:</span>
-            <LiveInterestTicker
-              interest={fin.interest_outstanding}
-              dailyAccrual={fin.daily_accrual}
-              className="text-base font-medium text-saffron-ink"
-            />
-            {placeholder && <PlaceholderBadge />}
-          </p>
+            <dl className="grid grid-cols-2 gap-6 border-t border-rule pt-5 sm:max-w-md">
+              <div className="flex flex-col gap-1">
+                <dt className="text-xs text-ink-500">{t("hero.principal")}</dt>
+                <dd className="num text-[0.9375rem] text-ink-950">{money(fin.principal_outstanding)}</dd>
+              </div>
+              <div className="flex flex-col gap-1">
+                <dt className="flex items-center gap-1.5 text-xs text-ink-500">
+                  {overdue && <span className="live-dot" aria-hidden="true" />}
+                  {t("hero.interest")}
+                </dt>
+                <dd className="text-[0.9375rem] text-ink-950">
+                  <LiveInterestTicker interest={fin.interest_outstanding} dailyAccrual={fin.daily_accrual} />
+                </dd>
+              </div>
+            </dl>
+            {overdue && <p className="-mt-3 text-xs text-ink-500">{t("hero.accruing", { daily: money(fin.daily_accrual) })}</p>}
+          </>
+        ) : (
+          <div className="flex flex-col gap-2">
+            <p className="text-2xl font-semibold tracking-[-0.02em] text-ink-950">{t("hero.no_money")}</p>
+            <p className="max-w-md text-sm text-ink-600">{t("hero.no_money_body")}</p>
+          </div>
         )}
 
-        <dl className="grid gap-3 border-t border-rule pt-4 text-base sm:grid-cols-[11rem_1fr] sm:gap-x-6">
-          <dt className="font-semibold text-ink-800">{t("guidance.law_label")}</dt>
-          <dd className="text-ink-900">
-            {lawLine}
-            {tl && showDeemedAcceptance(response) && tl.delivery_date && tl.objection_window_end && (
-              <span className="mt-1.5 block text-ink-700">
-                {t("guidance.deemed", { delivery: date(tl.delivery_date), window_end: date(tl.objection_window_end) })}
-                <SectionChip id="s2b" config={config} />
-              </span>
-            )}
-          </dd>
-
-          <dt className="font-semibold text-ink-800">{t("guidance.buyer_may_say")}</dt>
-          <dd className="text-ink-900">
-            {defense ? (
-              <>
-                <span className="italic">“{defense.buyer_says}”</span>{" "}
-                <span className="text-ink-700">
-                  {defense.status === "OPEN_QUESTION"
-                    ? t("guidance.counter_open")
-                    : [
-                        defense.evidence_have.length > 0 &&
-                          `${t("guidance.buyer_counter")} ${t("guidance.counter_have", {
-                            items: defense.evidence_have.map((k) => tCode("evidence", k, k)).join(", "),
-                          })}`,
-                        defense.evidence_missing.length > 0 &&
-                          t("guidance.counter_missing", {
-                            items: defense.evidence_missing.map((k) => tCode("evidence", k, k)).join(", "),
-                          }),
-                      ]
-                        .filter(Boolean)
-                        .join(" ")}
-                </span>
-              </>
-            ) : (
-              <span className="text-ink-700">{t("guidance.no_defense")}</span>
-            )}
-          </dd>
-
-          <dt className="font-semibold text-ink-800">{t("guidance.do_now")}</dt>
-          <dd className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <span className="text-lg font-medium text-ink-950">
-              {actionKey === null ? t("guidance.no_delivery_action") : t(`stage.${actionKey}.action`)}
+        <div className="mt-auto flex flex-wrap gap-2">
+          {tl?.appointed_day && <SectionChip id="s16" config={config} />}
+          {tl?.applied_days !== null && tl?.applied_days !== undefined && (
+            <SectionChip id="s15" config={config} label={t("chip.s15.days", { n: tl.applied_days })} />
+          )}
+          {status && status !== "NO_DELIVERY_PROOF" && (
+            <SectionChip
+              id="s2b"
+              config={config}
+              label={t(showDeemedAcceptance(response) ? "chip.s2b.DEEMED_ACCEPTANCE" : `chip.s2b.${status}`)}
+            />
+          )}
+          {tl?.clamped && (
+            <span className="tag border-warn/30 bg-warn-wash text-warn">
+              {t("timeline.clamped", { agreed: tl.agreed_days ?? "—", applied: tl.applied_days ?? "—" })}
             </span>
-            {actionKey !== null && !blocked && (
-              <Link href={actionHref} className="btn btn-primary">
-                {t(`stage.${actionKey}.button`)}
-                <Icon name="arrow-right" className="h-4 w-4" />
-              </Link>
-            )}
-          </dd>
-        </dl>
+          )}
+        </div>
       </div>
+
+      {/* Right: the one next step */}
+      <div className="flex flex-col gap-5 border-t border-rule bg-paper/60 p-6 sm:p-8 lg:border-l lg:border-t-0">
+        <div className="flex items-center justify-between gap-3">
+          <p className="eyebrow">{t("hero.next")}</p>
+          <span className="num text-xs text-ink-500">{t("stage.of", { n: stage })}</span>
+        </div>
+
+        {status === "NO_DELIVERY_PROOF" ? (
+          <p className="text-lg font-semibold leading-snug tracking-[-0.01em] text-ink-950">{t("hero.no_money_action")}</p>
+        ) : (
+          <div className="flex flex-col gap-1.5">
+            <p className="text-lg font-semibold leading-snug tracking-[-0.01em] text-ink-950">{t(`stage.${stage}.title`)}</p>
+            <p className="text-sm text-ink-600">{t(`stage.${stage}.purpose`)}</p>
+          </div>
+        )}
+
+        {status !== "NO_DELIVERY_PROOF" &&
+          (blocked ? (
+            <StatusIcon tone="block" icon="lock" label={t("ladder.blocked")} />
+          ) : (
+            <Link href={actionHref} scroll={false} className="btn btn-primary self-start">
+              {t(`stage.${stage}.button`)}
+              <Icon name="arrow-right" className="h-4 w-4" />
+            </Link>
+          ))}
+
+        <div className="mt-auto flex flex-col gap-2.5 border-t border-rule pt-5">
+          <p className="eyebrow">{t("defense.label")}</p>
+          {defense ? (
+            <>
+              <p className="line-clamp-2 text-sm leading-relaxed text-ink-800">“{defense.buyer_says}”</p>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <StatusIcon size="sm" tone={DEFENSE_TONE[defense.status]} label={t(`defense.${defense.status}`)} />
+                <button type="button" className="link text-sm" onClick={() => setDefensesOpen(true)}>
+                  {t("defense.see_all", { n: response.defenses.length })}
+                </button>
+              </div>
+            </>
+          ) : (
+            <p className="text-sm text-ink-600">{t("defense.none")}</p>
+          )}
+        </div>
+      </div>
+
+      <DefensesDrawer defenses={response.defenses} open={defensesOpen} onClose={() => setDefensesOpen(false)} />
     </section>
   );
 }

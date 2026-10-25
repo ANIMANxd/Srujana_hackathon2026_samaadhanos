@@ -3,10 +3,10 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { listPresets } from "@/lib/api";
-import { DEMO_CASES } from "@/lib/fixtures";
 import { useT } from "@/lib/i18n";
 import type { MessageKey } from "@/lib/i18n/en";
 import { useHref, useUrlState } from "@/lib/params";
+import { JUDGE_EVENT } from "@/lib/useConnection";
 import type {
   Activity,
   AppropriationMode,
@@ -217,8 +217,13 @@ export function JudgeConsole({ current }: { current?: JudgeCase | null }) {
         setOpen((o) => !o);
       }
     }
+    const onToggle = () => setOpen((o) => !o);
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    window.addEventListener(JUDGE_EVENT, onToggle);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      window.removeEventListener(JUDGE_EVENT, onToggle);
+    };
   }, []);
 
   useEffect(() => {
@@ -232,16 +237,14 @@ export function JudgeConsole({ current }: { current?: JudgeCase | null }) {
     };
   }, [open]);
 
-  const all = [...presets, ...DEMO_CASES.map((d) => ({ id: d.id, title: d.title }))];
-
   return (
     <Drawer open={open} onClose={() => setOpen(false)} title={t("judge.title")} width="lg">
       <div className="flex flex-col gap-6">
         <p className="text-sm text-ink-600">{t("judge.hint")}</p>
         <section>
-          <h3 className="ledger-rule font-display text-lg font-semibold">{t("judge.presets")}</h3>
+          <h3 className="section-title">{t("judge.presets")}</h3>
           <ul className="mt-3 flex flex-col gap-2">
-            {all.map((p) => (
+            {presets.map((p) => (
               <li key={p.id} className="flex items-center justify-between gap-3">
                 <span className="text-sm text-ink-900">{p.title}</span>
                 <Link href={href(`/case/${p.id}`)} className="btn btn-secondary min-h-9 px-3 text-sm" onClick={() => setOpen(false)}>
@@ -252,7 +255,7 @@ export function JudgeConsole({ current }: { current?: JudgeCase | null }) {
           </ul>
         </section>
         <section>
-          <h3 className="ledger-rule font-display text-lg font-semibold">{t("judge.edit")}</h3>
+          <h3 className="section-title">{t("judge.edit")}</h3>
           <div className="mt-3">{current ? <EditForm c={current} /> : <p className="text-sm text-ink-600">{t("judge.no_case")}</p>}</div>
         </section>
       </div>

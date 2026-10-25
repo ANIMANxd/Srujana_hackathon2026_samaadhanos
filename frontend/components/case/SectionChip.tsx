@@ -17,8 +17,21 @@ const CHIP_KEYS: Record<ChipId, { vars: Record<string, string>; ref: MessageKey;
   s15: { vars: { cap: "credit_cap_days", none: "no_agreement_days" }, ref: "chip.s15.ref", plain: "chip.s15.plain" },
 };
 
-/** A section reference that opens a two-line plain explanation in a drawer. */
-export function SectionChip({ id, config }: { id: ChipId; config: StatuteConfig | null }) {
+/**
+ * A statute tag, e.g. "MSMED s.16". The label may carry what the ENGINE decided
+ * on this case ("deemed acceptance"); the drawer gives the plain rule, its
+ * numbers from the statute config, and whether the source is verified.
+ */
+export function SectionChip({
+  id,
+  config,
+  label,
+}: {
+  id: ChipId;
+  config: StatuteConfig | null;
+  /** Engine-derived label; defaults to the bare section reference. */
+  label?: string;
+}) {
   const { t } = useT();
   const [open, setOpen] = useState(false);
   const spec = CHIP_KEYS[id];
@@ -36,25 +49,18 @@ export function SectionChip({ id, config }: { id: ChipId; config: StatuteConfig 
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        aria-label={t("chip.open", { ref: t(spec.ref) })}
-        className="mx-1 inline-flex items-center rounded-sm border border-ink-300 bg-ink-100 px-1.5 py-px align-baseline font-mono text-xs font-medium text-ink-800 hover:border-ink-600"
-      >
-        {t(spec.ref)}
+      <button type="button" onClick={() => setOpen(true)} aria-label={t("chip.open", { ref: t(spec.ref) })} className="tag">
+        <span aria-hidden="true" className={`h-1.5 w-1.5 rounded-full ${verified ? "bg-ok" : "bg-ink-300"}`} />
+        {label ?? t(spec.ref)}
       </button>
       <Drawer open={open} onClose={() => setOpen(false)} title={t(spec.ref)} width="sm">
-        <div className="flex flex-col gap-4">
-          <p className="text-lg leading-relaxed text-ink-900">{t(spec.plain, vars)}</p>
+        <div className="flex flex-col gap-5">
+          <p className="text-[1.0625rem] leading-relaxed text-ink-900">{t(spec.plain, vars)}</p>
+          {label && <p className="text-sm text-ink-600">{t("chip.engine_note", { detail: label })}</p>}
           {missing && <p className="text-sm text-warn">{t("chip.config_missing")}</p>}
-          <div className="flex flex-wrap items-center gap-2 text-sm text-ink-600">
-            <StatusIcon
-              size="sm"
-              tone={verified ? "ok" : "warn"}
-              label={t(verified ? "badge.verified" : "badge.unverified")}
-            />
-            {sourceRef && <span>{t("chip.source", { ref: sourceRef })}</span>}
+          <div className="flex flex-col items-start gap-2 border-t border-rule pt-4 text-sm text-ink-600">
+            <StatusIcon size="sm" tone={verified ? "ok" : "warn"} label={t(verified ? "badge.verified" : "badge.unverified")} />
+            {sourceRef && <span className="num text-xs">{t("chip.source", { ref: sourceRef })}</span>}
           </div>
         </div>
       </Drawer>

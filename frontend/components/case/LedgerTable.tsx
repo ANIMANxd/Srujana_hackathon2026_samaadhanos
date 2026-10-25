@@ -10,19 +10,19 @@ export function LedgerTable({ financials, placeholder }: { financials: Financial
   const rows = financials.ledger;
   return (
     <div className="flex flex-col gap-3">
-      <div className="overflow-x-auto rounded-md border border-rule">
+      <div className="overflow-x-auto rounded-lg border border-rule">
         <table className="w-full min-w-[44rem] border-collapse text-sm">
           <caption className="sr-only">{t("ledger.title")}</caption>
-          <thead className="bg-paper-sunk text-left text-xs uppercase tracking-wide text-ink-600">
+          <thead className="border-b border-rule bg-paper text-left text-xs text-ink-500">
             <tr>
-              <th scope="col" className="px-3 py-2 font-semibold">{t("ledger.col.kind")}</th>
-              <th scope="col" className="px-3 py-2 font-semibold">{t("ledger.col.from")}</th>
-              <th scope="col" className="px-3 py-2 font-semibold">{t("ledger.col.to")}</th>
-              <th scope="col" className="px-3 py-2 text-right font-semibold">{t("ledger.col.opening")}</th>
-              <th scope="col" className="px-3 py-2 text-right font-semibold">{t("ledger.col.interest")}</th>
-              <th scope="col" className="px-3 py-2 text-right font-semibold">{t("ledger.col.payment")}</th>
-              <th scope="col" className="px-3 py-2 text-right font-semibold">{t("ledger.col.closing")}</th>
-              <th scope="col" className="px-3 py-2 text-right font-semibold">{t("ledger.col.rate")}</th>
+              <th scope="col" className="px-3 py-2 font-medium">{t("ledger.col.kind")}</th>
+              <th scope="col" className="px-3 py-2 font-medium">{t("ledger.col.from")}</th>
+              <th scope="col" className="px-3 py-2 font-medium">{t("ledger.col.to")}</th>
+              <th scope="col" className="px-3 py-2 text-right font-medium">{t("ledger.col.opening")}</th>
+              <th scope="col" className="px-3 py-2 text-right font-medium">{t("ledger.col.interest")}</th>
+              <th scope="col" className="px-3 py-2 text-right font-medium">{t("ledger.col.payment")}</th>
+              <th scope="col" className="px-3 py-2 text-right font-medium">{t("ledger.col.closing")}</th>
+              <th scope="col" className="px-3 py-2 text-right font-medium">{t("ledger.col.rate")}</th>
             </tr>
           </thead>
           <tbody>
@@ -32,7 +32,7 @@ export function LedgerTable({ financials, placeholder }: { financials: Financial
               </tr>
             )}
             {rows.map((r, i) => (
-              <tr key={`${r.from}-${r.kind}-${i}`} className="border-t border-rule align-top hover:bg-paper">
+              <tr key={`${r.from}-${r.kind}-${i}`} className="border-t border-rule align-top first:border-t-0 hover:bg-paper">
                 <td className="px-3 py-2 font-medium text-ink-900">
                   {t(`ledger.kind.${r.kind}`)}
                   {r.note && <span className="block text-xs font-normal text-ink-600">{r.note}</span>}
@@ -49,7 +49,7 @@ export function LedgerTable({ financials, placeholder }: { financials: Financial
           </tbody>
         </table>
       </div>
-      <p className="text-xs leading-relaxed text-ink-600">
+      <p className="text-xs leading-relaxed text-ink-500">
         {t("ledger.caption", {
           mode: t(`mode.${financials.rate_mode}`),
           app: t(`appropriation.${financials.appropriation_mode}`),

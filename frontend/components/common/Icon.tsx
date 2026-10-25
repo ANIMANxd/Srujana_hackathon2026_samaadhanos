@@ -18,7 +18,9 @@ export type IconName =
   | "close"
   | "chevron"
   | "lock"
-  | "spark";
+  | "spark"
+  | "chevron-down"
+  | "download";
 
 const PATHS: Record<IconName, string> = {
   ok: "M4 10.5l3.5 3.5L16 5.5",
@@ -38,6 +40,8 @@ const PATHS: Record<IconName, string> = {
   chevron: "M7 5l5 5-5 5",
   lock: "M5 9h10v8H5V9zM7 9V6.5a3 3 0 016 0V9",
   spark: "M10 2v4M10 14v4M2 10h4M14 10h4",
+  "chevron-down": "M5 7.5l5 5 5-5",
+  download: "M10 3v10M6 9l4 4 4-4M4 16h12",
 };
 
 export function Icon({ name, className = "h-5 w-5" }: { name: IconName; className?: string }) {
@@ -46,7 +50,7 @@ export function Icon({ name, className = "h-5 w-5" }: { name: IconName; classNam
       viewBox="0 0 20 20"
       fill="none"
       stroke="currentColor"
-      strokeWidth={1.75}
+      strokeWidth={1.6}
       strokeLinecap="round"
       strokeLinejoin="round"
       className={`shrink-0 ${className}`}

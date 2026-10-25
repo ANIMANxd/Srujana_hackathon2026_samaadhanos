@@ -7,10 +7,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ApiError, BackendUnreachable, evaluate, getPresetRequest, offlineResponseFor, type Source } from "./api";
 import { getEdited, getUploaded, sameRequest, setEdited } from "./caseStore";
-import { demoFor } from "./fixtures";
 import type { CaseRequest, CaseResponse } from "./types";
 
-export type CaseOrigin = "preset" | "demo" | "upload";
+export type CaseOrigin = "preset" | "upload";
 
 export type EvaluationStatus = "loading" | "ready" | "needs_backend" | "error" | "not_found";
 
@@ -26,6 +25,8 @@ export type Evaluation = {
   error: string | null;
   refreshing: boolean;
   isEdited: boolean;
+  /** The preset id whose saved samples may stand in offline, or null (edited or uploaded). */
+  offlineId: string | null;
   setRequest: (next: CaseRequest) => void;
   reset: () => void;
   retry: () => void;
@@ -38,8 +39,6 @@ type Resolved = { title: string | null; origin: CaseOrigin; base: CaseRequest };
 async function resolveBase(caseId: string): Promise<Resolved | null> {
   const uploaded = getUploaded(caseId);
   if (uploaded) return { title: null, origin: "upload", base: uploaded };
-  const demo = demoFor(caseId);
-  if (demo) return { title: demo.title, origin: "demo", base: demo.request };
   try {
     const p = await getPresetRequest(caseId);
     return { title: p.data.title, origin: "preset", base: p.data.request };
@@ -133,6 +132,8 @@ export function useEvaluation(caseId: string): Evaluation {
 
   const retry = useCallback(() => setAttempt((n) => n + 1), []);
 
+  const isEdited = Boolean(request && resolved && !sameRequest(request, resolved.base));
+
   return {
     caseId,
     title: resolved?.title ?? null,
@@ -144,7 +145,8 @@ export function useEvaluation(caseId: string): Evaluation {
     source,
     error,
     refreshing,
-    isEdited: Boolean(request && resolved && !sameRequest(request, resolved.base)),
+    isEdited,
+    offlineId: resolved?.origin === "preset" && !isEdited ? caseId : null,
     setRequest,
     reset,
     retry,
