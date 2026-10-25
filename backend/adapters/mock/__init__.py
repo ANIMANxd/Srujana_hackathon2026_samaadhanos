@@ -1,4 +1,4 @@
-"""Mock provider adapters: HTTP to the separate mock service on :8100.
+﻿"""Mock provider adapters: HTTP to the separate mock service on :8100.
 
 These are **simulations**, permanently labelled:
 `simulated = True` on every class, `X-Simulation: true` on every call, and
@@ -134,7 +134,14 @@ class MockFinancingMarketplace:
             "GET", f"/marketplace/factoring-units/{ref.unit_id}/bids", correlation_id=correlation_id
         )
         raw: Any = data.get("bids", data)
-        return [Bid.model_validate(item) for item in raw]
+        # The mock ships `annual_rate_pct` (docs/webhooks.md); the contract model calls
+        # it `annual_rate`. Map at the boundary rather than reshaping the contract.
+        return [
+            Bid.model_validate(
+                {**item, "annual_rate": item.get("annual_rate_pct", item.get("annual_rate"))}
+            )
+            for item in raw
+        ]
 
     def accept_bid(
         self, ref: FactoringUnitRef, bid_id: str, idem_key: str, *, correlation_id: str | None = None

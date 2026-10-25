@@ -19,6 +19,8 @@ class ESignSession:
     signing_url: str = ""
     expires_at: str = ""
     attempts: int = 0
+    case_id: str | None = None
+    doc_sha256: str | None = None
     signed_doc_sha256: str | None = None
     signer_display: str | None = None
     signed_at: str | None = None
@@ -47,6 +49,10 @@ class FactoringUnit:
     acceptance: str = "PENDING"  # PENDING | ACCEPTED | REJECTED | EXPIRED
     bidding_open: bool = False
     bids: list[dict[str, Any]] = field(default_factory=list)
+    rate_band: str | None = None  # "low|high" as sent by the API from config
+    accepted_bid_id: str | None = None
+    accepted_at: str | None = None
+    accepted_amount: str | None = None
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -69,10 +75,12 @@ class Payout:
     status: str = "PENDING"  # PENDING | PROCESSED | FAILED
     utr: str | None = None
     settled_at: str | None = None
+    case_id: str | None = None
 
     def as_dict(self) -> dict[str, Any]:
         return {
             "payout_ref": self.payout_ref,
+            "payout_id": self.payout_ref,
             "status": self.status,
             "amount": self.amount,
             "currency": "INR",
@@ -90,6 +98,15 @@ class Store:
         self.payouts: dict[str, Payout] = {}
         self.idempotency: dict[str, Any] = {}
         self.scenarios: dict[str, str] = {}
+        # Payout coordination: a payout is only due once BOTH the esign and the bid
+        # acceptance are known for a case (architecture_v4 section 7.3).
+        self.payout_triggers: dict[str, dict[str, Any]] = {}
+        self.utr_counter = 0
+
+    def next_utr(self) -> str:
+        """`MOCKUTR<digits>`: digits only, so it can never be read as a real UTR."""
+        self.utr_counter += 1
+        return f"MOCKUTR{self.utr_counter:011d}"
 
     def reset(self) -> None:
         self.esign.clear()
@@ -97,6 +114,8 @@ class Store:
         self.payouts.clear()
         self.idempotency.clear()
         self.scenarios.clear()
+        self.payout_triggers.clear()
+        self.utr_counter = 0
 
 
 store = Store()

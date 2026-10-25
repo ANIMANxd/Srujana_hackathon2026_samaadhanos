@@ -189,6 +189,26 @@ class DeliveryService:
 
     # -- introspection -----------------------------------------------------
 
+    def deliver_after(
+        self,
+        delay_seconds: float,
+        event_type: str,
+        payload: dict[str, Any],
+        target_url: str,
+        provider: str,
+        *,
+        duplicate: int = 1,
+    ) -> Delivery:
+        """Wait, then deliver. This is what makes the mock look asynchronous.
+
+        Real providers answer immediately and act later; the API is supposed to cope
+        with the gap. Sleeping inside the background task reproduces that gap without
+        blocking the response.
+        """
+        if delay_seconds > 0:
+            self._sleep(delay_seconds)
+        return self.deliver(event_type, payload, target_url, provider, duplicate=duplicate)
+
     def reset(self) -> None:
         self.log.clear()
         self.dead_letters.clear()

@@ -83,7 +83,12 @@ def _store_bids(session, *, case_id: str, track_id: str, payload: dict[str, Any]
     stored = 0
     for item in rows:
         bid_id = str(item["bid_id"])
-        rate = Decimal(str(item["annual_rate"]))
+        # `annual_rate_pct` is the field docs/webhooks.md specifies; `annual_rate` is
+        # accepted too so an older delivery does not fail.
+        raw_rate = item.get("annual_rate_pct", item.get("annual_rate"))
+        if raw_rate is None:
+            continue
+        rate = Decimal(str(raw_rate))
         quote = bid_quote(unit_amount, rate, tenor_days, cfg)
         existing = session.get(BidRow, bid_id)
         if existing is not None:

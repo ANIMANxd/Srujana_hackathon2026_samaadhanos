@@ -15,6 +15,9 @@ def client(monkeypatch, tmp_path):
     """A client whose deliveries never wait and never leave the process."""
     store.reset()
     delivery.service.reset()
+    monkeypatch.setenv("MOCK_BUYER_ACCEPT_DELAY_S", "0")
+    monkeypatch.setenv("MOCK_BID_DELAY_S", "0")
+    monkeypatch.setenv("MOCK_PAYOUT_DELAY_S", "0")
     monkeypatch.setattr(delivery.service, "_backoff", (0.0,))
     monkeypatch.setattr(delivery.service, "_dead_letter_path", str(tmp_path / "dl.jsonl"))
 
@@ -106,7 +109,7 @@ def test_the_buyer_must_accept_before_bidding(client):
     assert blocked.status_code == 409
     assert "buyer must accept" in blocked.json()["detail"].lower()
 
-    client.post(f"/marketplace/factoring-units/{unit_id}/acceptance-request")
+    client.post(f"/marketplace/factoring-units/{unit_id}/acceptance-request", json={})
     allowed = client.post(f"/marketplace/factoring-units/{unit_id}/bidding", json={"window_seconds": 60})
     assert allowed.status_code == 200
 
@@ -114,29 +117,29 @@ def test_the_buyer_must_accept_before_bidding(client):
 def test_bids_carry_rates_only_never_money(client):
     """The mock must not ship a discount, a fee or a net amount."""
     unit_id = _create_unit(client)
-    client.post(f"/marketplace/factoring-units/{unit_id}/acceptance-request")
+    client.post(f"/marketplace/factoring-units/{unit_id}/acceptance-request", json={})
     client.post(f"/marketplace/factoring-units/{unit_id}/bidding", json={"window_seconds": 60})
 
     bids = client.get(f"/marketplace/factoring-units/{unit_id}/bids").json()["bids"]
     assert len(bids) == 3
     for bid in bids:
-        assert set(bid) == {"bid_id", "financier_alias", "annual_rate", "valid_until"}
+        assert set(bid) == {"bid_id", "financier_alias", "annual_rate_pct", "valid_until"}
         assert bid["bid_id"].startswith("MOCK_BID_")
         assert bid["financier_alias"] in {"Financier A", "Financier B", "Financier C"}
-        assert 8.00 <= float(bid["annual_rate"]) <= 12.00
+        assert 8.00 <= float(bid["annual_rate_pct"]) <= 12.00
 
 
 def test_bids_are_deterministic_for_the_same_invoice(client):
     unit_id = _create_unit(client, "INV-SAME")
-    client.post(f"/marketplace/factoring-units/{unit_id}/acceptance-request")
+    client.post(f"/marketplace/factoring-units/{unit_id}/acceptance-request", json={})
     client.post(f"/marketplace/factoring-units/{unit_id}/bidding", json={"window_seconds": 60})
-    first = [bid["annual_rate"] for bid in client.get(f"/marketplace/factoring-units/{unit_id}/bids").json()["bids"]]
+    first = [bid["annual_rate_pct"] for bid in client.get(f"/marketplace/factoring-units/{unit_id}/bids").json()["bids"]]
 
     client.post("/mock/reset")
     second_unit = _create_unit(client, "INV-SAME")
     client.post(f"/marketplace/factoring-units/{second_unit}/acceptance-request")
     client.post(f"/marketplace/factoring-units/{second_unit}/bidding", json={"window_seconds": 60})
-    second = [bid["annual_rate"] for bid in client.get(f"/marketplace/factoring-units/{second_unit}/bids").json()["bids"]]
+    second = [bid["annual_rate_pct"] for bid in client.get(f"/marketplace/factoring-units/{second_unit}/bids").json()["bids"]]
 
     assert first == second, "the same invoice must always get the same rates"
 
@@ -153,7 +156,7 @@ def test_a_payout_carries_a_mock_utr(client):
 def test_the_buyer_rejects_scenario_changes_the_outcome(client):
     unit_id = _create_unit(client)
     client.post("/mock/scenarios", json={"unit_id": unit_id, "scenario": "buyer_rejects"})
-    client.post(f"/marketplace/factoring-units/{unit_id}/acceptance-request")
+    client.post(f"/marketplace/factoring-units/{unit_id}/acceptance-request", json={})
     acceptance = client.get(f"/marketplace/factoring-units/{unit_id}/acceptance").json()
     assert acceptance["status"] == "REJECTED"
 
