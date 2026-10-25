@@ -28,7 +28,7 @@ export function AssumptionsDrawer({
   configLoading: boolean;
   configIsStub: boolean;
 }) {
-  const { t, tCode } = useT();
+  const { t, tWarning } = useT();
   const [open, setOpen] = useState(false);
   const configRows = config
     ? Object.entries(config).filter(([k, v]) => !k.startsWith("_") && isConfigEntry(v))
@@ -67,7 +67,7 @@ export function AssumptionsDrawer({
                       <StatusIcon size="sm" tone={SEVERITY_TONE[w.severity] ?? "info"} label={t(`severity.${w.severity}`)} />
                       <code className="text-xs text-ink-600">{w.code}</code>
                     </span>
-                    <span className="text-sm text-ink-800">{tCode("warning", w.code, w.text)}</span>
+                    <span className="text-sm text-ink-800">{tWarning(w.code, w.text)}</span>
                   </li>
                 ))}
               </ul>

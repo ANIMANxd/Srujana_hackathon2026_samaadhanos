@@ -13,6 +13,8 @@
     "lint": "eslint",
     "pretypecheck": "node scripts/sync-contracts.mjs && next typegen",
     "typecheck": "tsc --noEmit",
+    "i18n:check": "node scripts/i18n-check.mjs",
+    "i18n:doc": "node scripts/i18n-check.mjs --doc",
     "smoke": "node scripts/smoke.mjs",
     "check": "npm run typecheck && npm run lint && npm run build"
   },

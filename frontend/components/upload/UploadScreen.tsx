@@ -73,7 +73,7 @@ function fieldValid(key: FieldKey, f: ReviewField): boolean {
 type Result = { response: ExtractionResponse; offlineSample: boolean };
 
 function Review({ result, onCancel }: { result: Result; onCancel: () => void }) {
-  const { t, tCode } = useT();
+  const { t, tWarning } = useT();
   const router = useRouter();
   const href = useHref();
   const cfg = useConfig();
@@ -267,7 +267,7 @@ function Review({ result, onCancel }: { result: Result; onCancel: () => void }) 
           <summary className="cursor-pointer text-sm font-medium text-ink-800">{t("upload.extractor_notes")}</summary>
           <ul className="mt-3 flex flex-col gap-2 text-ink-700">
             {notes.map((w, i) => (
-              <li key={`${w.code}-${i}`}>{tCode("warning", w.code, w.text)}</li>
+              <li key={`${w.code}-${i}`}>{tWarning(w.code, w.text)}</li>
             ))}
           </ul>
         </details>

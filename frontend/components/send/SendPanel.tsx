@@ -55,7 +55,7 @@ export function SendPanel({
   response: CaseResponse;
   offlineId: string | null;
 }) {
-  const { t, tCode } = useT();
+  const { t, tWarning } = useT();
   const href = useHref();
   const kind = kindFor(stage, request, response);
   const isPack = stage === 4;
@@ -188,7 +188,7 @@ export function SendPanel({
           <summary className="cursor-pointer text-xs font-medium text-ink-600 hover:text-ink-950">{t("send.notes")}</summary>
           <ul className="mt-2 flex flex-col gap-1.5 text-ink-700">
             {(artifact.data.warnings ?? []).map((w, i) => (
-              <li key={`${w.code}-${i}`}>{tCode("warning", w.code, w.text)}</li>
+              <li key={`${w.code}-${i}`}>{tWarning(w.code, w.text)}</li>
             ))}
           </ul>
         </details>
