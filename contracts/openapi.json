@@ -432,7 +432,7 @@
         "type": "object"
       },
       "CaseCreateRequest": {
-        "description": "`POST /api/v1/cases` \u2014 the approved fields, plus buyer contact details.\n\nThe body is the evaluate-case body, so a caller that already has a verified\n`CaseEvaluationRequest` (the extraction approve step) can post it unchanged.",
+        "description": "`POST /api/v1/cases` \u00e2\u20ac\u201d the approved fields, plus buyer contact details.\n\nThe body is the evaluate-case body, so a caller that already has a verified\n`CaseEvaluationRequest` (the extraction approve step) can post it unchanged.",
         "properties": {
           "acknowledgments": {
             "items": {
@@ -1021,6 +1021,41 @@
         "title": "ConfirmKind",
         "type": "string"
       },
+      "ConsentDocument": {
+        "description": "The DEMO consent document attached to a selected bid (template, not an instrument).",
+        "properties": {
+          "filename": {
+            "title": "Filename",
+            "type": "string"
+          },
+          "pdf_base64": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pdf Base64"
+          },
+          "sha256": {
+            "title": "Sha256",
+            "type": "string"
+          },
+          "watermark": {
+            "default": "TEMPLATE",
+            "title": "Watermark",
+            "type": "string"
+          }
+        },
+        "required": [
+          "filename",
+          "sha256"
+        ],
+        "title": "ConsentDocument",
+        "type": "object"
+      },
       "Defense": {
         "properties": {
           "buyer_says": {
@@ -1197,7 +1232,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Signed At"
           },
           "signed_doc_sha256": {
@@ -1209,7 +1243,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Signed Doc Sha256"
           },
           "signer_display": {
@@ -1221,7 +1254,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Signer Display"
           },
           "signing_url": {
@@ -1699,6 +1731,25 @@
         "title": "ExtractionResponse",
         "type": "object"
       },
+      "FinanceabilityReason": {
+        "description": "One blocking reason from `backend.finance.financeability`.",
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ],
+        "title": "FinanceabilityReason",
+        "type": "object"
+      },
       "Financials": {
         "properties": {
           "appropriation_mode": {
@@ -1758,6 +1809,63 @@
           "daily_accrual"
         ],
         "title": "Financials",
+        "type": "object"
+      },
+      "FinancingActionResponse": {
+        "description": "Every mutating financing route answers with this.\n\n`detail` is always the current case, so a client never has to re-read after an\naction, and a stale-version 409 can hand back the same shape.",
+        "properties": {
+          "bids": {
+            "items": {
+              "$ref": "#/components/schemas/Bid"
+            },
+            "title": "Bids",
+            "type": "array"
+          },
+          "consent_document": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ConsentDocument"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "detail": {
+            "$ref": "#/components/schemas/CaseDetail"
+          },
+          "esign_session": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ESignSession"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "reasons": {
+            "items": {
+              "$ref": "#/components/schemas/FinanceabilityReason"
+            },
+            "title": "Reasons",
+            "type": "array"
+          },
+          "track": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Track"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "detail"
+        ],
+        "title": "FinancingActionResponse",
         "type": "object"
       },
       "FinancingRequest": {
@@ -2274,7 +2382,7 @@
         "type": "object"
       },
       "OptionsResponse": {
-        "description": "`GET /api/v1/cases/{id}/options` \u2014 the two-option comparison.\n\n`recommendation` is always null and must stay that way (golden rule 20,\narchitecture_v4 section 9). A test asserts it.",
+        "description": "`GET /api/v1/cases/{id}/options` \u00e2\u20ac\u201d the two-option comparison.\n\n`recommendation` is always null and must stay that way (golden rule 20,\narchitecture_v4 section 9). A test asserts it.",
         "properties": {
           "as_of": {
             "format": "date",
@@ -3547,6 +3655,358 @@
         "summary": "Verify Case Events",
         "tags": [
           "cases"
+        ]
+      }
+    },
+    "/api/v1/cases/{case_id}/financing": {
+      "post": {
+        "description": "Run financeability and open a financing track (Option 1).\n\nA `NOT_FINANCEABLE` outcome is a **200 with reasons**, not an error: the owner\nasked a question and gets an answer. Option 2 is untouched and still available.",
+        "operationId": "start_financing_api_v1_cases__case_id__financing_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "case_id",
+            "required": true,
+            "schema": {
+              "title": "Case Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          },
+          {
+            "in": "header",
+            "name": "If-Match",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "If-Match"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FinancingActionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Start Financing",
+        "tags": [
+          "financing"
+        ]
+      }
+    },
+    "/api/v1/cases/{case_id}/financing/bids": {
+      "get": {
+        "description": "The bids received so far. A read: it never advances the state machine.",
+        "operationId": "list_bids_api_v1_cases__case_id__financing_bids_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "case_id",
+            "required": true,
+            "schema": {
+              "title": "Case Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FinancingActionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Bids",
+        "tags": [
+          "financing"
+        ]
+      }
+    },
+    "/api/v1/cases/{case_id}/financing/bids/{bid_id}/select": {
+      "post": {
+        "description": "Select a bid, sign the DEMO consent, and move to AWAITING_ESIGN.\n\nThe consent document is built here, hashed, and its hash is what the eSign\nprovider is asked to sign, so the signed copy can be checked against what was\nshown. The PDF is watermarked TEMPLATE and every party is fictional.",
+        "operationId": "select_bid_api_v1_cases__case_id__financing_bids__bid_id__select_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "case_id",
+            "required": true,
+            "schema": {
+              "title": "Case Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "bid_id",
+            "required": true,
+            "schema": {
+              "title": "Bid Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          },
+          {
+            "in": "header",
+            "name": "If-Match",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "If-Match"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FinancingActionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Select Bid",
+        "tags": [
+          "financing"
+        ]
+      }
+    },
+    "/api/v1/cases/{case_id}/financing/buyer-acceptance": {
+      "post": {
+        "description": "Ask the buyer to accept the invoice, then follow the provider's decision.\n\nThe buyer acts in their own login: nothing moves until they accept. This route\napplies `request_buyer_acceptance`, polls the provider once, and applies\n`buyer_accepted` when it has happened. The polling is a stand-in for the signed\nwebhooks in `docs/webhooks.md`, which do not exist yet.",
+        "operationId": "request_buyer_acceptance_api_v1_cases__case_id__financing_buyer_acceptance_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "case_id",
+            "required": true,
+            "schema": {
+              "title": "Case Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          },
+          {
+            "in": "header",
+            "name": "If-Match",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "If-Match"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FinancingActionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Request Buyer Acceptance",
+        "tags": [
+          "financing"
+        ]
+      }
+    },
+    "/api/v1/cases/{case_id}/financing/cancel": {
+      "post": {
+        "description": "Cancel before signature. After signature the receivable is the financier's.",
+        "operationId": "cancel_financing_api_v1_cases__case_id__financing_cancel_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "case_id",
+            "required": true,
+            "schema": {
+              "title": "Case Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          },
+          {
+            "in": "header",
+            "name": "If-Match",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "If-Match"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FinancingActionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Cancel Financing",
+        "tags": [
+          "financing"
         ]
       }
     },

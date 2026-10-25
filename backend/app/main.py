@@ -1,4 +1,4 @@
-"""FastAPI entrypoint for SamadhaanOS — contract v1.0 (architecture.md section 8).
+﻿"""FastAPI entrypoint for SamadhaanOS â€” contract v1.0 (architecture.md section 8).
 
 POST /evaluate-case runs the real engine (`backend.engine.evaluate`), which
 assembles the response from the rule modules. The API layer owns the file reads,
@@ -130,8 +130,10 @@ app.openapi = _openapi_with_v1_1
 # Contract v1.1 routes. Included after the openapi wrapper so the published document
 # picks up both the frozen v1.0 operations and these additive ones.
 from backend.app.routes.cases import router as cases_router  # noqa: E402
+from backend.app.routes.financing import router as financing_router  # noqa: E402
 
 app.include_router(cases_router)
+app.include_router(financing_router)
 
 
 # ------------------------------------------------------------- errors ----
@@ -243,8 +245,8 @@ def _run_engine(request: CaseEvaluationRequest) -> CaseEvaluationResponse:
     """Evaluate through the engine, mapping rule violations to 400 (section 8.1).
 
     A null statutory constant, an uncaptured Bank Rate epoch (CR-8) or an
-    out-of-range figure means the rule cannot be applied — section 8.1's rule
-    violation — and the engine's own plain-English message is what the caller
+    out-of-range figure means the rule cannot be applied â€” section 8.1's rule
+    violation â€” and the engine's own plain-English message is what the caller
     reads, rather than an opaque 500.
     """
     try:

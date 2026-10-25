@@ -1,4 +1,4 @@
-"""Contract v1.1 — additive Pydantic models for the v4 two-option model.
+﻿"""Contract v1.1 â€” additive Pydantic models for the v4 two-option model.
 
 Source: `docs/architecture_v4_two_options.md` sections 4, 5 and 9.
 
@@ -242,7 +242,7 @@ class CaseDetail(ContractModel):
 
 
 class OptionsResponse(ContractModel):
-    """`GET /api/v1/cases/{id}/options` — the two-option comparison.
+    """`GET /api/v1/cases/{id}/options` â€” the two-option comparison.
 
     `recommendation` is always null and must stay that way (golden rule 20,
     architecture_v4 section 9). A test asserts it.
@@ -371,7 +371,7 @@ class BuyerContact(ContractModel):
 
 
 class CaseCreateRequest(CaseEvaluationRequest):
-    """`POST /api/v1/cases` — the approved fields, plus buyer contact details.
+    """`POST /api/v1/cases` â€” the approved fields, plus buyer contact details.
 
     The body is the evaluate-case body, so a caller that already has a verified
     `CaseEvaluationRequest` (the extraction approve step) can post it unchanged.
@@ -405,6 +405,37 @@ class CaseListResponse(ContractModel):
     count: int
 
 
+class FinanceabilityReason(ContractModel):
+    """One blocking reason from `backend.finance.financeability`."""
+
+    code: str
+    message: str
+
+
+class ConsentDocument(ContractModel):
+    """The DEMO consent document attached to a selected bid (template, not an instrument)."""
+
+    filename: str
+    sha256: str
+    watermark: str = "TEMPLATE"
+    pdf_base64: str | None = None
+
+
+class FinancingActionResponse(ContractModel):
+    """Every mutating financing route answers with this.
+
+    `detail` is always the current case, so a client never has to re-read after an
+    action, and a stale-version 409 can hand back the same shape.
+    """
+
+    detail: CaseDetail
+    track: Track | None = None
+    reasons: list[FinanceabilityReason] = Field(default_factory=list)
+    bids: list[Bid] = Field(default_factory=list)
+    esign_session: ESignSession | None = None
+    consent_document: ConsentDocument | None = None
+
+
 # --------------------------------------------------- openapi integration ----
 V1_1_MODELS: tuple[type[ContractModel], ...] = (
     Case,
@@ -423,6 +454,9 @@ V1_1_MODELS: tuple[type[ContractModel], ...] = (
     CaseCreateRequest,
     CaseSummary,
     CaseListResponse,
+    FinanceabilityReason,
+    ConsentDocument,
+    FinancingActionResponse,
 )
 
 

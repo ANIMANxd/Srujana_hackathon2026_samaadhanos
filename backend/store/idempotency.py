@@ -45,6 +45,32 @@ def hash_request(payload: Any) -> str:
     return hashlib.sha256(canonical_json(payload).encode("utf-8")).hexdigest()
 
 
+def lookup(session: Session, *, key: str, route: str) -> IdempotencyKey | None:
+    """The recorded row for this key+route, if any.
+
+    Routes call this *before* doing any work, so a replay never re-applies a
+    transition, and again nothing on the happy path.
+    """
+    return session.exec(
+        select(IdempotencyKey).where(IdempotencyKey.key == key, IdempotencyKey.route == route)
+    ).first()
+
+
+def store(
+    session: Session,
+    *,
+    key: str,
+    route: str,
+    request_hash: str,
+    response: dict[str, Any],
+) -> IdempotencyKey:
+    """Record the response for this key+route. Caller commits."""
+    row = IdempotencyKey(key=key, route=route, request_hash=request_hash, response_json=response)
+    session.add(row)
+    session.flush()
+    return row
+
+
 def get_or_store(
     session: Session,
     *,

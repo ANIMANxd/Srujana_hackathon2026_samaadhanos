@@ -101,6 +101,118 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/cases/{case_id}/financing": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Start Financing
+         * @description Run financeability and open a financing track (Option 1).
+         *
+         *     A `NOT_FINANCEABLE` outcome is a **200 with reasons**, not an error: the owner
+         *     asked a question and gets an answer. Option 2 is untouched and still available.
+         */
+        post: operations["start_financing_api_v1_cases__case_id__financing_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cases/{case_id}/financing/bids": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Bids
+         * @description The bids received so far. A read: it never advances the state machine.
+         */
+        get: operations["list_bids_api_v1_cases__case_id__financing_bids_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cases/{case_id}/financing/bids/{bid_id}/select": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Select Bid
+         * @description Select a bid, sign the DEMO consent, and move to AWAITING_ESIGN.
+         *
+         *     The consent document is built here, hashed, and its hash is what the eSign
+         *     provider is asked to sign, so the signed copy can be checked against what was
+         *     shown. The PDF is watermarked TEMPLATE and every party is fictional.
+         */
+        post: operations["select_bid_api_v1_cases__case_id__financing_bids__bid_id__select_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cases/{case_id}/financing/buyer-acceptance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Request Buyer Acceptance
+         * @description Ask the buyer to accept the invoice, then follow the provider's decision.
+         *
+         *     The buyer acts in their own login: nothing moves until they accept. This route
+         *     applies `request_buyer_acceptance`, polls the provider once, and applies
+         *     `buyer_accepted` when it has happened. The polling is a stand-in for the signed
+         *     webhooks in `docs/webhooks.md`, which do not exist yet.
+         */
+        post: operations["request_buyer_acceptance_api_v1_cases__case_id__financing_buyer_acceptance_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cases/{case_id}/financing/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Cancel Financing
+         * @description Cancel before signature. After signature the receivable is the financier's.
+         */
+        post: operations["cancel_financing_api_v1_cases__case_id__financing_cancel_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/config": {
         parameters: {
             query?: never;
@@ -482,7 +594,7 @@ export interface components {
         };
         /**
          * CaseCreateRequest
-         * @description `POST /api/v1/cases` — the approved fields, plus buyer contact details.
+         * @description `POST /api/v1/cases` â€” the approved fields, plus buyer contact details.
          *
          *     The body is the evaluate-case body, so a caller that already has a verified
          *     `CaseEvaluationRequest` (the extraction approve step) can post it unchanged.
@@ -677,6 +789,23 @@ export interface components {
          * @enum {string}
          */
         ConfirmKind: "FIELD" | "MESSAGE";
+        /**
+         * ConsentDocument
+         * @description The DEMO consent document attached to a selected bid (template, not an instrument).
+         */
+        ConsentDocument: {
+            /** Filename */
+            filename: string;
+            /** Pdf Base64 */
+            pdf_base64?: string | null;
+            /** Sha256 */
+            sha256: string;
+            /**
+             * Watermark
+             * @default TEMPLATE
+             */
+            watermark: string;
+        };
         /** Defense */
         Defense: {
             /** Buyer Says */
@@ -748,21 +877,12 @@ export interface components {
             expires_at: string;
             /** Session Id */
             session_id: string;
-            /**
-             * Signed At
-             * @default null
-             */
-            signed_at: string | null;
-            /**
-             * Signed Doc Sha256
-             * @default null
-             */
-            signed_doc_sha256: string | null;
-            /**
-             * Signer Display
-             * @default null
-             */
-            signer_display: string | null;
+            /** Signed At */
+            signed_at?: string | null;
+            /** Signed Doc Sha256 */
+            signed_doc_sha256?: string | null;
+            /** Signer Display */
+            signer_display?: string | null;
             /** Signing Url */
             signing_url: string;
             /** @default PENDING */
@@ -955,6 +1075,16 @@ export interface components {
             /** Warnings */
             warnings?: components["schemas"]["Warning"][];
         };
+        /**
+         * FinanceabilityReason
+         * @description One blocking reason from `backend.finance.financeability`.
+         */
+        FinanceabilityReason: {
+            /** Code */
+            code: string;
+            /** Message */
+            message: string;
+        };
         /** Financials */
         Financials: {
             appropriation_mode: components["schemas"]["AppropriationMode"];
@@ -974,6 +1104,23 @@ export interface components {
             rate_segments: components["schemas"]["RateSegment"][];
             /** Total Claim */
             total_claim: string;
+        };
+        /**
+         * FinancingActionResponse
+         * @description Every mutating financing route answers with this.
+         *
+         *     `detail` is always the current case, so a client never has to re-read after an
+         *     action, and a stale-version 409 can hand back the same shape.
+         */
+        FinancingActionResponse: {
+            /** Bids */
+            bids?: components["schemas"]["Bid"][];
+            consent_document?: components["schemas"]["ConsentDocument"] | null;
+            detail: components["schemas"]["CaseDetail"];
+            esign_session?: components["schemas"]["ESignSession"] | null;
+            /** Reasons */
+            reasons?: components["schemas"]["FinanceabilityReason"][];
+            track?: components["schemas"]["Track"] | null;
         };
         /**
          * FinancingRequest
@@ -1186,7 +1333,7 @@ export interface components {
         };
         /**
          * OptionsResponse
-         * @description `GET /api/v1/cases/{id}/options` — the two-option comparison.
+         * @description `GET /api/v1/cases/{id}/options` â€” the two-option comparison.
          *
          *     `recommendation` is always null and must stay that way (golden rule 20,
          *     architecture_v4 section 9). A test asserts it.
@@ -1753,6 +1900,174 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ChainVerifyResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    start_financing_api_v1_cases__case_id__financing_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+                "If-Match"?: string | null;
+            };
+            path: {
+                case_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FinancingActionResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_bids_api_v1_cases__case_id__financing_bids_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                case_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FinancingActionResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    select_bid_api_v1_cases__case_id__financing_bids__bid_id__select_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+                "If-Match"?: string | null;
+            };
+            path: {
+                case_id: string;
+                bid_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FinancingActionResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    request_buyer_acceptance_api_v1_cases__case_id__financing_buyer_acceptance_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+                "If-Match"?: string | null;
+            };
+            path: {
+                case_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FinancingActionResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    cancel_financing_api_v1_cases__case_id__financing_cancel_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+                "If-Match"?: string | null;
+            };
+            path: {
+                case_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FinancingActionResponse"];
                 };
             };
             /** @description Validation Error */

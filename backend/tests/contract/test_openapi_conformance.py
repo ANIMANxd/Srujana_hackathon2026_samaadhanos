@@ -1,4 +1,4 @@
-"""Every endpoint's real response, and every committed fixture, against openapi.json.
+﻿"""Every endpoint's real response, and every committed fixture, against openapi.json.
 
 Architecture section 9.4: `make test` validates the contract so drift fails
 loudly. Two layers do that here:
@@ -48,12 +48,17 @@ READ_PATHS = {
     "/api/v1/cases/{case_id}",
     "/api/v1/cases/{case_id}/events",
     "/api/v1/cases/{case_id}/events/verify",
+    "/api/v1/cases/{case_id}/financing/bids",
 }
 WRITE_PATHS = {
     "/api/v1/evaluate-case",
     "/api/v1/simulate-settlement",
     "/api/v1/generate-artifact",
     "/api/v1/cases",
+    "/api/v1/cases/{case_id}/financing",
+    "/api/v1/cases/{case_id}/financing/buyer-acceptance",
+    "/api/v1/cases/{case_id}/financing/bids/{bid_id}/select",
+    "/api/v1/cases/{case_id}/financing/cancel",
 }
 UPLOAD_PATHS = {"/api/v1/extract-evidence"}
 
@@ -130,6 +135,82 @@ def test_read_endpoints_match_the_contract():
         _assert_matches(
             _response_pointer(path, method), response.json(), f"{method} {path}"
         )
+
+
+def _financing_case() -> str:
+    """A case that is not yet due, so Option 1 is financeable in the demo clock."""
+    payload = {
+        **_preset_request(),
+        "transaction": {
+            **_preset_request()["transaction"],
+            "contract_date": "2026-08-01",
+            "supply_date": "2026-09-14",
+            "delivery_date": "2026-09-14",
+            "invoice_date": "2026-09-16",
+        },
+    }
+    created = client.post("/api/v1/cases", json=payload)
+    assert created.status_code == 201, created.text[:300]
+    return created.json()["case"]["id"]
+
+
+def test_financing_routes_match_the_contract():
+    """Every declared financing path is called for real.
+
+    The mock provider service does not exist, so `buyer-acceptance` reports the
+    provider as unavailable and `select` finds no bids: both are still exercised, and
+    only the 200 bodies are schema-checked.
+    """
+    case_id = _financing_case()
+    headers = {"Idempotency-Key": "conformance-1", "If-Match": "0"}
+
+    started = client.post(f"/api/v1/cases/{case_id}/financing", headers=headers)
+    assert started.status_code == 200, started.text[:300]
+    _assert_matches(
+        _response_pointer("/api/v1/cases/{case_id}/financing", "POST"),
+        started.json(),
+        "POST /financing",
+    )
+    version = started.json()["track"]["version"]
+
+    acceptance = client.post(
+        f"/api/v1/cases/{case_id}/financing/buyer-acceptance",
+        headers={"Idempotency-Key": "conformance-2", "If-Match": str(version)},
+    )
+    assert acceptance.status_code == 200, acceptance.text[:300]
+    _assert_matches(
+        _response_pointer("/api/v1/cases/{case_id}/financing/buyer-acceptance", "POST"),
+        acceptance.json(),
+        "POST /financing/buyer-acceptance",
+    )
+    version = acceptance.json()["track"]["version"]
+
+    bids = client.get(f"/api/v1/cases/{case_id}/financing/bids")
+    assert bids.status_code == 200, bids.text[:300]
+    _assert_matches(
+        _response_pointer("/api/v1/cases/{case_id}/financing/bids", "GET"),
+        bids.json(),
+        "GET /financing/bids",
+    )
+
+    # No bids exist, so selecting is refused - the path is still exercised.
+    select = client.post(
+        f"/api/v1/cases/{case_id}/financing/bids/MOCK-BID-A/select",
+        headers={"Idempotency-Key": "conformance-3", "If-Match": str(version)},
+    )
+    assert select.status_code == 409, select.text[:300]
+    assert select.json()["error"]["code"] in {"INVALID_TRANSITION", "STALE_VERSION"}
+
+    cancel = client.post(
+        f"/api/v1/cases/{case_id}/financing/cancel",
+        headers={"Idempotency-Key": "conformance-4", "If-Match": str(version)},
+    )
+    assert cancel.status_code == 200, cancel.text[:300]
+    _assert_matches(
+        _response_pointer("/api/v1/cases/{case_id}/financing/cancel", "POST"),
+        cancel.json(),
+        "POST /financing/cancel",
+    )
 
 
 def test_create_case_matches_the_contract():
