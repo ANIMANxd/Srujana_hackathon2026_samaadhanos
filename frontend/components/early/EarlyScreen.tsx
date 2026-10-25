@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, type ReactNode } from "react";
 import { cancelFinancing, getEsignSession, getPayout, listBids, startFinancing, startRecovery } from "@/lib/api";
+import { currentStage } from "@/lib/derive";
 import { EARLY_STEPS, earlyView, stepIndex, type EarlyStep } from "@/lib/earlyFlow";
 import { useT } from "@/lib/i18n";
 import type { MessageKey } from "@/lib/i18n/en";
@@ -224,7 +225,7 @@ export function EarlyScreen({ caseId }: { caseId: string }) {
                 <IdempotentButton
                   actionId={`recovery.switch:${caseId}`}
                   run={async (opts) => {
-                    await startRecovery(caseId, null, opts);
+                    await startRecovery(caseId, ev.response ? currentStage(ev.response) : 1, opts);
                     await refresh();
                     goOption2();
                   }}

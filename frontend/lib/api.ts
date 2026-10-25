@@ -27,8 +27,10 @@ import type {
   ChainVerifyResult,
   ESignSession,
   ExtractionResponse,
+  FinancingActionResponse,
   OptionsResponse,
   PayoutStatus,
+  RecoveryActionResponse,
   WebhookDelivery,
   PresetSummary,
   SettlementSimulationResponse,
@@ -297,21 +299,22 @@ export function getOptions(
 
 // ------------------------------------------------ contract v1.1: financing --
 
-export function startFinancing(id: string, opts: MutationOptions): Promise<CaseDetail> {
-  return mutate<CaseDetail>(`${caseUrl(id)}/financing`, opts);
+export function startFinancing(id: string, opts: MutationOptions): Promise<FinancingActionResponse> {
+  return mutate<FinancingActionResponse>(`${caseUrl(id)}/financing`, opts);
 }
 
-export function requestBuyerAcceptance(id: string, opts: MutationOptions): Promise<CaseDetail> {
-  return mutate<CaseDetail>(`${caseUrl(id)}/financing/buyer-acceptance`, opts);
+export function requestBuyerAcceptance(id: string, opts: MutationOptions): Promise<FinancingActionResponse> {
+  return mutate<FinancingActionResponse>(`${caseUrl(id)}/financing/buyer-acceptance`, opts);
 }
 
 export function listBids(id: string): Promise<Sourced<Bid[]>> {
-  return readOrSample(() => call<Bid[]>(`${caseUrl(id)}/financing/bids`), offlineBids);
+  // The route answers with the whole action wrapper; the bids are one field of it.
+  return readOrSample(async () => (await call<FinancingActionResponse>(`${caseUrl(id)}/financing/bids`)).bids ?? [], offlineBids);
 }
 
 /** Selecting a bid creates the (mock) eSign session. */
-export function selectBid(id: string, bidId: string, opts: MutationOptions): Promise<ESignSession> {
-  return mutate<ESignSession>(`${caseUrl(id)}/financing/bids/${encodeURIComponent(bidId)}/select`, opts);
+export function selectBid(id: string, bidId: string, opts: MutationOptions): Promise<FinancingActionResponse> {
+  return mutate<FinancingActionResponse>(`${caseUrl(id)}/financing/bids/${encodeURIComponent(bidId)}/select`, opts);
 }
 
 // ASSUMED routes (not in architecture_v4 section 9; raised in the worklog): the
@@ -338,20 +341,20 @@ export function getPayout(id: string): Promise<Sourced<PayoutStatus>> {
   return readOrSample(() => call<PayoutStatus>(`${caseUrl(id)}/financing/payout`), offlinePayout);
 }
 
-export function cancelFinancing(id: string, opts: MutationOptions): Promise<CaseDetail> {
-  return mutate<CaseDetail>(`${caseUrl(id)}/financing/cancel`, opts);
+export function cancelFinancing(id: string, opts: MutationOptions): Promise<FinancingActionResponse> {
+  return mutate<FinancingActionResponse>(`${caseUrl(id)}/financing/cancel`, opts);
 }
 
 // ------------------------------------------------- contract v1.1: recovery --
 
 /** Start or resume recovery; `stage` prepares that stage's draft (nothing is sent). */
-export function startRecovery(id: string, stage: number | null, opts: MutationOptions): Promise<CaseDetail> {
-  return mutate<CaseDetail>(`${caseUrl(id)}/recovery`, opts, { stage });
+export function startRecovery(id: string, stage: number, opts: MutationOptions): Promise<RecoveryActionResponse> {
+  return mutate<RecoveryActionResponse>(`${caseUrl(id)}/recovery`, opts, { stage });
 }
 
 /** The owner confirms they sent the draft themselves. */
-export function markRecoverySent(id: string, opts: MutationOptions): Promise<CaseDetail> {
-  return mutate<CaseDetail>(`${caseUrl(id)}/recovery/mark-sent`, opts);
+export function markRecoverySent(id: string, opts: MutationOptions): Promise<RecoveryActionResponse> {
+  return mutate<RecoveryActionResponse>(`${caseUrl(id)}/recovery/mark-sent`, opts);
 }
 
 // ------------------------------------------- contract v1.1: audit + stream --

@@ -49,7 +49,8 @@ export function IdempotentButton({
     setPending(true);
     setNotice(null);
     const opts: MutationOptions = { idempotencyKey: idempotencyKeyFor(actionId) };
-    if (version !== undefined && version !== null) opts.ifMatch = version;
+    // No track yet is `If-Match: 0` (the server treats it as "create"); a missing header is a 400.
+    if (version !== undefined) opts.ifMatch = version ?? 0;
     try {
       await run(opts);
       releaseIdempotencyKey(actionId);

@@ -150,9 +150,11 @@ export function DuesScreen() {
     };
   }, []);
 
-  const placeholder = Boolean(rows?.some((r) => isPlaceholder(r.response)));
-  const buyers = rows ? new Set(rows.map((r) => r.request.buyer.name)).size : 0;
-  const overdue = rows ? rows.filter((r) => (r.response?.timeline?.days_overdue ?? 0) > 0) : [];
+  // Stored cases are the real list. The bundled samples only stand in when there are none (backend offline or empty).
+  const storedCases = stored.cases ?? [];
+  const sampleRows = storedCases.length > 0 ? [] : (rows ?? []);
+  const placeholder = Boolean(sampleRows.some((r) => isPlaceholder(r.response)));
+  const overdue = sampleRows.filter((r) => (r.response?.timeline?.days_overdue ?? 0) > 0);
   const maxDays = overdue.reduce<number | null>((m, r) => {
     const d = r.response?.timeline?.days_overdue ?? null;
     return d !== null && (m === null || d > m) ? d : m;
@@ -168,7 +170,6 @@ export function DuesScreen() {
   const oldest = maxDays === null ? storedMax : storedMax === null ? maxDays : Math.max(maxDays, storedMax);
 
   const stats = [
-    { label: t("dues.summary.buyers"), value: ready ? count(buyers + cases.length) : null },
     { label: t("dues.summary.overdue"), value: ready ? count(overdueAll) : null },
     { label: t("dues.summary.oldest"), value: ready ? (oldest === null ? "—" : t("dues.summary.days", { n: count(oldest) })) : null },
     { label: t("dues.summary.paid_early"), value: ready ? paiseToMoney(paidEarlyPaise) : null },
@@ -190,7 +191,7 @@ export function DuesScreen() {
       <DataBanners placeholder={placeholder} />
 
       <div className="flex flex-col gap-2">
-        <dl className="panel grid grid-cols-2 divide-rule sm:grid-cols-4 sm:divide-x">
+        <dl className="panel grid grid-cols-3 divide-x divide-rule">
           {stats.map((s) => (
             <div key={s.label} className="flex flex-col gap-2 px-5 py-4 sm:px-6 sm:py-5">
               <dt className="text-xs text-ink-500">{s.label}</dt>
@@ -198,7 +199,7 @@ export function DuesScreen() {
             </div>
           ))}
         </dl>
-        <p className="px-1 text-xs text-ink-500">{t("dues.summary.note")} {t("dues.summary.paid_early_note")}</p>
+        
       </div>
 
       {rows === null ? (
@@ -208,7 +209,7 @@ export function DuesScreen() {
           <Skeleton className="h-10" />
           <Skeleton className="h-10" />
         </div>
-      ) : rows.length === 0 && cases.length === 0 ? (
+      ) : sampleRows.length === 0 && cases.length === 0 ? (
         <EmptyState title={t("dues.empty.title")} body={t("dues.empty.body")}>
           <Link href={href("/upload")} className="btn btn-primary">{t("nav.upload")}</Link>
         </EmptyState>
@@ -226,7 +227,7 @@ export function DuesScreen() {
             {cases.map((c) => (
               <CaseRow key={c.id} row={c} />
             ))}
-            {rows.map((r) => (
+            {sampleRows.map((r) => (
               <BuyerRow key={r.id} row={r} />
             ))}
           </ul>

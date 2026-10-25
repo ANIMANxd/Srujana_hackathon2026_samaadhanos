@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useSendLog } from "@/lib/caseStore";
 import { isNotCovered, isPlaceholder } from "@/lib/derive";
 import { useT } from "@/lib/i18n";
@@ -18,7 +19,7 @@ import { SendPanel } from "../send/SendPanel";
 import { AssumptionsDrawer } from "./AssumptionsDrawer";
 import { CaseHeader } from "./CaseHeader";
 import { TrackStrip } from "./TrackStrip";
-import { ChoiceCard } from "../options/ChoiceCard";
+import { DecisionScreen } from "./DecisionScreen";
 import { ReadingGuide } from "./ReadingGuide";
 import { CaseTabs } from "./CaseTabs";
 import { EvidenceTab } from "../evidence/EvidenceTab";
@@ -42,6 +43,7 @@ export function CaseScreen({ caseId }: { caseId: string }) {
   const log = useSendLog(caseId);
 
   const judge = judgeCase(ev);
+  const [detailsOpen, setDetailsOpen] = useState(false);
 
   if (ev.status === "not_found") return <NotFoundState />;
 
@@ -49,9 +51,31 @@ export function CaseScreen({ caseId }: { caseId: string }) {
   const placeholder = isPlaceholder(res);
   const notCovered = res ? isNotCovered(res) : false;
   const closeSend = () => router.replace(href(`/case/${caseId}`, { tab }), { scroll: false });
+  // A stored case opens on one decision; the full page is one click away, and any ?tab= link goes straight to it.
+  const simple = Boolean(ev.tracking?.caseDetail) && view === "supplier" && tab === "overview" && !detailsOpen && !notCovered;
+
+  if (simple && res && ev.request && ev.tracking) {
+    return (
+      <div className="flex flex-col gap-6">
+        <DecisionScreen caseId={caseId} request={ev.request} response={res} tracking={ev.tracking} onDetails={() => setDetailsOpen(true)} />
+        {send && (
+          <Drawer open onClose={closeSend} title={t("send.title", { n: send, title: t(`stage.${send}.title`) })} width="md">
+            <SendPanel key={send} caseId={caseId} stage={send} request={ev.request} response={res} offlineId={ev.offlineId} tracking={ev.tracking} />
+          </Drawer>
+        )}
+        <JudgeConsole current={judge} />
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-6">
+      {detailsOpen && (
+        <button type="button" className="btn btn-quiet self-start" onClick={() => setDetailsOpen(false)}>
+          <Icon name="arrow-left" className="h-4 w-4" />
+          {t("decision.back")}
+        </button>
+      )}
       <CaseHeader caseId={caseId} request={ev.request} response={res} showViewToggle={Boolean(res)} />
       {ev.tracking && <TrackStrip tracking={ev.tracking} />}
       <DataBanners placeholder={placeholder} needsBackend={ev.status === "needs_backend"} />
@@ -117,7 +141,6 @@ export function CaseScreen({ caseId }: { caseId: string }) {
               ) : (
                 <>
                   <GuidanceCard caseId={caseId} response={res} config={cfg.config} placeholder={placeholder} />
-                  {ev.tracking && <ChoiceCard caseId={caseId} tracking={ev.tracking} />}
                   <StatuteTimeline response={res} />
                   <div className="grid gap-4 lg:grid-cols-[3fr_2fr]">
                     <MoneyCard response={res} placeholder={placeholder} />
