@@ -111,7 +111,7 @@ export function CaseScreen({ caseId }: { caseId: string }) {
                   onChange={ev.setRequest}
                 />
               ) : tab === "escalation" ? (
-                <EscalationTab caseId={caseId} request={ev.request} response={res} offlineId={ev.offlineId} log={log} />
+                <EscalationTab caseId={caseId} request={ev.request} response={res} offlineId={ev.offlineId} log={log} tracking={ev.tracking} />
               ) : notCovered ? (
                 <NotCovered request={ev.request} response={res} />
               ) : (
@@ -126,7 +126,7 @@ export function CaseScreen({ caseId }: { caseId: string }) {
                       <AssumptionsDrawer response={res} config={cfg.config} configLoading={cfg.loading} configIsStub={cfg.isStub} />
                     </div>
                   </div>
-                  <EscalationLadder caseId={caseId} response={res} log={log} />
+                  <EscalationLadder caseId={caseId} response={res} log={log} tracking={ev.tracking} />
                 </>
               )}
             </>
@@ -136,7 +136,7 @@ export function CaseScreen({ caseId }: { caseId: string }) {
 
       {res && ev.request && !notCovered && send && (
         <Drawer open onClose={closeSend} title={t("send.title", { n: send, title: t(`stage.${send}.title`) })} width="md">
-          <SendPanel key={send} caseId={caseId} stage={send} request={ev.request} response={res} offlineId={ev.offlineId} />
+          <SendPanel key={send} caseId={caseId} stage={send} request={ev.request} response={res} offlineId={ev.offlineId} tracking={ev.tracking} />
         </Drawer>
       )}
 

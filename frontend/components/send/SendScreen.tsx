@@ -43,7 +43,7 @@ export function SendScreen({ caseId, stage }: { caseId: string; stage: Stage }) 
             <h2 id="send-title" className="text-xl font-semibold tracking-[-0.015em] text-ink-950">
               {t("send.title", { n: stage, title: t(`stage.${stage}.title`) })}
             </h2>
-            <SendPanel caseId={caseId} stage={stage} request={req} response={res} offlineId={ev.offlineId} />
+            <SendPanel caseId={caseId} stage={stage} request={req} response={res} offlineId={ev.offlineId} tracking={ev.tracking} />
           </section>
         )
       )}

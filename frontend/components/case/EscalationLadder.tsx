@@ -7,7 +7,11 @@ import { useT } from "@/lib/i18n";
 import { useHref } from "@/lib/params";
 import { STAGES, type CaseResponse, type Stage } from "@/lib/types";
 import type { SendLogEntry } from "@/lib/caseStore";
+import { financingLocksRecovery, recoveryStatus } from "@/lib/recoveryFlow";
+import type { TrackView } from "@/lib/useTrack";
 import { Icon } from "../common/Icon";
+import { RecoveryBadge } from "../common/RecoveryBadge";
+import { LockedNotice } from "../early/LockedNotice";
 
 /**
  * Four-step stepper. State is always icon + word (Recommended / Available /
@@ -17,14 +21,27 @@ export function EscalationLadder({
   caseId,
   response,
   log,
+  tracking = null,
 }: {
   caseId: string;
   response: CaseResponse;
   log: SendLogEntry[];
+  /** Stored cases: prepared / sent come from the recovery track. */
+  tracking?: TrackView | null;
 }) {
   const { t } = useT();
   const href = useHref();
   const current = currentStage(response);
+
+  const fromServer = Boolean(tracking?.caseDetail);
+  if (tracking && financingLocksRecovery(tracking.track)) {
+    return (
+      <section aria-labelledby="ladder-title" className="panel flex flex-col gap-4 p-6">
+        <h2 id="ladder-title" className="section-title">{t("ladder.title")}</h2>
+        <LockedNotice dueDate={response.timeline?.due_date ?? null} />
+      </section>
+    );
+  }
 
   const linkFor = (s: Stage) => (s === 4 ? href(`/case/${caseId}/pack`) : href(`/case/${caseId}`, { send: s }));
 
@@ -63,7 +80,12 @@ export function EscalationLadder({
               </div>
               <span className="sr-only">{t("stage.chip", { n: s })}</span>
               <span className={`mt-3 text-sm font-medium ${blocked ? "text-ink-500" : "text-ink-950"}`}>{t(`stage.${s}.title`)}</span>
-              {prepared.length > 0 && (
+              {fromServer && recoveryStatus(tracking?.track ?? null, s) !== "none" && (
+                <span className="mt-2">
+                  <RecoveryBadge status={recoveryStatus(tracking?.track ?? null, s)} />
+                </span>
+              )}
+              {!fromServer && prepared.length > 0 && (
                 <span className="mt-1 text-xs text-ink-500">{t("ladder.prepared", { date: date(prepared[prepared.length - 1].at) })}</span>
               )}
             </>

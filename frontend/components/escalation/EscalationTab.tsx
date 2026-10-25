@@ -7,7 +7,11 @@ import { useT } from "@/lib/i18n";
 import { useHref, useUrlState } from "@/lib/params";
 import type { SendLogEntry } from "@/lib/caseStore";
 import { STAGES, type CaseRequest, type CaseResponse, type Stage } from "@/lib/types";
+import { financingLocksRecovery, recoveryStatus } from "@/lib/recoveryFlow";
+import type { TrackView } from "@/lib/useTrack";
 import { Icon } from "../common/Icon";
+import { RecoveryBadge } from "../common/RecoveryBadge";
+import { LockedNotice } from "../early/LockedNotice";
 import { SendPanel } from "../send/SendPanel";
 import { LockedStage } from "./LockedStage";
 
@@ -26,12 +30,15 @@ export function EscalationTab({
   response,
   offlineId,
   log,
+  tracking = null,
 }: {
   caseId: string;
   request: CaseRequest;
   response: CaseResponse;
   offlineId: string | null;
   log: SendLogEntry[];
+  /** Stored cases: prepared / sent come from the recovery track. */
+  tracking?: TrackView | null;
 }) {
   const { t } = useT();
   const href = useHref();
@@ -43,6 +50,16 @@ export function EscalationTab({
   const state = (s: Stage): StepState => (locks[s] ? "locked" : s === recommended ? "recommended" : "available");
   const selected: Stage = step ?? recommended ?? STAGES.find((s) => !locks[s]) ?? 1;
   const lock = locks[selected];
+
+  const fromServer = Boolean(tracking?.caseDetail);
+  if (tracking && financingLocksRecovery(tracking.track)) {
+    return (
+      <section aria-labelledby="esc-title" className="panel flex flex-col gap-4 p-6">
+        <h2 id="esc-title" className="section-title">{t("esc.title")}</h2>
+        <LockedNotice dueDate={response.timeline?.due_date ?? null} />
+      </section>
+    );
+  }
 
   return (
     <div className="grid items-start gap-4 lg:grid-cols-[19rem_1fr]">
@@ -89,7 +106,10 @@ export function EscalationTab({
                     {t(st === "locked" ? "esc.locked" : st === "recommended" ? "esc.recommended" : "esc.available")}
                   </span>
                   {st === "recommended" && why && <span className="text-xs leading-relaxed text-ink-600">{t(`esc.why.${why}`)}</span>}
-                  {prepared.length > 0 && <span className="text-xs text-ink-500">{t("ladder.prepared", { date: date(prepared[prepared.length - 1].at) })}</span>}
+                  {fromServer && recoveryStatus(tracking?.track ?? null, s) !== "none" && (
+                    <RecoveryBadge status={recoveryStatus(tracking?.track ?? null, s)} />
+                  )}
+                  {!fromServer && prepared.length > 0 && <span className="text-xs text-ink-500">{t("ladder.prepared", { date: date(prepared[prepared.length - 1].at) })}</span>}
                 </Link>
               </li>
             );
@@ -107,7 +127,7 @@ export function EscalationTab({
               <h2 id="esc-step" className="text-xl font-semibold tracking-[-0.015em] text-ink-950">{t(`stage.${selected}.title`)}</h2>
               {selected === recommended && why && <p className="text-sm text-saffron-ink">{t(`esc.why.${why}`)}</p>}
             </div>
-            <SendPanel key={selected} caseId={caseId} stage={selected} request={request} response={response} offlineId={offlineId} />
+            <SendPanel key={selected} caseId={caseId} stage={selected} request={request} response={response} offlineId={offlineId} tracking={tracking} />
           </section>
         )}
       </div>
