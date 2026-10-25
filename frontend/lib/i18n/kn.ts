@@ -137,7 +137,7 @@ export const kn: Partial<Record<MessageKey, string>> = {
   // NEEDS-NATIVE-REVIEW
   "ladder.title": "ಹಂತಗಳು (escalation)",
   // NEEDS-NATIVE-REVIEW
-  "ladder.recommended": "ಶಿಫಾರಸು",
+  "ladder.recommended": "ಮುಂದಿನ ಹಂತ",
   // NEEDS-NATIVE-REVIEW
   "ladder.available": "ಲಭ್ಯ",
   // NEEDS-NATIVE-REVIEW

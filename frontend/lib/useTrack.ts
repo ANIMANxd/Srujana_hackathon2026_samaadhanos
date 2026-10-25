@@ -30,6 +30,8 @@ export type TrackView = {
 };
 
 const POLL_MS = 3000;
+/** For copy that says how often the screen checks. */
+export const POLL_SECONDS = POLL_MS / 1000;
 const OFFLINE_RETRY_MS = 10_000;
 const STREAM_RETRY_MS = 15_000;
 // A stream can be open yet silent (a proxy that buffers events), so a slow poll runs alongside it.

@@ -10,6 +10,7 @@ import { useHref } from "@/lib/params";
 import type { CaseSummary } from "@/lib/types";
 import { Icon } from "../common/Icon";
 import { StatusIcon } from "../common/StatusIcon";
+import { DemoBadge } from "../options/DemoBadge";
 
 /** Same columns as the sample rows, so both kinds line up in one table. */
 export const GRID =
@@ -37,7 +38,7 @@ export function CaseRow({ row }: { row: CaseSummary }) {
 
         <div className="col-span-2 min-w-0 md:col-span-1">
           <span className="sr-only">{t("dues.col.track")}: </span>
-          <span className="inline-flex max-w-full flex-wrap items-center gap-x-1 text-sm">
+          <span className="inline-flex max-w-full flex-wrap items-center gap-x-2 gap-y-1 text-sm">
             <StatusIcon
               size="sm"
               wrap
@@ -45,6 +46,7 @@ export function CaseRow({ row }: { row: CaseSummary }) {
               icon={chip.icon}
               label={chip.prefix ? `${t(chip.prefix)} · ${t(chip.status as MessageKey, chip.vars)}` : t(chip.status as MessageKey)}
             />
+            {row.active_track?.kind === "FINANCING" && <DemoBadge compact />}
           </span>
         </div>
 
