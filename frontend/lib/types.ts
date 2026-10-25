@@ -52,6 +52,7 @@ export type TrackState = S["TrackState"];
 export type OptionsResponse = S["OptionsResponse"];
 export type OptionCitation = S["OptionCitation"];
 export type CaseSummary = S["CaseSummary"];
+export type WebhookDelivery = S["WebhookDelivery"];
 export type Bid = S["Bid"];
 export type ESignSession = S["ESignSession"];
 export type PayoutStatus = S["PayoutStatus"];

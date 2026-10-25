@@ -14,6 +14,7 @@ import type {
   OptionsResponse,
   PayoutStatus,
   TrackState,
+  WebhookDelivery,
 } from "./types";
 
 function payload(name: string): unknown {
@@ -89,6 +90,11 @@ export function offlineEsign(): ESignSession | null {
 export function offlinePayout(): PayoutStatus | null {
   const v = payload("payout");
   return isObject(v) && typeof v.payout_ref === "string" ? (v as unknown as PayoutStatus) : null;
+}
+
+export function offlineDeliveries(): WebhookDelivery[] | null {
+  const v = payload("webhook-deliveries");
+  return Array.isArray(v) ? (v as WebhookDelivery[]) : null;
 }
 
 export function offlineBids(): Bid[] | null {

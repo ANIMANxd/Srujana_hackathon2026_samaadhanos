@@ -23,7 +23,9 @@ import type {
 } from "@/lib/types";
 import { Drawer } from "../common/Drawer";
 import { AMOUNT, DATE, DECIMAL, INT, TextField } from "../common/TextField";
+import { useProductionMode } from "@/lib/useHealth";
 import { Icon } from "../common/Icon";
+import { JudgeDemoControls } from "./JudgeDemoControls";
 import { EligibilityPill } from "../case/EligibilityPill";
 
 
@@ -292,7 +294,8 @@ export function JudgeConsole({ current }: { current?: JudgeCase | null }) {
   const href = useHref();
   const { judge, demo } = useUrlState();
   // Demo mode hides the rehearsal console by default; ?judge=1 is the explicit escape hatch.
-  const enabled = !demo || judge;
+  const production = useProductionMode();
+  const enabled = (!demo || judge) && !production;
   const [open, setOpen] = useState(judge);
   const [presets, setPresets] = useState<PresetSummary[]>([]);
 
@@ -357,6 +360,12 @@ export function JudgeConsole({ current }: { current?: JudgeCase | null }) {
               );
             })}
           </ul>
+        </section>
+        <section aria-labelledby="judge-demo">
+          <h3 id="judge-demo" className="section-title">{t("judge.demo.title")}</h3>
+          <div className="mt-3">
+            <JudgeDemoControls caseId={current?.caseId ?? null} open={open} />
+          </div>
         </section>
         <section aria-labelledby="judge-edit">
           <h3 id="judge-edit" className="section-title">{t("judge.edit")}</h3>

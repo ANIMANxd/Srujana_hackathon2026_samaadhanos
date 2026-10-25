@@ -9,6 +9,7 @@ import {
   offlineCaseDetail,
   offlineCases,
   offlineChainResult,
+  offlineDeliveries,
   offlineEsign,
   offlineEvents,
   offlineOptions,
@@ -28,6 +29,7 @@ import type {
   ExtractionResponse,
   OptionsResponse,
   PayoutStatus,
+  WebhookDelivery,
   PresetSummary,
   SettlementSimulationResponse,
   StatuteConfig,
@@ -120,6 +122,15 @@ export async function health(): Promise<boolean> {
     return true;
   } catch {
     return false;
+  }
+}
+
+/** GET /health as the backend sent it (string values), or null when unreachable. */
+export async function getHealth(): Promise<Record<string, string> | null> {
+  try {
+    return await call<Record<string, string>>("/health");
+  } catch {
+    return null;
   }
 }
 
@@ -368,6 +379,14 @@ export function setMockScenario(body: MockBody, opts: MutationOptions): Promise<
 
 export function setMockClock(body: MockBody, opts: MutationOptions): Promise<MockBody> {
   return mutate<MockBody>("/mock/clock", opts, body);
+}
+
+/**
+ * GET /mock/deliveries (ASSUMED route, judge console only): the webhook inbox as
+ * the API saw it, newest first. Offline it shows the saved sample log.
+ */
+export function getDeliveries(): Promise<Sourced<WebhookDelivery[]>> {
+  return readOrSample(() => call<WebhookDelivery[]>("/mock/deliveries"), offlineDeliveries);
 }
 
 // POST /webhooks/{esign,marketplace,disbursement} are signed provider-to-server
