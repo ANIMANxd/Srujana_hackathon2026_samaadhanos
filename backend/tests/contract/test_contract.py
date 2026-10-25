@@ -40,6 +40,8 @@ PRESET_IDS = [
     # Not yet due: these two exist to show Option 1 (get paid early).
     "case_07",
     "case_08",
+    # The only preset whose delay crosses a 31 March, so 43B(h) actually computes.
+    "case_09",
 ]
 BLOCKED_IDS = ["case_05a", "case_05b"]
 # Top-level keys a preset file may carry: descriptive text plus the input.

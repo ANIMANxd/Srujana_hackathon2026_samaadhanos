@@ -1,0 +1,49 @@
+{
+  "title": "CASE-09 — Delay crossing 31 March: the 43B(h) deferral has a real checkpoint",
+  "note": "INPUT ONLY, synthetic (golden rule 11): no real parties, Udyam or GSTIN numbers. No outputs are stored here; every number comes from the engine. This case exists so the buyer's 43B(h) timing cost is not hypothetical: the delay runs across a 31 March financial-year close, so the deferral line actually computes and the CFO assumptions panel visibly moves its figures.",
+  "why_calculation_date": "Deliberate: delivery 2026-11-15 plus 30 agreed days puts the due date on 2026-12-15, and the 2027-05-31 calculation date carries the delay across the 31 March 2027 year end. That 31 March is the only checkpoint the contract emits (fy_end, unpaid_principal, tax_timing_effect), and it is what makes the deferral line apply at all - no other shipped preset crosses a year end, so their deferral line is legitimately empty. The whole delay sits after the 2026-10-07 Bank Rate epoch, so it prices at a single configured rate (17.25%) and the case is about 43B(h), not about rate changes; that comparison is CASE-01's job.",
+  "request": {
+    "contract_version": "1.0",
+    "case_id": "case_09",
+    "supplier": {
+      "name": "Sample Small Fabricators (synthetic)",
+      "udyam_number": "UDYAM-SYN-000000009",
+      "enterprise_class": "SMALL",
+      "activity": "MANUFACTURING",
+      "nic_codes": ["25990"],
+      "udyam_registration_date": "2021-05-10",
+      "investment_cr": "3.10",
+      "turnover_cr": "22.00"
+    },
+    "buyer": {
+      "name": "Sample Buyer Nine Ltd (synthetic)",
+      "gstin": "29SYN000000009Z1",
+      "tax_rate_pct": "25.168",
+      "cost_of_capital_pct": "12.00"
+    },
+    "transaction": {
+      "contract_date": "2026-10-01",
+      "supply_date": "2026-11-15",
+      "invoice_date": "2026-11-18",
+      "delivery_date": "2026-11-15",
+      "principal": "1850000.00",
+      "written_credit_days": 30,
+      "calculation_date": "2027-05-31",
+      "years_deferred": "1.00"
+    },
+    "objections": [],
+    "part_payments": [],
+    "acknowledgments": [],
+    "evidence": {
+      "items": [
+        { "kind": "PO", "present": true, "ref": "synthetic-PO-009" },
+        { "kind": "INVOICE", "present": true, "ref": "synthetic-INV-009" },
+        { "kind": "DELIVERY_PROOF", "present": true, "ref": "synthetic-LR-009" },
+        { "kind": "WHATSAPP", "present": true, "ref": "synthetic-WA-009" },
+        { "kind": "UDYAM", "present": true, "ref": "synthetic-UDYAM-009" },
+        { "kind": "GST_RETURN", "present": true, "ref": "synthetic-GST-009" }
+      ]
+    },
+    "config_overrides": null
+  }
+}

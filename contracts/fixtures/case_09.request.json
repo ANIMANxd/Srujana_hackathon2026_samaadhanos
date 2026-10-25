@@ -1,0 +1,70 @@
+{
+  "contract_version": "1.0",
+  "case_id": "case_09",
+  "supplier": {
+    "name": "Sample Small Fabricators (synthetic)",
+    "udyam_number": "UDYAM-SYN-000000009",
+    "enterprise_class": "SMALL",
+    "activity": "MANUFACTURING",
+    "nic_codes": [
+      "25990"
+    ],
+    "udyam_registration_date": "2021-05-10",
+    "investment_cr": "3.10",
+    "turnover_cr": "22.00"
+  },
+  "buyer": {
+    "name": "Sample Buyer Nine Ltd (synthetic)",
+    "gstin": "29SYN000000009Z1",
+    "tax_rate_pct": "25.168",
+    "cost_of_capital_pct": "12.00"
+  },
+  "transaction": {
+    "contract_date": "2026-10-01",
+    "supply_date": "2026-11-15",
+    "invoice_date": "2026-11-18",
+    "delivery_date": "2026-11-15",
+    "principal": "1850000.00",
+    "written_credit_days": 30,
+    "calculation_date": "2027-05-31",
+    "years_deferred": "1.00"
+  },
+  "objections": [],
+  "part_payments": [],
+  "acknowledgments": [],
+  "evidence": {
+    "items": [
+      {
+        "kind": "PO",
+        "present": true,
+        "ref": "synthetic-PO-009"
+      },
+      {
+        "kind": "INVOICE",
+        "present": true,
+        "ref": "synthetic-INV-009"
+      },
+      {
+        "kind": "DELIVERY_PROOF",
+        "present": true,
+        "ref": "synthetic-LR-009"
+      },
+      {
+        "kind": "WHATSAPP",
+        "present": true,
+        "ref": "synthetic-WA-009"
+      },
+      {
+        "kind": "UDYAM",
+        "present": true,
+        "ref": "synthetic-UDYAM-009"
+      },
+      {
+        "kind": "GST_RETURN",
+        "present": true,
+        "ref": "synthetic-GST-009"
+      }
+    ]
+  },
+  "config_overrides": null
+}
