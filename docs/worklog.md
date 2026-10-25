@@ -55,3 +55,8 @@ date/time, role, prompt id, what changed, what is unverified, open questions rai
 - Added typed v1.1 calls (lib/api.ts), lib/idempotency.ts, lib/useTrack.ts (GET + SSE, 3s poll fallback), components/common/IdempotentButton; Approve now POSTs /cases and opens /case/<id>; `?legacy=1` keeps the stateless path (also the fallback when /cases is missing). Offline renders contracts/fixtures/v4 (`?state=<TrackState>` picks the sample), mutations disabled.
 - Unverified: no backend /cases routes exist yet; checked in a browser against a stand-in server only (create, reload, offline).
 - Assumed, please confirm (backend): POST /cases body = CaseEvaluationRequest, returns CaseDetail; track actions return CaseDetail, select-bid returns ESignSession; /stream sends unnamed `data:` events (any message triggers a re-read); If-Match is the bare integer version.
+
+2026-10-25 · Frontend agent (Mochi) · choice-card
+- Added components/options/{ChoiceCard,OptionColumn,UnavailableReason,DemoBadge} and lib/useOptions.ts (GET /cases/{id}/options, 400 ms debounced expected-date picker on the Recover column). Sits under GuidanceCard for stored cases only. Active track shows "In progress" + Continue; the other column is Paused/Locked from available_actions (`switch_to_recovery` present = paused). No best/recommended mark; every figure is the server's.
+- Spec gap: docs/frontend-structure.md does not exist, so section 7.1/7.5 were taken from architecture_v4 sections 9 and 10. Continue on Option 1 links to /case/<id>/early, which is not built yet. Backend: `switch_to_financing` is a guessed action code for pausing Option 1 during recovery.
+- Offline checks: `?state=<TrackState>|NONE` and `?options=overdue` select the saved samples.

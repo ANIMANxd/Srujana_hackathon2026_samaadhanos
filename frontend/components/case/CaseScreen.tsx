@@ -18,6 +18,7 @@ import { SendPanel } from "../send/SendPanel";
 import { AssumptionsDrawer } from "./AssumptionsDrawer";
 import { CaseHeader } from "./CaseHeader";
 import { TrackStrip } from "./TrackStrip";
+import { ChoiceCard } from "../options/ChoiceCard";
 import { ReadingGuide } from "./ReadingGuide";
 import { CaseTabs } from "./CaseTabs";
 import { EvidenceTab } from "../evidence/EvidenceTab";
@@ -116,6 +117,7 @@ export function CaseScreen({ caseId }: { caseId: string }) {
               ) : (
                 <>
                   <GuidanceCard caseId={caseId} response={res} config={cfg.config} placeholder={placeholder} />
+                  {ev.tracking && <ChoiceCard caseId={caseId} tracking={ev.tracking} />}
                   <StatuteTimeline response={res} />
                   <div className="grid gap-4 lg:grid-cols-[3fr_2fr]">
                     <MoneyCard response={res} placeholder={placeholder} />

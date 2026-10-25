@@ -50,6 +50,7 @@ export type Track = S["Track"];
 export type TrackKind = S["TrackKind"];
 export type TrackState = S["TrackState"];
 export type OptionsResponse = S["OptionsResponse"];
+export type OptionCitation = S["OptionCitation"];
 export type Bid = S["Bid"];
 export type ESignSession = S["ESignSession"];
 export type PayoutStatus = S["PayoutStatus"];

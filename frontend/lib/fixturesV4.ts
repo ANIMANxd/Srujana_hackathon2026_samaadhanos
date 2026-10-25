@@ -33,12 +33,18 @@ export const OFFLINE_STATES: TrackState[] = [
 
 /** The saved sample case in the requested state (default FINANCEABLE), or null if none is bundled. */
 export function offlineCaseDetail(state?: string | null): CaseDetail | null {
+  // "NONE": the same sample case before any option was started (no track, no actions).
+  if (state === "NONE") {
+    const base = asCaseDetail(payload("case-detail-FINANCEABLE"));
+    return base ? { ...base, active_track: null, available_actions: [] } : null;
+  }
   const wanted = state && OFFLINE_STATES.some((s) => s === state) ? state : "FINANCEABLE";
   return asCaseDetail(payload(`case-detail-${wanted}`));
 }
 
-export function offlineOptions(): OptionsResponse | null {
-  const v = payload("options-financeable");
+/** `variant` "overdue" picks the sample where Option 1 is blocked; anything else the financeable one. */
+export function offlineOptions(variant?: string | null): OptionsResponse | null {
+  const v = payload(variant === "overdue" ? "options-not-financeable-overdue" : "options-financeable");
   return isObject(v) && isObject(v.get_paid_early) ? (v as unknown as OptionsResponse) : null;
 }
 

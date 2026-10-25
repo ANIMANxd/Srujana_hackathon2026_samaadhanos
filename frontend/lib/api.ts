@@ -250,9 +250,13 @@ export function getCase(id: string, offlineState?: string | null): Promise<Sourc
 }
 
 /** GET /cases/{id}/options: the two-option comparison. `recommendation` is always null. */
-export function getOptions(id: string, expectedPaymentDate?: string): Promise<Sourced<OptionsResponse>> {
+export function getOptions(
+  id: string,
+  expectedPaymentDate?: string,
+  offlineVariant?: string | null,
+): Promise<Sourced<OptionsResponse>> {
   const q = expectedPaymentDate ? `?expected_payment_date=${encodeURIComponent(expectedPaymentDate)}` : "";
-  return readOrSample(() => call<OptionsResponse>(`${caseUrl(id)}/options${q}`), offlineOptions);
+  return readOrSample(() => call<OptionsResponse>(`${caseUrl(id)}/options${q}`), () => offlineOptions(offlineVariant));
 }
 
 // ------------------------------------------------ contract v1.1: financing --
