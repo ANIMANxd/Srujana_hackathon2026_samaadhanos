@@ -49,34 +49,37 @@ carries `schema`, `contract_version`, `synthetic`, `placeholder`, `placeholder_f
 | `webhook-deliveries.json` | `WebhookDelivery[]` | Applied, duplicate (no side effects), parked (out of order), rejected (bad signature) |
 | `v1-contract-baseline.json` | *(not a contract type)* | SHA-256 fingerprint of every v1.0 component and path, captured at tag time |
 
-## What is a placeholder, and why
+## Where the numbers come from
 
-**Option 1 (financing) numbers are placeholders.** `backend/finance/` (B2) does not exist yet, so
-`discount`, `fee`, `net_amount`, `annual_rate`, the rate band and the platform fee are
-hand-computed with the architecture_v4 §1.1 formula:
+**Option 1 (financing) is computed by `backend/finance`.** `discount`, `fee` and `net_receivable`
+come from `backend/finance/discount.py`; the options card comes from
+`backend/finance/compare.py::compare_options`; each bid comes from `bid_quote`. The mock providers
+never compute a rupee — they only pick rates.
 
-```
-discount = accepted_amount × annual_rate × tenor_days / 365     (half-up, 2 dp)
-fee      = accepted_amount × platform_fee_pct
-net      = accepted_amount − discount − fee
-```
+The inputs are config, not market data: the rate band and platform fee are
+`mock_financing.rate_band` / `mock_financing.platform_fee_pct`, labelled `illustrative`, and the
+day count is `financing.day_count`. **The rates are illustrative; the arithmetic is real.** That is
+why no fixture is marked a placeholder any more.
 
-For the demo case (₹12,50,000 accepted, 30-day tenor, 0.10% fee):
+The tenor is **as-of → due date**, not a chosen number. For the demo case that is 4 days
+(2026-10-25 → 2026-10-29), and at a 4-day tenor the flat platform fee (₹1,250.00) is larger than
+the discount — a real property of short tenors, and the reason nothing here may be hard-coded.
 
 | Rate | Discount | Fee | You receive |
 |---|---|---|---|
-| 8.00% (Financier B) | ₹8,219.18 | ₹1,250.00 | **₹12,40,530.82** |
-| 10.25% (Financier C) | ₹10,530.82 | ₹1,250.00 | **₹12,38,219.18** |
-| 12.00% (Financier A) | ₹12,328.77 | ₹1,250.00 | **₹12,36,421.23** |
+| 8.00% (Financier B, selected) | ₹1,095.89 | ₹1,250.00 | **₹12,47,654.11** |
+| 10.00% (Financier C) | ₹1,369.86 | ₹1,250.00 | **₹12,47,380.14** |
+| 12.00% (Financier A) | ₹1,643.84 | ₹1,250.00 | **₹12,47,106.16** |
 
-These match the worked example in architecture_v4 §9. They are still **placeholders**: they are
-not market rates, and when B2 lands the numbers must come from `backend/finance/` and the
-`_fixture.placeholder` flag must be set to `false`. Every such file names the affected fields in
-`_fixture.placeholder_fields`.
+**Option 2 (recovery) numbers are engine output.** `interest_to_expected_date` and `total_if_paid`
+come from the frozen engine through the `interest_to_date` callable that `compare_options` is given;
+finance never reimplements s.16. As of 2026-11-24 the engine says interest ₹14,768.84 and total claim
+₹12,64,768.84.
 
-**Option 1 is never a recommendation.** `recommendation` is typed `null` in the schema and is
-`null` in every fixture (golden rule 20). A test asserts both.
+**`recommendation` is `null`** in the schema and in every fixture (golden rule 20). Two tests assert it.
 
-**Option 2 (recovery) numbers are real.** `interest_to_expected_date` and `total_if_paid` come
-from the frozen engine at the stated `expected_payment_date`, so they are not placeholders and
-must not be adjusted by hand.
+### When B2 becomes redundant
+
+`backend/finance/` **is** B2. If a number here ever disagrees with the module, the module wins and
+this folder is stale — regenerate rather than edit.
+

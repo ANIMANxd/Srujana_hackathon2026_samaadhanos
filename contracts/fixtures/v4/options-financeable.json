@@ -3,14 +3,9 @@
     "schema": "OptionsResponse",
     "contract_version": "1.1",
     "synthetic": true,
-    "placeholder": true,
-    "placeholder_fields": [
-      "get_paid_early.indicative.accepted_amount",
-      "get_paid_early.indicative.rate_band_pct",
-      "get_paid_early.indicative.platform_fee_pct",
-      "get_paid_early.indicative.net_receivable_range"
-    ],
-    "why": "Option 1 figures are hand-computed with the architecture_v4 section 1.1 formula (discount = amount*rate*tenor/365, net = amount-discount-fee) because backend/finance (B2) does not exist yet. Option 2 figures are real engine output at the stated expected_payment_date.",
+    "placeholder": false,
+    "placeholder_fields": [],
+    "why": "Every Option 1 figure is computed by backend/finance (discount, fee, net) from the configured illustrative rate band and platform fee; the tenor is as_of to the due date. Option 2 figures are real engine output at the stated expected_payment_date. The rates are illustrative config, not market data; the arithmetic is not a placeholder.",
     "regenerate_with": "python -m backend.app.export_v4_fixtures"
   },
   "payload": {
@@ -22,7 +17,7 @@
       "unavailable_reasons": [],
       "indicative": {
         "accepted_amount": "1250000.00",
-        "tenor_days": 30,
+        "tenor_days": 4,
         "rate_band_pct": {
           "low": "8.00",
           "high": "12.00",
@@ -30,8 +25,8 @@
         },
         "platform_fee_pct": "0.10",
         "net_receivable_range": {
-          "low": "1236421.23",
-          "high": "1240530.82"
+          "low": "1247106.16",
+          "high": "1247654.11"
         },
         "settlement": "T+2 after bid acceptance (config: treds.settlement_days)"
       },
@@ -59,11 +54,14 @@
       ],
       "citations": [
         {
-          "source": "MSMED Act s.16",
+          "source": "V2:s.16",
           "ref": "config:interest_multiplier"
         }
       ]
     },
-    "recommendation": null
+    "recommendation": null,
+    "assumptions": [
+      "financing.min_amount is not configured, so no minimum invoice size was applied."
+    ]
   }
 }

@@ -1,4 +1,4 @@
-"""Generate the contract v1.1 example fixtures into `contracts/fixtures/v4/`.
+﻿"""Generate the contract v1.1 example fixtures into `contracts/fixtures/v4/`.
 
 Run: python -m backend.app.export_v4_fixtures
 
@@ -14,8 +14,8 @@ Why a generator instead of hand-written JSON:
   dates the cards describe (golden rule 7: every on-screen number comes from the
   engine).
 
-What is **not** authoritative: every Option 1 (financing) number — discount, fee,
-net amount, rate band, platform fee — is a hand-computed placeholder because
+What is **not** authoritative: every Option 1 (financing) number â€” discount, fee,
+net amount, rate band, platform fee â€” is a hand-computed placeholder because
 `backend/finance/` (B2) does not exist yet. Each file carries
 `_fixture.placeholder: true` and names the placeholder fields (golden rule 7).
 Regenerate with this module once B2 lands; do not hand-edit the JSON.
@@ -55,6 +55,14 @@ from backend.app.schemas_v4 import (
 )
 from backend.engine.config import StatuteConfig
 from backend.engine.evaluate import evaluate_case
+from backend.finance import (
+    CaseFacts,
+    FinanceConfig,
+    bid_quote,
+    compare_options,
+    finance_config,
+    round_money,
+)
 
 OUT = Path(__file__).resolve().parents[2] / "contracts" / "fixtures" / "v4"
 
@@ -68,7 +76,6 @@ INVOICE_DATE = date(2026, 9, 16)
 DELIVERY_DATE = date(2026, 9, 14)
 DUE_DATE = date(2026, 10, 29)  # delivery + the 45-day cap
 CREDIT_DAYS = 45
-TENOR_DAYS = 30
 RATE_BAND = (Decimal("8.00"), Decimal("12.00"))
 PLATFORM_FEE_PCT = Decimal("0.10")
 
@@ -90,16 +97,6 @@ GENESIS_HASH = "0" * 64
 
 def money(value: Decimal) -> str:
     return str(value.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP))
-
-
-def discount_for(amount: Decimal, annual_rate_pct: Decimal, tenor_days: int) -> Decimal:
-    """Simple, upfront discount (architecture_v4 section 1.1).
-
-    Placeholder until `backend/finance/` owns this. Real money avoid: this is the
-    documented formula, not a market rate.
-    """
-    raw = amount * (annual_rate_pct / Decimal(100)) * Decimal(tenor_days) / Decimal(365)
-    return raw.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
 
 def canonical(payload: dict[str, Any]) -> str:
@@ -189,7 +186,7 @@ def build_case() -> Case:
 # -------------------------------------------------------------- events ----
 
 
-def build_events() -> list[Event]:
+def build_events(disbursed_net: str) -> list[Event]:
     """A chain that verifies: the happy path up to DISBURSED."""
     rows: list[tuple[str, dict[str, Any], EventActor, datetime]] = [
         ("case.created", {"invoice_no": INVOICE_NO}, EventActor.USER, datetime(2026, 10, 25, 9, 12, 4, tzinfo=UTC)),
@@ -217,7 +214,7 @@ def build_events() -> list[Event]:
         ),
         (
             "financing.bid_selected",
-            {"bid_id": "MOCK-BID-C", "financier_alias": "Financier C"},
+            {"bid_id": "MOCK-BID-B", "financier_alias": "Financier B"},
             EventActor.USER,
             datetime(2026, 10, 25, 9, 16, 31, tzinfo=UTC),
         ),
@@ -233,7 +230,7 @@ def build_events() -> list[Event]:
             EventActor.PROVIDER_MOCK,
             datetime(2026, 10, 25, 9, 18, 44, tzinfo=UTC),
         ),
-        ("financing.disbursed", {"net_amount": "1240530.82"}, EventActor.SYSTEM, datetime(2026, 10, 25, 9, 18, 45, tzinfo=UTC)),
+        ("financing.disbursed", {"net_amount": disbursed_net}, EventActor.SYSTEM, datetime(2026, 10, 25, 9, 18, 45, tzinfo=UTC)),
     ]
 
     events: list[Event] = []
@@ -310,29 +307,34 @@ TERMINAL = {TrackState.BUYER_DECLINED, TrackState.NO_BIDS}
 # ----------------------------------------------------------------- bids ----
 
 
-def build_bids() -> list[Bid]:
-    fee = (ACCEPTED_AMOUNT * (PLATFORM_FEE_PCT / Decimal(100))).quantize(
-        Decimal("0.01"), rounding=ROUND_HALF_UP
-    )
+def build_bids(cfg: FinanceConfig) -> list[Bid]:
+    """Three fictional financiers, priced by `backend/finance` (never by a mock).
+
+    Rates are the configured illustrative band, not market data. Financier C quotes
+    the band midpoint so the three cards differ.
+    """
+    tenor_days = (DUE_DATE - AS_OF_IN_TIME).days
+    midpoint = (cfg.rate_band_low + cfg.rate_band_high) / Decimal(2)
     rows = [
-        ("MOCK-BID-A", "Financier A", Decimal("12.00")),
-        ("MOCK-BID-B", "Financier B", Decimal("8.00")),
-        ("MOCK-BID-C", "Financier C", Decimal("10.25")),
+        ("MOCK-BID-A", "Financier A", cfg.rate_band_high),
+        ("MOCK-BID-B", "Financier B", cfg.rate_band_low),
+        ("MOCK-BID-C", "Financier C", midpoint),
     ]
+    selected = "MOCK-BID-B"  # the best net: the owner takes the top of the sorted list
     bids = []
     for bid_id, alias, rate in rows:
-        discount = discount_for(ACCEPTED_AMOUNT, rate, TENOR_DAYS)
+        quote = bid_quote(ACCEPTED_AMOUNT, rate, tenor_days, cfg)
         bids.append(
             Bid(
                 id=bid_id,
                 track_id="TRK-FIN-0001",
                 financier_alias=alias,
-                annual_rate=rate,
-                discount=discount,
-                fee=fee,
-                net_amount=ACCEPTED_AMOUNT - discount - fee,
+                annual_rate=round_money(rate),
+                discount=quote["discount"],
+                fee=quote["fee"],
+                net_amount=quote["net_amount"],
                 valid_until=datetime(2026, 10, 26, 9, 14, 10, tzinfo=UTC),
-                status=BidStatus.SELECTED if bid_id == "MOCK-BID-C" else BidStatus.AVAILABLE,
+                status=BidStatus.SELECTED if bid_id == selected else BidStatus.AVAILABLE,
             )
         )
     return bids
@@ -341,103 +343,51 @@ def build_bids() -> list[Bid]:
 # -------------------------------------------------------------- options ----
 
 
-def build_options() -> tuple[OptionsResponse, OptionsResponse]:
-    low_rate, high_rate = RATE_BAND
-    fee = (ACCEPTED_AMOUNT * (PLATFORM_FEE_PCT / Decimal(100))).quantize(
-        Decimal("0.01"), rounding=ROUND_HALF_UP
+def engine_at(moment: date) -> Any:
+    """The frozen engine's answer for the demo case at `moment`."""
+    return evaluate_case(StatuteConfig.from_dict(load_config()), build_case_request(moment))
+
+
+def build_options(cfg: FinanceConfig) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Both cards, built by `backend.finance.compare_options`.
+
+    Interest comes from the frozen engine through `interest_to_date`, so Option 2
+    shows the engine's own figure rather than a second implementation of s.16.
+    """
+
+    def interest_to_date(moment: date) -> Decimal:
+        financials = engine_at(moment).financials
+        if financials is None:  # pragma: no cover - the demo case always evaluates
+            raise RuntimeError("the demo case must evaluate for fixtures to be built")
+        return financials.interest_total
+
+    in_time = compare_options(
+        engine_at(AS_OF_IN_TIME),
+        CaseFacts(
+            case_id=CASE_ID,
+            accepted_amount=ACCEPTED_AMOUNT,
+            due_date=DUE_DATE,
+            recovery_state="STAGE_1_PREPARED",
+        ),
+        EXPECTED_IN_TIME,
+        interest_to_date,
+        cfg,
+        as_of=AS_OF_IN_TIME,
     )
-    best_discount = discount_for(ACCEPTED_AMOUNT, low_rate, TENOR_DAYS)
-    worst_discount = discount_for(ACCEPTED_AMOUNT, high_rate, TENOR_DAYS)
-
-    def indicative() -> dict[str, Any]:
-        return {
-            "accepted_amount": money(ACCEPTED_AMOUNT),
-            "tenor_days": TENOR_DAYS,
-            "rate_band_pct": {"low": money(low_rate), "high": money(high_rate), "label": "illustrative"},
-            "platform_fee_pct": money(PLATFORM_FEE_PCT),
-            "net_receivable_range": {
-                "low": money(ACCEPTED_AMOUNT - worst_discount - fee),
-                "high": money(ACCEPTED_AMOUNT - best_discount - fee),
-            },
-            "settlement": "T+2 after bid acceptance (config: treds.settlement_days)",
-        }
-
-    in_time_interest, in_time_total = engine_figures(EXPECTED_IN_TIME)
-    overdue_interest, overdue_total = engine_figures(EXPECTED_OVERDUE)
-
-    financeable = OptionsResponse.model_validate(
-        {
-            "case_id": CASE_ID,
-            "as_of": AS_OF_IN_TIME.isoformat(),
-            "simulation": True,
-            "get_paid_early": {
-                "available": True,
-                "unavailable_reasons": [],
-                "indicative": indicative(),
-                "notes": [
-                    "Your buyer must accept the invoice on the platform first.",
-                    "Interest accrued so far is not included.",
-                ],
-                "citations": [
-                    {"source": "RBI TReDS guidelines (2014)", "ref": "config:treds.settlement_days"}
-                ],
-            },
-            "recover_with_law": {
-                "available": True,
-                "expected_payment_date": EXPECTED_IN_TIME.isoformat(),
-                "principal": money(ACCEPTED_AMOUNT),
-                "interest_to_expected_date": money(in_time_interest),
-                "total_if_paid": money(in_time_total),
-                "current_stage": "STAGE_1_PREPARED",
-                "notes": [
-                    "Only received if the buyer pays.",
-                    "You send every message yourself.",
-                ],
-                "citations": [
-                    {"source": "MSMED Act s.16", "ref": "config:interest_multiplier"}
-                ],
-            },
-            "recommendation": None,
-        }
+    overdue = compare_options(
+        engine_at(AS_OF_OVERDUE),
+        CaseFacts(
+            case_id=CASE_ID,
+            accepted_amount=ACCEPTED_AMOUNT,
+            due_date=DUE_DATE,
+            recovery_state="STAGE_2_PREPARED",
+        ),
+        EXPECTED_OVERDUE,
+        interest_to_date,
+        cfg,
+        as_of=AS_OF_OVERDUE,
     )
-
-    not_financeable = OptionsResponse.model_validate(
-        {
-            "case_id": CASE_ID,
-            "as_of": AS_OF_OVERDUE.isoformat(),
-            "simulation": True,
-            "get_paid_early": {
-                "available": False,
-                "unavailable_reasons": [
-                    "The due date has passed. This build only finances invoices before the due date.",
-                    "Interest accrued before financing would not be covered.",
-                ],
-                "indicative": None,
-                "notes": [
-                    "Your buyer must accept the invoice on the platform first.",
-                ],
-                "citations": [],
-            },
-            "recover_with_law": {
-                "available": True,
-                "expected_payment_date": EXPECTED_OVERDUE.isoformat(),
-                "principal": money(ACCEPTED_AMOUNT),
-                "interest_to_expected_date": money(overdue_interest),
-                "total_if_paid": money(overdue_total),
-                "current_stage": "STAGE_2_PREPARED",
-                "notes": [
-                    f"Overdue since {DUE_DATE.isoformat()}.",
-                    "Only received if the buyer pays.",
-                    "You send every message yourself.",
-                ],
-                "citations": [
-                    {"source": "MSMED Act s.16", "ref": "config:interest_multiplier"}
-                ],
-            },
-            "recommendation": None,
-        }
-    )
-    return financeable, not_financeable
+    return in_time, overdue
 
 
 # ---------------------------------------------------------------- write ----
@@ -467,32 +417,30 @@ def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
 
     case = build_case()
-    events = build_events()
+    cfg = finance_config(load_config())
+    bids = build_bids(cfg)
+    selected = next(bid for bid in bids if bid.status == BidStatus.SELECTED)
+    events = build_events(str(selected.net_amount))
     chain = verify_chain(events)
     if not chain.valid:  # pragma: no cover - a broken chain must never ship
         raise RuntimeError(f"event chain does not verify: first bad seq {chain.first_bad_seq}")
 
-    financing_numbers = [
-        "get_paid_early.indicative.accepted_amount",
-        "get_paid_early.indicative.rate_band_pct",
-        "get_paid_early.indicative.platform_fee_pct",
-        "get_paid_early.indicative.net_receivable_range",
-    ]
+    tenor_days = (DUE_DATE - AS_OF_IN_TIME).days
     why_financing = (
-        "Option 1 figures are hand-computed with the architecture_v4 section 1.1 formula "
-        "(discount = amount*rate*tenor/365, net = amount-discount-fee) because backend/finance "
-        "(B2) does not exist yet. Option 2 figures are real engine output at the stated "
-        "expected_payment_date."
+        "Every Option 1 figure is computed by backend/finance (discount, fee, net) from the "
+        "configured illustrative rate band and platform fee; the tenor is as_of to the due date. "
+        "Option 2 figures are real engine output at the stated expected_payment_date. "
+        "The rates are illustrative config, not market data; the arithmetic is not a placeholder."
     )
 
-    financeable, not_financeable = build_options()
+    financeable, not_financeable = build_options(cfg)
     dump(
         "options-financeable.json",
         wrap(
             "OptionsResponse",
-            financeable.model_dump(mode="json"),
-            placeholder=True,
-            placeholder_fields=financing_numbers,
+            financeable,
+            placeholder=False,
+            placeholder_fields=[],
             why=why_financing,
         ),
     )
@@ -500,11 +448,12 @@ def main() -> None:
         "options-not-financeable-overdue.json",
         wrap(
             "OptionsResponse",
-            not_financeable.model_dump(mode="json"),
-            placeholder=True,
-            placeholder_fields=financing_numbers + ["get_paid_early.available", "get_paid_early.unavailable_reasons"],
-            why=why_financing + " Option 1 is unavailable because the invoice is past its due date "
-            "(financing.max_overdue_days = 0, OQ-11).",
+            not_financeable,
+            placeholder=False,
+            placeholder_fields=[],
+            why=why_financing
+            + " Option 1 is unavailable because the invoice is past its due date "
+            "(financing.max_overdue_days = 0, OQ-11); financeability supplies the reasons.",
         ),
     )
 
@@ -546,10 +495,12 @@ def main() -> None:
         "bids.json",
         wrap(
             "Bid[]",
-            [b.model_dump(mode="json") for b in build_bids()],
-            placeholder=True,
-            placeholder_fields=["[].annual_rate", "[].discount", "[].fee", "[].net_amount"],
-            why=why_financing + " Rates are the illustrative mock_financing.rate_band, not market data.",
+            [b.model_dump(mode="json") for b in bids],
+            placeholder=False,
+            placeholder_fields=[],
+            why=why_financing
+            + " Each bid's discount, fee and net come from backend/finance.bid_quote; the mock "
+            "only picks rates.",
         ),
     )
 
@@ -577,8 +528,7 @@ def main() -> None:
     payout = PayoutStatus(
         payout_ref="MOCK-PAYOUT-0007",
         status=PayoutState.PROCESSED,
-        amount=ACCEPTED_AMOUNT - discount_for(ACCEPTED_AMOUNT, Decimal("10.25"), TENOR_DAYS)
-        - (ACCEPTED_AMOUNT * (PLATFORM_FEE_PCT / Decimal(100))).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP),
+        amount=selected.net_amount,
         currency="INR",
         utr="MOCKUTR2026102500007",
         settled_at=datetime(2026, 10, 25, 9, 18, 44, tzinfo=UTC),
@@ -588,10 +538,14 @@ def main() -> None:
         wrap(
             "PayoutStatus",
             payout.model_dump(mode="json"),
-            placeholder=True,
-            placeholder_fields=["amount"],
-            why="Disbursement of the selected Financier C bid (net 12,38,219.18). The MOCK-prefixed "
-            "UTR can never be mistaken for a real reference (golden rule 16).",
+            placeholder=False,
+            placeholder_fields=[],
+            why=(
+                "Disbursement of the selected bid "
+                f"({selected.financier_alias}, net {selected.net_amount}), computed by "
+                "backend/finance. The MOCK-prefixed UTR can never be mistaken for a real "
+                "reference (golden rule 16)."
+            ),
         ),
     )
 

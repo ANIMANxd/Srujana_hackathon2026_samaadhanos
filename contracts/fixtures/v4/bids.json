@@ -3,14 +3,9 @@
     "schema": "Bid[]",
     "contract_version": "1.1",
     "synthetic": true,
-    "placeholder": true,
-    "placeholder_fields": [
-      "[].annual_rate",
-      "[].discount",
-      "[].fee",
-      "[].net_amount"
-    ],
-    "why": "Option 1 figures are hand-computed with the architecture_v4 section 1.1 formula (discount = amount*rate*tenor/365, net = amount-discount-fee) because backend/finance (B2) does not exist yet. Option 2 figures are real engine output at the stated expected_payment_date. Rates are the illustrative mock_financing.rate_band, not market data.",
+    "placeholder": false,
+    "placeholder_fields": [],
+    "why": "Every Option 1 figure is computed by backend/finance (discount, fee, net) from the configured illustrative rate band and platform fee; the tenor is as_of to the due date. Option 2 figures are real engine output at the stated expected_payment_date. The rates are illustrative config, not market data; the arithmetic is not a placeholder. Each bid's discount, fee and net come from backend/finance.bid_quote; the mock only picks rates.",
     "regenerate_with": "python -m backend.app.export_v4_fixtures"
   },
   "payload": [
@@ -19,9 +14,9 @@
       "track_id": "TRK-FIN-0001",
       "financier_alias": "Financier A",
       "annual_rate": "12.00",
-      "discount": "12328.77",
+      "discount": "1643.84",
       "fee": "1250.00",
-      "net_amount": "1236421.23",
+      "net_amount": "1247106.16",
       "valid_until": "2026-10-26T09:14:10Z",
       "status": "AVAILABLE"
     },
@@ -30,22 +25,22 @@
       "track_id": "TRK-FIN-0001",
       "financier_alias": "Financier B",
       "annual_rate": "8.00",
-      "discount": "8219.18",
+      "discount": "1095.89",
       "fee": "1250.00",
-      "net_amount": "1240530.82",
+      "net_amount": "1247654.11",
       "valid_until": "2026-10-26T09:14:10Z",
-      "status": "AVAILABLE"
+      "status": "SELECTED"
     },
     {
       "id": "MOCK-BID-C",
       "track_id": "TRK-FIN-0001",
       "financier_alias": "Financier C",
-      "annual_rate": "10.25",
-      "discount": "10530.82",
+      "annual_rate": "10.00",
+      "discount": "1369.86",
       "fee": "1250.00",
-      "net_amount": "1238219.18",
+      "net_amount": "1247380.14",
       "valid_until": "2026-10-26T09:14:10Z",
-      "status": "SELECTED"
+      "status": "AVAILABLE"
     }
   ]
 }

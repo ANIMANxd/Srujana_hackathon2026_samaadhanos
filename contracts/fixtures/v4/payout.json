@@ -3,17 +3,15 @@
     "schema": "PayoutStatus",
     "contract_version": "1.1",
     "synthetic": true,
-    "placeholder": true,
-    "placeholder_fields": [
-      "amount"
-    ],
-    "why": "Disbursement of the selected Financier C bid (net 12,38,219.18). The MOCK-prefixed UTR can never be mistaken for a real reference (golden rule 16).",
+    "placeholder": false,
+    "placeholder_fields": [],
+    "why": "Disbursement of the selected bid (Financier B, net 1247654.11), computed by backend/finance. The MOCK-prefixed UTR can never be mistaken for a real reference (golden rule 16).",
     "regenerate_with": "python -m backend.app.export_v4_fixtures"
   },
   "payload": {
     "payout_ref": "MOCK-PAYOUT-0007",
     "status": "PROCESSED",
-    "amount": "1238219.18",
+    "amount": "1247654.11",
     "currency": "INR",
     "utr": "MOCKUTR2026102500007",
     "settled_at": "2026-10-25T09:18:44Z"

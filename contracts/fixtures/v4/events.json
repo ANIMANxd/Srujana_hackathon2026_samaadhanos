@@ -120,13 +120,13 @@
       "track_id": "TRK-FIN-0001",
       "type": "financing.bid_selected",
       "payload_json": {
-        "bid_id": "MOCK-BID-C",
-        "financier_alias": "Financier C"
+        "bid_id": "MOCK-BID-B",
+        "financier_alias": "Financier B"
       },
       "actor": "USER",
       "created_at": "2026-10-25T09:16:31Z",
       "prev_hash": "b0eaf54a6e684af6f6a3de77a88595cfa8d76ffcf9824ada9b915ad75a1093e6",
-      "hash": "5e08e3d14202a6483e52c836f6de07ccecdc1f091c5576cada7be9cc018ca3ef"
+      "hash": "2b79c3daef16f99c94025f7b9a9c85d61c6db05e5270c5e5a78baeeaa4769ffd"
     },
     {
       "seq": 10,
@@ -139,8 +139,8 @@
       },
       "actor": "PROVIDER_MOCK",
       "created_at": "2026-10-25T09:18:12Z",
-      "prev_hash": "5e08e3d14202a6483e52c836f6de07ccecdc1f091c5576cada7be9cc018ca3ef",
-      "hash": "e4db8b578072e7d3aeae0157dab7441999602c5778e08358224781b54b91d6b3"
+      "prev_hash": "2b79c3daef16f99c94025f7b9a9c85d61c6db05e5270c5e5a78baeeaa4769ffd",
+      "hash": "ad89218c91a81c24802d0f1bdd162ad66db7097380c740ebdd6202a899ab9ae4"
     },
     {
       "seq": 11,
@@ -153,8 +153,8 @@
       },
       "actor": "PROVIDER_MOCK",
       "created_at": "2026-10-25T09:18:44Z",
-      "prev_hash": "e4db8b578072e7d3aeae0157dab7441999602c5778e08358224781b54b91d6b3",
-      "hash": "3442ae05c474e5ec590521262a80a4a2a45cd15ae980a9c79a719b9d93abe3d7"
+      "prev_hash": "ad89218c91a81c24802d0f1bdd162ad66db7097380c740ebdd6202a899ab9ae4",
+      "hash": "cb4567c1a4cc196132ff84de0a8309f01a02b0c06cee08734ee39a6c09e566a3"
     },
     {
       "seq": 12,
@@ -162,12 +162,12 @@
       "track_id": "TRK-FIN-0001",
       "type": "financing.disbursed",
       "payload_json": {
-        "net_amount": "1240530.82"
+        "net_amount": "1247654.11"
       },
       "actor": "SYSTEM",
       "created_at": "2026-10-25T09:18:45Z",
-      "prev_hash": "3442ae05c474e5ec590521262a80a4a2a45cd15ae980a9c79a719b9d93abe3d7",
-      "hash": "16d209faf7959d64efcaa027f7ba659fc6be837eb82eef25699c2f370aeff81a"
+      "prev_hash": "cb4567c1a4cc196132ff84de0a8309f01a02b0c06cee08734ee39a6c09e566a3",
+      "hash": "0ce5ca855982b110baebfd11b32215dedcf162a457955dbe41456ccd7b4ea509"
     }
   ]
 }
