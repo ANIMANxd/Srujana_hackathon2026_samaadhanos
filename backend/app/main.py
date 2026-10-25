@@ -1,4 +1,4 @@
-﻿"""FastAPI entrypoint for SamadhaanOS â€” contract v1.0 (architecture.md section 8).
+"""FastAPI entrypoint for SamadhaanOS â€” contract v1.0 (architecture.md section 8).
 
 POST /evaluate-case runs the real engine (`backend.engine.evaluate`), which
 assembles the response from the rule modules. The API layer owns the file reads,
@@ -135,6 +135,7 @@ from backend.app.routes.webhooks import router as webhooks_router  # noqa: E402
 from backend.app.routes.events import router as events_router  # noqa: E402
 from backend.app.routes.options import router as options_router  # noqa: E402
 from backend.app.routes.mock import router as mock_router  # noqa: E402
+from backend.app.routes.recovery import router as recovery_router  # noqa: E402
 
 app.include_router(cases_router)
 app.include_router(financing_router)
@@ -142,6 +143,7 @@ app.include_router(webhooks_router)
 app.include_router(events_router)
 app.include_router(options_router)
 app.include_router(mock_router)
+app.include_router(recovery_router)
 
 
 # ------------------------------------------------------------- errors ----

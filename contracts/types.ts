@@ -236,6 +236,76 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/cases/{case_id}/recovery": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Prepare Recovery
+         * @description Prepare a stage's draft and move the track to `STAGE_n_PREPARED`.
+         *
+         *     Preparing is not sending: the response carries the draft and nothing leaves the
+         *     server.
+         */
+        post: operations["prepare_recovery_api_v1_cases__case_id__recovery_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cases/{case_id}/recovery/mark-sent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Mark Recovery Sent
+         * @description Record that the owner sent this stage from their own client.
+         *
+         *     The event stores the channel so the trail is honest about how it went out, and the
+         *     wording stays "the owner says they sent it" â€” the server has no way to know.
+         */
+        post: operations["mark_recovery_sent_api_v1_cases__case_id__recovery_mark_sent_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cases/{case_id}/recovery/odr-filed": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Record Odr Filed
+         * @description Record that the owner filed on the ODR portal.
+         *
+         *     A separate action from `mark-sent` because filing is a different claim: the pack
+         *     being ready is not the same as the owner having submitted it. This is the only
+         *     path to `ODR_FILED_BY_OWNER`.
+         */
+        post: operations["record_odr_filed_api_v1_cases__case_id__recovery_odr_filed_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/cases/{case_id}/stream": {
         parameters: {
             query?: never;
@@ -1627,6 +1697,67 @@ export interface components {
             /** Total If Paid */
             total_if_paid?: string | null;
         };
+        /**
+         * RecoveryActionResponse
+         * @description Every mutating recovery route answers with this.
+         */
+        RecoveryActionResponse: {
+            /** Channel */
+            channel?: string | null;
+            detail: components["schemas"]["CaseDetail"];
+            draft?: components["schemas"]["RecoveryDraft"] | null;
+            /** Stage */
+            stage?: number | null;
+            track?: components["schemas"]["Track"] | null;
+        };
+        /**
+         * RecoveryDraft
+         * @description A prepared draft, produced by the existing artifact generators.
+         */
+        RecoveryDraft: {
+            /** Filename */
+            filename: string;
+            kind: components["schemas"]["ArtifactKind"];
+            /** Markdown */
+            markdown: string;
+            /** Pdf Base64 */
+            pdf_base64?: string | null;
+            /** Pdf Filename */
+            pdf_filename?: string | null;
+            /** Stage */
+            stage: number;
+            /** Warnings */
+            warnings?: components["schemas"]["Warning"][];
+        };
+        /**
+         * RecoveryMarkSentRequest
+         * @description `POST /cases/{id}/recovery/mark-sent` — the owner says they sent it.
+         *
+         *     The server cannot know a message was delivered, so this records a claim, not a
+         *     fact, and nothing is sent (golden rule 10).
+         */
+        RecoveryMarkSentRequest: {
+            /**
+             * Channel
+             * @enum {string}
+             */
+            channel: "whatsapp" | "email" | "other";
+            /** Stage */
+            stage: number;
+        };
+        /**
+         * RecoveryPrepareRequest
+         * @description `POST /cases/{id}/recovery` — prepare the draft for one stage.
+         */
+        RecoveryPrepareRequest: {
+            /** @description Optional artifact kind override. Stage 1 has two drafts (acceptance note or balance confirmation); the default is the balance confirmation. */
+            kind?: components["schemas"]["ArtifactKind"] | null;
+            /**
+             * Stage
+             * @description Ladder stage 1-4.
+             */
+            stage: number;
+        };
         /** SettlementPayment */
         SettlementPayment: {
             /** Amount */
@@ -2228,6 +2359,116 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["OptionsResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    prepare_recovery_api_v1_cases__case_id__recovery_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+                "If-Match"?: string | null;
+            };
+            path: {
+                case_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RecoveryPrepareRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecoveryActionResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    mark_recovery_sent_api_v1_cases__case_id__recovery_mark_sent_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+                "If-Match"?: string | null;
+            };
+            path: {
+                case_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RecoveryMarkSentRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecoveryActionResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    record_odr_filed_api_v1_cases__case_id__recovery_odr_filed_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+                "If-Match"?: string | null;
+            };
+            path: {
+                case_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecoveryActionResponse"];
                 };
             };
             /** @description Validation Error */

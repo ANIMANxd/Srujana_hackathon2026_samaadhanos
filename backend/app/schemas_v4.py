@@ -1,4 +1,4 @@
-﻿"""Contract v1.1 â€” additive Pydantic models for the v4 two-option model.
+"""Contract v1.1 â€” additive Pydantic models for the v4 two-option model.
 
 Source: `docs/architecture_v4_two_options.md` sections 4, 5 and 9.
 
@@ -18,11 +18,18 @@ Rules this module follows:
 
 from datetime import date, datetime
 from enum import Enum
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import Field
 
-from backend.app.schemas import CaseEvaluationRequest, CaseEvaluationResponse, ContractModel, DecStr
+from backend.app.schemas import (
+    ArtifactKind,
+    CaseEvaluationRequest,
+    CaseEvaluationResponse,
+    ContractModel,
+    DecStr,
+    Warning,
+)
 
 # The v4 contract number. Deliberately NOT the app-wide CONTRACT_VERSION: v1.0
 # responses must stay byte-identical, so they keep reporting "1.0".
@@ -436,6 +443,55 @@ class FinancingActionResponse(ContractModel):
     consent_document: ConsentDocument | None = None
 
 
+# ------------------------------------------------------------- recovery ----
+
+
+class RecoveryPrepareRequest(ContractModel):
+    """`POST /cases/{id}/recovery` — prepare the draft for one stage."""
+
+    stage: int = Field(ge=1, le=4, description="Ladder stage 1-4.")
+    kind: ArtifactKind | None = Field(
+        default=None,
+        description=(
+            "Optional artifact kind override. Stage 1 has two drafts (acceptance note "
+            "or balance confirmation); the default is the balance confirmation."
+        ),
+    )
+
+
+class RecoveryMarkSentRequest(ContractModel):
+    """`POST /cases/{id}/recovery/mark-sent` — the owner says they sent it.
+
+    The server cannot know a message was delivered, so this records a claim, not a
+    fact, and nothing is sent (golden rule 10).
+    """
+
+    stage: int = Field(ge=1, le=4)
+    channel: Literal["whatsapp", "email", "other"]
+
+
+class RecoveryDraft(ContractModel):
+    """A prepared draft, produced by the existing artifact generators."""
+
+    kind: ArtifactKind
+    stage: int
+    filename: str
+    markdown: str
+    pdf_filename: str | None = None
+    pdf_base64: str | None = None
+    warnings: list[Warning] = Field(default_factory=list)
+
+
+class RecoveryActionResponse(ContractModel):
+    """Every mutating recovery route answers with this."""
+
+    detail: CaseDetail
+    track: Track | None = None
+    stage: int | None = None
+    draft: RecoveryDraft | None = None
+    channel: str | None = None
+
+
 # --------------------------------------------------- openapi integration ----
 V1_1_MODELS: tuple[type[ContractModel], ...] = (
     Case,
@@ -457,6 +513,10 @@ V1_1_MODELS: tuple[type[ContractModel], ...] = (
     FinanceabilityReason,
     ConsentDocument,
     FinancingActionResponse,
+    RecoveryPrepareRequest,
+    RecoveryMarkSentRequest,
+    RecoveryDraft,
+    RecoveryActionResponse,
 )
 
 

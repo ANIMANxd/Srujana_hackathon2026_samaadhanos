@@ -284,3 +284,58 @@ def assert_open(track: Track | None) -> Track:
     if track.closed_at is not None:
         raise TrackConflict(track)
     return track
+
+
+# --------------------------------------------------------------- pausing ----
+# Section 5.3 says "Recovery ... → Financing: yes, if financeable → recovery is
+# **paused**, not deleted". The schema allows one open track per case, so a pause
+# closes the row but records the stage it reached in the audit trail, and a later
+# recovery start resumes from there instead of beginning at stage 1.
+
+
+def pause_track(session: Session, track: Track, *, reason: str, actor: str = "SYSTEM") -> Track:
+    """Close a track while keeping its stage recoverable."""
+    paused_from = track.state
+    session.execute(
+        update(Track)
+        .where(Track.id == track.id, Track.version == track.version)
+        .values(closed_at=datetime.now(tz=None).astimezone(), version=track.version + 1)
+    )
+    session.flush()
+    audit.append_event(
+        session,
+        case_id=track.case_id,
+        track_id=track.id,
+        type=f"{track.kind.lower()}.paused",
+        payload={"from_state": paused_from, "reason": reason},
+        actor=actor,
+    )
+    session.expire(track)
+    session.refresh(track)
+    _ = paused_from
+    return track
+
+
+def paused_recovery_state(session: Session, case_id: str) -> TrackState | None:
+    """The last recovery stage a pause left behind, if any.
+
+    Returns `None` when the case has never had a recovery track paused, so the caller
+    starts at stage 1 instead of resuming.
+    """
+    from backend.store.models import Event
+
+    row = session.exec(
+        select(Event)
+        .where(Event.case_id == case_id, Event.type == "recovery.paused")
+        .order_by(Event.seq.desc())
+        .limit(1)
+    ).first()
+    if row is None:
+        return None
+    state = (row.payload_json or {}).get("from_state")
+    if not state:
+        return None
+    try:
+        return TrackState(state)
+    except ValueError:
+        return None

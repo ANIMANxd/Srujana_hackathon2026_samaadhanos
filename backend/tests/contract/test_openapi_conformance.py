@@ -65,6 +65,9 @@ WRITE_PATHS = {
     "/api/v1/webhooks/disbursement",
     "/api/v1/mock/clock",
     "/api/v1/mock/clock/reset",
+    "/api/v1/cases/{case_id}/recovery",
+    "/api/v1/cases/{case_id}/recovery/mark-sent",
+    "/api/v1/cases/{case_id}/recovery/odr-filed",
 }
 UPLOAD_PATHS = {"/api/v1/extract-evidence"}
 # `GET /cases/{id}/stream` is an infinite `text/event-stream`. A synchronous client
@@ -285,6 +288,42 @@ def test_options_and_mock_clock_match_the_contract():
     assert advance.status_code in {200, 400}, advance.text[:300]
     reset = client.post("/api/v1/mock/clock/reset")
     assert reset.status_code in {200, 400}, reset.text[:300]
+
+
+def test_recovery_routes_match_the_contract():
+    """The three recovery routes are called for real, in ladder order."""
+    created = client.post("/api/v1/cases", json=_preset_request())
+    case_id = created.json()["case"]["id"]
+    headers = {"Idempotency-Key": "conformance-recovery-1", "If-Match": "0"}
+
+    prepared = client.post(f"/api/v1/cases/{case_id}/recovery", json={"stage": 1}, headers=headers)
+    assert prepared.status_code == 200, prepared.text[:400]
+    _assert_matches(
+        _response_pointer("/api/v1/cases/{case_id}/recovery", "POST"),
+        prepared.json(),
+        "POST /recovery",
+    )
+    version = prepared.json()["track"]["version"]
+
+    sent = client.post(
+        f"/api/v1/cases/{case_id}/recovery/mark-sent",
+        json={"stage": 1, "channel": "email"},
+        headers={"Idempotency-Key": "conformance-recovery-2", "If-Match": str(version)},
+    )
+    assert sent.status_code == 200, sent.text[:400]
+    _assert_matches(
+        _response_pointer("/api/v1/cases/{case_id}/recovery/mark-sent", "POST"),
+        sent.json(),
+        "POST /recovery/mark-sent",
+    )
+
+    # Filing is refused from stage 1; the path is still exercised.
+    filed = client.post(
+        f"/api/v1/cases/{case_id}/recovery/odr-filed",
+        headers={"Idempotency-Key": "conformance-recovery-3", "If-Match": str(sent.json()["track"]["version"])},
+    )
+    assert filed.status_code == 409, filed.text[:300]
+    assert filed.json()["error"]["code"] == "INVALID_TRANSITION"
 
 
 def test_create_case_matches_the_contract():

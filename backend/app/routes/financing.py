@@ -1,4 +1,4 @@
-﻿"""Financing track routes (architecture_v4 sections 5.1, 5.3 and 9).
+"""Financing track routes (architecture_v4 sections 5.1, 5.3 and 9).
 
 Every mutating route enforces the three rules from section 8, in this order:
 
@@ -57,6 +57,8 @@ ROUTE_START = "POST /api/v1/cases/{id}/financing"
 ROUTE_ACCEPTANCE = "POST /api/v1/cases/{id}/financing/buyer-acceptance"
 ROUTE_SELECT = "POST /api/v1/cases/{id}/financing/bids/{bid_id}/select"
 ROUTE_CANCEL = "POST /api/v1/cases/{id}/financing/cancel"
+
+LOCKED_RECOVERY_MESSAGE = "This invoice is financed; recovery actions are locked."
 
 
 # ---------------------------------------------------------------- errors ----
@@ -274,29 +276,6 @@ def start_financing(
         if replayed is not None:
             return replayed
 
-        existing = tracks.active_track(session, case_id)
-        if existing is not None:
-            # Order matters: "a track already exists" is more useful than "your
-            # version is stale", and both are 409.
-            return _fail(
-                409,
-                "TRACK_ALREADY_ACTIVE",
-                f"This case already has an open {existing.kind.lower()} track "
-                f"({existing.state}).",
-                {
-                    "state": existing.state,
-                    "current_version": existing.version,
-                    "allowed_events": financing_sm.allowed_events(TrackState(existing.state)),
-                },
-            )
-        if version != 0:
-            return _fail(
-                409,
-                "STALE_VERSION",
-                "This case has no open track, so If-Match must be 0 to start one.",
-                {"current_state": None, "current_version": 0},
-            )
-
         evaluation = _evaluation(session, case)
         verdict = financeability(
             evaluation,
@@ -305,6 +284,49 @@ def start_financing(
             _adapters().clock.now().date(),
             finance_config(__import__("backend.app.config_loader", fromlist=["load_config"]).load_config()),
         )
+
+        active = tracks.active_track(session, case_id)
+        if active is not None:
+            if TrackKind(active.kind) is TrackKind.FINANCING:
+                # Order matters: "a track already exists" is more useful than "your
+                # version is stale", and both are 409.
+                return _fail(
+                    409,
+                    "TRACK_ALREADY_ACTIVE",
+                    f"This case already has an open financing track ({active.state}).",
+                    {
+                        "state": active.state,
+                        "current_version": active.version,
+                        "allowed_events": financing_sm.allowed_events(TrackState(active.state)),
+                    },
+                )
+            # A recovery track is open. Section 5.3 decides whether financing may start.
+            decision = tracks.can_start(TrackKind.FINANCING, active, financeable=verdict["financeable"])
+            if not decision.allowed:
+                return _fail(
+                    409,
+                    decision.code or "TRACK_LOCKED",
+                    decision.message or LOCKED_RECOVERY_MESSAGE,
+                    {"state": active.state, "allowed_events": []},
+                )
+            # Allowed: pause recovery rather than deleting it, so "switch to Option 2"
+            # can resume the stage it reached.
+            if verdict["financeable"]:
+                tracks.pause_track(session, active, reason="financing_started", actor="USER")
+            else:
+                return _fail(
+                    409,
+                    "TRACK_ALREADY_ACTIVE",
+                    f"This case already has an open recovery track ({active.state}).",
+                    {"state": active.state, "allowed_events": []},
+                )
+        elif version != 0:
+            return _fail(
+                409,
+                "STALE_VERSION",
+                "This case has no open track, so If-Match must be 0 to start one.",
+                {"current_state": None, "current_version": 0},
+            )
 
         track_row = tracks.open_track(
             session,

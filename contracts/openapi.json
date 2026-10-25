@@ -2745,6 +2745,172 @@
         "title": "RecoverWithLawOption",
         "type": "object"
       },
+      "RecoveryActionResponse": {
+        "description": "Every mutating recovery route answers with this.",
+        "properties": {
+          "channel": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Channel"
+          },
+          "detail": {
+            "$ref": "#/components/schemas/CaseDetail"
+          },
+          "draft": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RecoveryDraft"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "stage": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stage"
+          },
+          "track": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Track"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "detail"
+        ],
+        "title": "RecoveryActionResponse",
+        "type": "object"
+      },
+      "RecoveryDraft": {
+        "description": "A prepared draft, produced by the existing artifact generators.",
+        "properties": {
+          "filename": {
+            "title": "Filename",
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/ArtifactKind"
+          },
+          "markdown": {
+            "title": "Markdown",
+            "type": "string"
+          },
+          "pdf_base64": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pdf Base64"
+          },
+          "pdf_filename": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pdf Filename"
+          },
+          "stage": {
+            "title": "Stage",
+            "type": "integer"
+          },
+          "warnings": {
+            "items": {
+              "$ref": "#/components/schemas/Warning"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "kind",
+          "stage",
+          "filename",
+          "markdown"
+        ],
+        "title": "RecoveryDraft",
+        "type": "object"
+      },
+      "RecoveryMarkSentRequest": {
+        "description": "`POST /cases/{id}/recovery/mark-sent` \u2014 the owner says they sent it.\n\nThe server cannot know a message was delivered, so this records a claim, not a\nfact, and nothing is sent (golden rule 10).",
+        "properties": {
+          "channel": {
+            "enum": [
+              "whatsapp",
+              "email",
+              "other"
+            ],
+            "title": "Channel",
+            "type": "string"
+          },
+          "stage": {
+            "maximum": 4.0,
+            "minimum": 1.0,
+            "title": "Stage",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "stage",
+          "channel"
+        ],
+        "title": "RecoveryMarkSentRequest",
+        "type": "object"
+      },
+      "RecoveryPrepareRequest": {
+        "description": "`POST /cases/{id}/recovery` \u2014 prepare the draft for one stage.",
+        "properties": {
+          "kind": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ArtifactKind"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Optional artifact kind override. Stage 1 has two drafts (acceptance note or balance confirmation); the default is the balance confirmation."
+          },
+          "stage": {
+            "description": "Ladder stage 1-4.",
+            "maximum": 4.0,
+            "minimum": 1.0,
+            "title": "Stage",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "stage"
+        ],
+        "title": "RecoveryPrepareRequest",
+        "type": "object"
+      },
       "SettlementPayment": {
         "properties": {
           "amount": {
@@ -4077,6 +4243,251 @@
         "summary": "Get Options",
         "tags": [
           "options"
+        ]
+      }
+    },
+    "/api/v1/cases/{case_id}/recovery": {
+      "post": {
+        "description": "Prepare a stage's draft and move the track to `STAGE_n_PREPARED`.\n\nPreparing is not sending: the response carries the draft and nothing leaves the\nserver.",
+        "operationId": "prepare_recovery_api_v1_cases__case_id__recovery_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "case_id",
+            "required": true,
+            "schema": {
+              "title": "Case Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          },
+          {
+            "in": "header",
+            "name": "If-Match",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "If-Match"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecoveryPrepareRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecoveryActionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Prepare Recovery",
+        "tags": [
+          "recovery"
+        ]
+      }
+    },
+    "/api/v1/cases/{case_id}/recovery/mark-sent": {
+      "post": {
+        "description": "Record that the owner sent this stage from their own client.\n\nThe event stores the channel so the trail is honest about how it went out, and the\nwording stays \"the owner says they sent it\" \u00e2\u20ac\u201d the server has no way to know.",
+        "operationId": "mark_recovery_sent_api_v1_cases__case_id__recovery_mark_sent_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "case_id",
+            "required": true,
+            "schema": {
+              "title": "Case Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          },
+          {
+            "in": "header",
+            "name": "If-Match",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "If-Match"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecoveryMarkSentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecoveryActionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Mark Recovery Sent",
+        "tags": [
+          "recovery"
+        ]
+      }
+    },
+    "/api/v1/cases/{case_id}/recovery/odr-filed": {
+      "post": {
+        "description": "Record that the owner filed on the ODR portal.\n\nA separate action from `mark-sent` because filing is a different claim: the pack\nbeing ready is not the same as the owner having submitted it. This is the only\npath to `ODR_FILED_BY_OWNER`.",
+        "operationId": "record_odr_filed_api_v1_cases__case_id__recovery_odr_filed_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "case_id",
+            "required": true,
+            "schema": {
+              "title": "Case Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          },
+          {
+            "in": "header",
+            "name": "If-Match",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "If-Match"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecoveryActionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Record Odr Filed",
+        "tags": [
+          "recovery"
         ]
       }
     },
