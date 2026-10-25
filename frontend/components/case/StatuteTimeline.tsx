@@ -77,7 +77,7 @@ export function StatuteTimeline({ response }: { response: CaseResponse }) {
               />
               <div className="flex min-w-0 flex-col gap-0.5">
                 <span className={`text-xs ${isToday ? "font-medium text-saffron-ink" : "text-ink-500"}`}>{n.label}</span>
-                <span className={`num text-sm ${n.date ? "text-ink-950" : "text-ink-300"}`}>
+                <span className={`num text-sm ${n.date ? "text-ink-950" : "text-ink-500"}`}>
                   {n.date ? date(n.date) : t("timeline.pending_date")}
                 </span>
                 {explain && <span className="mt-1 text-xs leading-snug text-ink-600">{n.meaning}</span>}

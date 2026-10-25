@@ -34,7 +34,7 @@ export function EligibilityPill({ status, caseId }: { status: JurisdictionStatus
       className="group inline-flex items-center gap-1 rounded-full"
     >
       {pill}
-      <Icon name="chevron" className="h-3.5 w-3.5 text-ink-300 transition-colors group-hover:text-ink-950" />
+      <Icon name="chevron" className="h-3.5 w-3.5 text-ink-500 transition-colors group-hover:text-ink-950" />
     </Link>
   );
 }

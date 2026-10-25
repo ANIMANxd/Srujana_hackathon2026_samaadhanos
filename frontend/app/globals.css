@@ -26,6 +26,8 @@
   --color-paper-sunk: #f2f1ee;
   --color-rule: #e8e7e3;
   --color-rule-strong: #d9d8d3;
+  /* Form-control boundary: >= 3:1 against paper, so an input is identifiable. */
+  --color-field-border: #8f8e88;
 
   /* saffron: the one accent, for what is live or current */
   --color-saffron-600: #b4540a;
@@ -164,7 +166,12 @@ body {
 :focus-visible {
   outline: 2px solid var(--color-saffron-600);
   outline-offset: 2px;
-  border-radius: var(--radius-sm);
+  box-shadow: 0 0 0 4px var(--color-saffron-100);
+}
+
+/* Native disclosure: rotate the chevron when open (ReadingGuide). */
+details[open] > summary .chevron {
+  transform: rotate(180deg);
 }
 
 @layer components {
@@ -309,14 +316,14 @@ body {
     min-height: 2.5rem;
     padding: 0.5rem 0.75rem;
     background: var(--color-paper-raised);
-    border: 1px solid var(--color-rule-strong);
+    border: 1px solid var(--color-field-border);
     border-radius: var(--radius-md);
     color: var(--color-ink-900);
     font-size: var(--text-sm);
     transition: border-color 120ms ease, box-shadow 120ms ease;
   }
   .field-input:hover {
-    border-color: var(--color-ink-300);
+    border-color: var(--color-ink-500);
   }
   .field-input:focus {
     outline: none;

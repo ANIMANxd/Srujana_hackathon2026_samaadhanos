@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef, type KeyboardEvent } from "react";
 import type { MessageKey } from "@/lib/i18n/en";
 import { useT } from "@/lib/i18n";
 import type { AppropriationMode, CaseRequest, CaseResponse, RateMode } from "@/lib/types";
@@ -32,6 +33,22 @@ function Toggle<T extends string>({
   note: string | null;
 }) {
   const { t } = useT();
+  const group = useRef<HTMLDivElement>(null);
+  const checked = Math.max(0, options.indexOf(value));
+
+  /** Arrow keys move and select, Home/End jump: the ARIA radio-group keyboard pattern. */
+  function onKeyDown(e: KeyboardEvent<HTMLDivElement>) {
+    const keys = ["ArrowRight", "ArrowDown", "ArrowLeft", "ArrowUp", "Home", "End"];
+    if (!keys.includes(e.key)) return;
+    e.preventDefault();
+    let nextIndex = checked;
+    if (e.key === "Home") nextIndex = 0;
+    else if (e.key === "End") nextIndex = options.length - 1;
+    else nextIndex = (checked + (e.key === "ArrowRight" || e.key === "ArrowDown" ? 1 : -1) + options.length) % options.length;
+    onPick(options[nextIndex]);
+    requestAnimationFrame(() => group.current?.querySelectorAll<HTMLElement>('[role="radio"]')[nextIndex]?.focus());
+  }
+
   return (
     <div className="grid gap-3 border-t border-rule py-4 first:border-t-0 first:pt-0 last:pb-0 md:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)] md:gap-6">
       <div className="flex flex-col gap-2">
@@ -39,16 +56,17 @@ function Toggle<T extends string>({
           {label}
           {overridden && <span className="rounded-full bg-saffron-100 px-2 py-0.5 text-xs font-medium text-saffron-ink">{t("toggles.override")}</span>}
         </span>
-        <div role="radiogroup" aria-label={label} className="inline-flex self-start rounded-lg border border-rule bg-paper-sunk p-0.5">
+        <div ref={group} role="radiogroup" aria-label={label} onKeyDown={onKeyDown} className="inline-flex self-start rounded-lg border border-rule bg-paper-sunk p-0.5">
           {options.map((o) => (
             <button
               key={o}
               type="button"
               role="radio"
               aria-checked={value === o}
+              tabIndex={value === o ? 0 : -1}
               onClick={() => value !== o && onPick(o)}
-              className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-                value === o ? "bg-paper-raised text-ink-950 shadow-[0_1px_2px_rgb(13_13_12/0.08)]" : "text-ink-500 hover:text-ink-950"
+              className={`rounded-md px-3 py-1.5 text-sm transition-colors ${
+                value === o ? "bg-paper-raised font-semibold text-ink-950 shadow-[0_1px_2px_rgb(13_13_12/0.08)]" : "font-medium text-ink-500 hover:text-ink-950"
               }`}
             >
               {t(optionKey(o))}

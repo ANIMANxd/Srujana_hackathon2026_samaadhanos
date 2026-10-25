@@ -17,6 +17,7 @@ import { CfoCostLines } from "../cfo/CfoCostLines";
 import { SendPanel } from "../send/SendPanel";
 import { AssumptionsDrawer } from "./AssumptionsDrawer";
 import { CaseHeader } from "./CaseHeader";
+import { ReadingGuide } from "./ReadingGuide";
 import { CaseTabs } from "./CaseTabs";
 import { EvidenceTab } from "../evidence/EvidenceTab";
 import { EscalationTab } from "../escalation/EscalationTab";
@@ -93,6 +94,7 @@ export function CaseScreen({ caseId }: { caseId: string }) {
                 </p>
               )}
               <CaseTabs caseId={caseId} />
+              {tab === "overview" && !notCovered && <ReadingGuide />}
               {tab === "evidence" && ev.base ? (
                 <EvidenceTab caseId={caseId} request={ev.request} base={ev.base} response={res} onChange={ev.setRequest} />
               ) : tab === "math" ? (

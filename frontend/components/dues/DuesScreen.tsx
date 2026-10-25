@@ -108,7 +108,7 @@ function BuyerRow({ row }: { row: Row }) {
           {res?.financials ? (
             <Money value={res.financials.total_claim} placeholder={placeholder} className="font-medium text-ink-950" />
           ) : (
-            <span className="text-ink-300">—</span>
+            <span className="text-ink-500">—</span>
           )}
         </div>
 
@@ -123,7 +123,7 @@ function BuyerRow({ row }: { row: Row }) {
           ) : null}
         </div>
 
-        <Icon name="chevron" className="hidden h-4 w-4 text-ink-300 transition-colors group-hover:text-ink-950 md:block" />
+        <Icon name="chevron" className="hidden h-4 w-4 text-ink-500 transition-colors group-hover:text-ink-950 md:block" />
       </Link>
     </li>
   );

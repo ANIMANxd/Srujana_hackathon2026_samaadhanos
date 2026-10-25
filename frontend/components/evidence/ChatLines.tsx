@@ -111,6 +111,7 @@ export function ChatLines() {
           accept=".txt,text/plain"
           className="sr-only"
           tabIndex={-1}
+          aria-label={t("locker.chat.choose")}
           onChange={async (e) => {
             const f = e.target.files?.[0];
             if (!f) return;
@@ -149,7 +150,7 @@ export function ChatLines() {
                     tone === "objection" ? "bg-warn-wash" : tone === "delivery" ? "bg-ok-wash" : ""
                   }`}
                 >
-                  <span className="select-none text-right text-ink-300">{n}</span>
+                  <span className="select-none text-right text-ink-500">{n}</span>
                   <span className="whitespace-pre-wrap break-words text-ink-900">
                     {line || " "}
                     {tags.length > 0 && (

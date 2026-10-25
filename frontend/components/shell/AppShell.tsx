@@ -78,8 +78,8 @@ function LangToggle() {
           lang={l}
           aria-current={lang === l ? "true" : undefined}
           aria-label={t(l === "en" ? "lang.en" : "lang.kn")}
-          className={`grid h-6 min-w-7 place-items-center rounded-full px-2 font-medium transition-colors ${
-            lang === l ? "bg-ink-950 text-paper-raised" : "text-ink-500 hover:text-ink-950"
+          className={`grid h-6 min-w-7 place-items-center rounded-full px-2 transition-colors ${
+            lang === l ? "bg-ink-950 font-semibold text-paper-raised" : "font-medium text-ink-500 hover:text-ink-950"
           }`}
         >
           {t(l === "en" ? "lang.en_short" : "lang.kn_short")}

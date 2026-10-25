@@ -22,8 +22,8 @@ export function PersonaSwitch({ path }: { path: string }) {
           href={href(path, { view: v })}
           scroll={false}
           aria-current={view === v ? "page" : undefined}
-          className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-            view === v ? "bg-paper-raised text-ink-950 shadow-[0_1px_2px_rgb(13_13_12/0.08)]" : "text-ink-500 hover:text-ink-950"
+          className={`rounded-md px-3 py-1.5 text-sm transition-colors ${
+            view === v ? "bg-paper-raised font-semibold text-ink-950 shadow-[0_1px_2px_rgb(13_13_12/0.08)]" : "font-medium text-ink-500 hover:text-ink-950"
           }`}
         >
           {t(v === "supplier" ? "case.view.supplier" : "case.view.cfo")}

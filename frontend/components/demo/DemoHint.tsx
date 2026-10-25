@@ -69,7 +69,7 @@ export function DemoHint() {
         {current ? (
           <span className="hidden min-w-0 items-center gap-2 sm:inline-flex">
             <span className="font-medium text-ink-950">{t(current.titleKey)}</span>
-            <span aria-hidden="true" className="text-ink-300">·</span>
+            <span aria-hidden="true" className="text-ink-500">·</span>
             <span className="truncate text-ink-600">{t(current.hintKey)}</span>
           </span>
         ) : (

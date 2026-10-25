@@ -58,7 +58,7 @@ export function CaseHeader({
             {request && <span>{request.supplier.name}</span>}
             {response && (
               <>
-                <span aria-hidden="true" className="text-ink-300">·</span>
+                <span aria-hidden="true" className="text-ink-500">·</span>
                 <span className="num">{t("case.as_of", { date: date(response.calculation_date) })}</span>
                 <EligibilityPill status={response.jurisdiction.status} caseId={linkEligibility ? caseId : undefined} />
               </>

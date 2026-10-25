@@ -69,7 +69,7 @@ export function TimelineDetail({ request, response }: { request: CaseRequest; re
       <ol className="flex flex-col">
         {[...dated, ...undated].map((r, i, all) => (
           <li key={r.key} className="relative grid grid-cols-[6.5rem_1.25rem_1fr] gap-x-3 pb-5 last:pb-0 sm:grid-cols-[8rem_1.25rem_1fr]">
-            <span className={`num pt-px text-sm ${r.date ? "text-ink-950" : "text-ink-300"}`}>{r.date ? date(r.date) : t("timeline.pending_date")}</span>
+            <span className={`num pt-px text-sm ${r.date ? "text-ink-950" : "text-ink-500"}`}>{r.date ? date(r.date) : t("timeline.pending_date")}</span>
             <span className="relative flex justify-center">
               {i < all.length - 1 && <span aria-hidden="true" className="absolute top-3 h-[calc(100%+0.25rem)] w-px bg-rule-strong" />}
               <span

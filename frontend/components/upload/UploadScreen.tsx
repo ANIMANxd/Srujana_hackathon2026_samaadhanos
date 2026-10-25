@@ -416,6 +416,8 @@ export function UploadScreen() {
               accept=".txt,text/plain"
               className="sr-only"
               id="evidence-file"
+              tabIndex={-1}
+              aria-label={t("upload.choose")}
               onChange={(e) => handle(e.target.files?.[0])}
             />
             <button type="button" className="btn btn-primary" disabled={reading} onClick={() => input.current?.click()}>

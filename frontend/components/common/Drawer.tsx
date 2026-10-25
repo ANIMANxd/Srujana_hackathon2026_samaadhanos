@@ -35,6 +35,11 @@ export function Drawer({
     opener.current = document.activeElement;
     const node = panel.current;
     node?.querySelector<HTMLElement>("[data-autofocus], button, [href], input, select, textarea")?.focus();
+    const previousOverflow = document.body.style.overflow;
+    const previousPadding = document.body.style.paddingRight;
+    const scrollbar = window.innerWidth - document.documentElement.clientWidth;
+    document.body.style.overflow = "hidden";
+    if (scrollbar > 0) document.body.style.paddingRight = `${scrollbar}px`;
 
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") {
@@ -49,7 +54,10 @@ export function Drawer({
       if (items.length === 0) return;
       const first = items[0];
       const last = items[items.length - 1];
-      if (e.shiftKey && document.activeElement === first) {
+      if (!node.contains(document.activeElement)) {
+        e.preventDefault();
+        first.focus();
+      } else if (e.shiftKey && document.activeElement === first) {
         e.preventDefault();
         last.focus();
       } else if (!e.shiftKey && document.activeElement === last) {
@@ -60,7 +68,9 @@ export function Drawer({
     document.addEventListener("keydown", onKey);
     return () => {
       document.removeEventListener("keydown", onKey);
-      if (opener.current instanceof HTMLElement) opener.current.focus();
+      document.body.style.overflow = previousOverflow;
+      document.body.style.paddingRight = previousPadding;
+      if (opener.current instanceof HTMLElement && opener.current.isConnected) opener.current.focus();
     };
   }, [open]);
 

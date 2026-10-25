@@ -58,7 +58,7 @@ export function KpiCards({ financials, placeholder }: { financials: Financials; 
       </div>
 
       <section aria-labelledby="seg-title" className="panel flex flex-col gap-3 p-5">
-        <h3 id="seg-title" className="section-title">{t("kpi.segments")}</h3>
+        <h2 id="seg-title" className="section-title">{t("kpi.segments")}</h2>
         {changed && (
           <p className="flex items-center gap-2 text-sm text-warn">
             <Icon name="info" className="h-4 w-4" />

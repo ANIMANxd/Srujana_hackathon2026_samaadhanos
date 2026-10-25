@@ -47,7 +47,7 @@ export function EscalationLadder({
                 <span
                   aria-hidden="true"
                   className={`num grid h-6 w-6 place-items-center rounded-full text-xs font-medium ${
-                    isCurrent ? "bg-ink-950 text-paper-raised" : blocked ? "border border-dashed border-ink-300 text-ink-300" : "border border-ink-300 text-ink-700"
+                    isCurrent ? "bg-ink-950 text-paper-raised" : blocked ? "border border-dashed border-ink-300 text-ink-500" : "border border-ink-300 text-ink-700"
                   }`}
                 >
                   {s}

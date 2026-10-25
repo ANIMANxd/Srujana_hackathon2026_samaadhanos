@@ -53,6 +53,7 @@ export const en = {
   "state.backend_needed": "This needs the backend, which is not reachable right now.",
 
   "common.close": "Close",
+  "common.required": "This field is required.",
   "common.open": "Open",
   "common.yes": "Yes",
   "common.no": "No",
@@ -103,6 +104,12 @@ export const en = {
   "demo.3.hint": "A written objection resolved by replacement: the payment clock starts on resolution.",
   "demo.4.title": "CASE-05 · Blocked at the gate",
   "demo.4.hint": "The gate stops the case: no claim is worked out, and nothing pretends it is zero.",
+
+  // ----------------------------------------------------------- help ----
+  "help.summary": "New here? Read this page in three steps",
+  "help.claim": "The total claim is the unpaid principal plus the interest the Act adds for late payment. It is not a penalty you choose.",
+  "help.dates": "The payment clock starts from delivery, or from the day a written objection was resolved, not from the invoice date. Use “Explain dates” on the timeline.",
+  "help.next": "The next step is the gentlest one your evidence supports. Nothing is sent until you approve a draft.",
 
   // ----------------------------------------------------------- stages ----
   "stage.chip": "Stage {n}",
@@ -705,6 +712,7 @@ export const en = {
   "judge.add_payment": "Add payment",
   "judge.remove": "Remove",
   "judge.invalid_date": "Use the format YYYY-MM-DD, for example 2026-02-16.",
+  "judge.invalid_date_real": "That date does not exist. Check the day and month.",
   "judge.invalid_amount": "Use digits, with up to 2 decimals.",
   "judge.invalid_int": "Use a whole number of days.",
   "judge.invalid_pct": "Use a number such as 6.50.",
