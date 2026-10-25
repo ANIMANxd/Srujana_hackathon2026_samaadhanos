@@ -22,7 +22,7 @@ from typing import Any
 
 from pydantic import Field
 
-from backend.app.schemas import CaseEvaluationResponse, ContractModel, DecStr
+from backend.app.schemas import CaseEvaluationRequest, CaseEvaluationResponse, ContractModel, DecStr
 
 # The v4 contract number. Deliberately NOT the app-wide CONTRACT_VERSION: v1.0
 # responses must stay byte-identical, so they keep reporting "1.0".
@@ -356,8 +356,56 @@ class ErrorEnvelope(ContractModel):
     error: ErrorEnvelopeDetail
 
 
-# --------------------------------------------------- openapi integration ----
+class BuyerContact(ContractModel):
+    """Buyer contact details, used to draft the acceptance invite.
 
+    Personal data (v4 section 8). Deliberately **not persisted**: no column exists
+    for it in the section 4 schema, and storing contact details needs a DPDP
+    decision the repo has not taken. The create route accepts them so the caller can
+    send the invite from its own client; see the route's docstring.
+    """
+
+    name: str | None = None
+    phone: str | None = None
+    email: str | None = None
+
+
+class CaseCreateRequest(CaseEvaluationRequest):
+    """`POST /api/v1/cases` — the approved fields, plus buyer contact details.
+
+    The body is the evaluate-case body, so a caller that already has a verified
+    `CaseEvaluationRequest` (the extraction approve step) can post it unchanged.
+    """
+
+    buyer_contact: BuyerContact | None = None
+
+
+class CaseSummary(ContractModel):
+    """One row of the Dues home (`GET /api/v1/cases`)."""
+
+    id: str
+    invoice_no: str
+    buyer_gstin: str | None = None
+    supplier_ref: str
+    accepted_amount: DecStr
+    due_date: date | None = None
+    days_overdue: int = 0
+    calculation_date: date
+    active_track: Track | None = None
+    state: TrackState
+    stage: int | None = Field(
+        default=None,
+        description="Recovery stage 1-4 from the engine's readiness, or the track's own stage.",
+    )
+    available_actions: list[str] = Field(default_factory=list)
+
+
+class CaseListResponse(ContractModel):
+    cases: list[CaseSummary]
+    count: int
+
+
+# --------------------------------------------------- openapi integration ----
 V1_1_MODELS: tuple[type[ContractModel], ...] = (
     Case,
     CaseDetail,
@@ -371,6 +419,10 @@ V1_1_MODELS: tuple[type[ContractModel], ...] = (
     ChainVerifyResult,
     WebhookDelivery,
     ErrorEnvelope,
+    BuyerContact,
+    CaseCreateRequest,
+    CaseSummary,
+    CaseListResponse,
 )
 
 

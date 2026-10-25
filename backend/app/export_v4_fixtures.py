@@ -55,6 +55,7 @@ from backend.app.schemas_v4 import (
 )
 from backend.engine.config import StatuteConfig
 from backend.engine.evaluate import evaluate_case
+from backend.workflow.transitions import available_actions as workflow_available_actions
 from backend.finance import (
     CaseFacts,
     FinanceConfig,
@@ -288,18 +289,8 @@ def build_track(state: TrackState, *, closed: bool = False) -> Track:
     )
 
 
-# Actions the workflow allows from each state (docs/state-machines.md section 3).
-# Recovery only appears while nothing is assigned to a financier.
-ACTIONS: dict[TrackState, list[str]] = {
-    TrackState.FINANCEABLE: ["request_buyer_acceptance", "switch_to_recovery", "cancel_financing"],
-    TrackState.AWAITING_BUYER_ACCEPTANCE: ["wait_for_buyer", "switch_to_recovery", "cancel_financing"],
-    TrackState.BIDS_AVAILABLE: ["select_bid", "cancel_financing"],
-    TrackState.AWAITING_ESIGN: ["complete_esign", "cancel_financing"],
-    TrackState.AWAITING_DISBURSEMENT: ["wait_for_payout"],
-    TrackState.DISBURSED: ["view_events", "download_pack"],
-    TrackState.BUYER_DECLINED: ["switch_to_recovery", "cancel_financing"],
-    TrackState.NO_BIDS: ["switch_to_recovery", "cancel_financing"],
-}
+# The action table lives in `backend/workflow/transitions.py` so the routes and the
+# fixtures cannot drift apart; this module only reads it.
 
 TERMINAL = {TrackState.BUYER_DECLINED, TrackState.NO_BIDS}
 
@@ -474,7 +465,7 @@ def main() -> None:
                 StatuteConfig.from_dict(load_config()), build_case_request(AS_OF_IN_TIME)
             ),
             active_track=build_track(state, closed=state in TERMINAL),
-            available_actions=ACTIONS[state],
+            available_actions=workflow_available_actions(state.value, "FINANCING"),
         )
         dump(
             f"case-detail-{state.value}.json",

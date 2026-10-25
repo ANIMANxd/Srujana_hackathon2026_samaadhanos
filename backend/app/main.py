@@ -91,6 +91,16 @@ async def _simulation_header(request: Request, call_next):
 _BASE_OPENAPI = app.openapi
 
 
+def _shape(schema: dict) -> tuple:
+    """The parts of a JSON schema that must not change: names, required, enum."""
+    return (
+        tuple(sorted(schema.get("properties", {}))),
+        tuple(sorted(schema.get("required", []))),
+        tuple(schema.get("enum", []) or []),
+        schema.get("type"),
+    )
+
+
 def _openapi_with_v1_1() -> dict:
     if app.openapi_schema is not None:
         return app.openapi_schema
@@ -98,12 +108,16 @@ def _openapi_with_v1_1() -> dict:
     components = schema.setdefault("components", {}).setdefault("schemas", {})
     v1_1, authored = v1_1_component_schemas()
     for name, sub in v1_1.items():
-        if name in components:
-            if name in authored:
+        existing = components.get(name)
+        if existing is not None:
+            # FastAPI already emitted this model, either because a v1.1 route reaches
+            # it or because it is a v1.0 model pulled in by reference. Cosmetic
+            # differences (`default: null`) are fine; a different *shape* is not.
+            if _shape(existing) != _shape(sub):
                 raise RuntimeError(
-                    f"contract v1.1 schema {name!r} collides with the frozen v1.0 schema"
+                    f"contract v1.1 schema {name!r} would change the frozen shape "
+                    f"{_shape(existing)} -> {_shape(sub)}"
                 )
-            # A v1.0 model pulled in by reference: the frozen definition wins.
             continue
         components[name] = sub
     app.openapi_schema = schema
@@ -111,6 +125,13 @@ def _openapi_with_v1_1() -> dict:
 
 
 app.openapi = _openapi_with_v1_1
+
+
+# Contract v1.1 routes. Included after the openapi wrapper so the published document
+# picks up both the frozen v1.0 operations and these additive ones.
+from backend.app.routes.cases import router as cases_router  # noqa: E402
+
+app.include_router(cases_router)
 
 
 # ------------------------------------------------------------- errors ----

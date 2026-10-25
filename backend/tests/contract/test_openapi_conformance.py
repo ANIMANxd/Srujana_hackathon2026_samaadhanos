@@ -44,11 +44,16 @@ READ_PATHS = {
     "/api/v1/config",
     "/api/v1/presets",
     "/api/v1/presets/{preset_id}",
+    "/api/v1/cases",
+    "/api/v1/cases/{case_id}",
+    "/api/v1/cases/{case_id}/events",
+    "/api/v1/cases/{case_id}/events/verify",
 }
 WRITE_PATHS = {
     "/api/v1/evaluate-case",
     "/api/v1/simulate-settlement",
     "/api/v1/generate-artifact",
+    "/api/v1/cases",
 }
 UPLOAD_PATHS = {"/api/v1/extract-evidence"}
 
@@ -97,17 +102,47 @@ def test_every_declared_path_is_exercised():
 
 
 def test_read_endpoints_match_the_contract():
+    """Every declared GET answers in the shape the contract declares.
+
+    The case routes need a case, so one is created here; `POST /cases` is also
+    declared as a write path and is exercised by the create test.
+    """
+    created = client.post("/api/v1/cases", json=_preset_request())
+    assert created.status_code == 201, created.text[:300]
+    case_id = created.json()["case"]["id"]
+
     responses = [
         ("GET", "/api/v1/health", client.get("/api/v1/health")),
         ("GET", "/api/v1/config", client.get("/api/v1/config")),
         ("GET", "/api/v1/presets", client.get("/api/v1/presets")),
         ("GET", "/api/v1/presets/{preset_id}", client.get("/api/v1/presets/case_01")),
+        ("GET", "/api/v1/cases", client.get("/api/v1/cases")),
+        ("GET", "/api/v1/cases/{case_id}", client.get(f"/api/v1/cases/{case_id}")),
+        ("GET", "/api/v1/cases/{case_id}/events", client.get(f"/api/v1/cases/{case_id}/events")),
+        (
+            "GET",
+            "/api/v1/cases/{case_id}/events/verify",
+            client.get(f"/api/v1/cases/{case_id}/events/verify"),
+        ),
     ]
     for method, path, response in responses:
         assert response.status_code == 200, f"{method} {path}: {response.text[:300]}"
         _assert_matches(
             _response_pointer(path, method), response.json(), f"{method} {path}"
         )
+
+
+def test_create_case_matches_the_contract():
+    """`POST /cases` declares 201, and the body is a CaseDetail."""
+    created = client.post("/api/v1/cases", json=_preset_request())
+    assert created.status_code == 201, created.text[:300]
+    _assert_matches(
+        _response_pointer("/api/v1/cases", "POST", 201), created.json(), "POST /api/v1/cases"
+    )
+    body = created.json()
+    assert body["case"]["id"], "a server-issued id is required"
+    assert body["latest_evaluation"]["case_id"] == body["case"]["id"]
+    assert body["available_actions"], "a fresh case must offer an action"
 
 
 def test_evaluate_and_settlement_match_the_contract():

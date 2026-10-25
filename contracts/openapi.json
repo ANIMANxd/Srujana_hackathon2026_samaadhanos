@@ -277,6 +277,46 @@
         "title": "BuyerAcceptanceStatus",
         "type": "string"
       },
+      "BuyerContact": {
+        "description": "Buyer contact details, used to draft the acceptance invite.\n\nPersonal data (v4 section 8). Deliberately **not persisted**: no column exists\nfor it in the section 4 schema, and storing contact details needs a DPDP\ndecision the repo has not taken. The create route accepts them so the caller can\nsend the invite from its own client; see the route's docstring.",
+        "properties": {
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "phone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone"
+          }
+        },
+        "title": "BuyerContact",
+        "type": "object"
+      },
       "BuyerCost": {
         "properties": {
           "deferral": {
@@ -325,7 +365,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Buyer Gstin"
           },
           "config_version": {
@@ -347,7 +386,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Delivery Date"
           },
           "engine_version": {
@@ -393,6 +431,82 @@
         "title": "Case",
         "type": "object"
       },
+      "CaseCreateRequest": {
+        "description": "`POST /api/v1/cases` \u2014 the approved fields, plus buyer contact details.\n\nThe body is the evaluate-case body, so a caller that already has a verified\n`CaseEvaluationRequest` (the extraction approve step) can post it unchanged.",
+        "properties": {
+          "acknowledgments": {
+            "items": {
+              "$ref": "#/components/schemas/Acknowledgment"
+            },
+            "title": "Acknowledgments",
+            "type": "array"
+          },
+          "buyer": {
+            "$ref": "#/components/schemas/Buyer"
+          },
+          "buyer_contact": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BuyerContact"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "case_id": {
+            "title": "Case Id",
+            "type": "string"
+          },
+          "config_overrides": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ConfigOverrides"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "contract_version": {
+            "default": "1.0",
+            "title": "Contract Version",
+            "type": "string"
+          },
+          "evidence": {
+            "$ref": "#/components/schemas/Evidence"
+          },
+          "objections": {
+            "items": {
+              "$ref": "#/components/schemas/Objection"
+            },
+            "title": "Objections",
+            "type": "array"
+          },
+          "part_payments": {
+            "items": {
+              "$ref": "#/components/schemas/PartPayment"
+            },
+            "title": "Part Payments",
+            "type": "array"
+          },
+          "supplier": {
+            "$ref": "#/components/schemas/Supplier"
+          },
+          "transaction": {
+            "$ref": "#/components/schemas/Transaction"
+          }
+        },
+        "required": [
+          "case_id",
+          "supplier",
+          "buyer",
+          "transaction",
+          "evidence"
+        ],
+        "title": "CaseCreateRequest",
+        "type": "object"
+      },
       "CaseDetail": {
         "description": "`GET /api/v1/cases/{id}` (architecture_v4 section 9).",
         "properties": {
@@ -404,8 +518,7 @@
               {
                 "type": "null"
               }
-            ],
-            "default": null
+            ]
           },
           "available_actions": {
             "description": "Action codes the workflow allows from the current state.",
@@ -426,8 +539,7 @@
               {
                 "type": "null"
               }
-            ],
-            "default": null
+            ]
           }
         },
         "required": [
@@ -602,6 +714,123 @@
         "title": "CaseEvaluationResponse",
         "type": "object"
       },
+      "CaseListResponse": {
+        "properties": {
+          "cases": {
+            "items": {
+              "$ref": "#/components/schemas/CaseSummary"
+            },
+            "title": "Cases",
+            "type": "array"
+          },
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "cases",
+          "count"
+        ],
+        "title": "CaseListResponse",
+        "type": "object"
+      },
+      "CaseSummary": {
+        "description": "One row of the Dues home (`GET /api/v1/cases`).",
+        "properties": {
+          "accepted_amount": {
+            "title": "Accepted Amount",
+            "type": "string"
+          },
+          "active_track": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Track"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "available_actions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Available Actions",
+            "type": "array"
+          },
+          "buyer_gstin": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Buyer Gstin"
+          },
+          "calculation_date": {
+            "format": "date",
+            "title": "Calculation Date",
+            "type": "string"
+          },
+          "days_overdue": {
+            "default": 0,
+            "title": "Days Overdue",
+            "type": "integer"
+          },
+          "due_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Due Date"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "invoice_no": {
+            "title": "Invoice No",
+            "type": "string"
+          },
+          "stage": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Recovery stage 1-4 from the engine's readiness, or the track's own stage.",
+            "title": "Stage"
+          },
+          "state": {
+            "$ref": "#/components/schemas/TrackState"
+          },
+          "supplier_ref": {
+            "title": "Supplier Ref",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "invoice_no",
+          "supplier_ref",
+          "accepted_amount",
+          "calculation_date",
+          "state"
+        ],
+        "title": "CaseSummary",
+        "type": "object"
+      },
       "ChainVerifyResult": {
         "description": "`GET /api/v1/cases/{id}/events/verify`.",
         "properties": {
@@ -618,7 +847,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "First Bad Seq"
           },
           "valid": {
@@ -1119,7 +1347,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Track Id"
           },
           "type": {
@@ -2792,7 +3019,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Closed At"
           },
           "created_at": {
@@ -3087,6 +3313,243 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/v1/cases": {
+      "get": {
+        "description": "Every case, with the figures the Dues home shows.\n\nReading may create an evaluation per case (see `_ensure_evaluation`), so the\nfirst call after midnight is the expensive one.",
+        "operationId": "list_cases_api_v1_cases_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "maximum": 500,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaseListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Cases",
+        "tags": [
+          "cases"
+        ]
+      },
+      "post": {
+        "description": "Create a case from approved fields, evaluate it, and open its audit trail.\n\nThe client's `case_id` is replaced by a server-issued ULID: an id that a client\ncan choose is an id a client can collide with or forge.\n\n`buyer_contact` is accepted so the caller can draft the acceptance invite, and is\n**not stored** \u2014 there is no column for it in the architecture_v4 section 4\nschema, and persisting personal data needs a DPDP decision the repo has not\ntaken. No phone number or email is logged.",
+        "operationId": "create_case_api_v1_cases_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CaseCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaseDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Case",
+        "tags": [
+          "cases"
+        ]
+      }
+    },
+    "/api/v1/cases/{case_id}": {
+      "get": {
+        "description": "Case, latest evaluation, active track and the actions allowed right now.",
+        "operationId": "get_case_api_v1_cases__case_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "case_id",
+            "required": true,
+            "schema": {
+              "title": "Case Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaseDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Case",
+        "tags": [
+          "cases"
+        ]
+      }
+    },
+    "/api/v1/cases/{case_id}/events": {
+      "get": {
+        "description": "The append-only, hash-chained trail for one case, in sequence order.",
+        "operationId": "list_case_events_api_v1_cases__case_id__events_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "case_id",
+            "required": true,
+            "schema": {
+              "title": "Case Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Event"
+                  },
+                  "title": "Response List Case Events Api V1 Cases  Case Id  Events Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Case Events",
+        "tags": [
+          "cases"
+        ]
+      }
+    },
+    "/api/v1/cases/{case_id}/events/verify": {
+      "get": {
+        "description": "Recompute the chain and name the first bad sequence, if any.\n\nTamper-evident, not tamper-proof: say it that way in the pitch.",
+        "operationId": "verify_case_events_api_v1_cases__case_id__events_verify_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "case_id",
+            "required": true,
+            "schema": {
+              "title": "Case Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChainVerifyResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Verify Case Events",
+        "tags": [
+          "cases"
+        ]
+      }
+    },
     "/api/v1/config": {
       "get": {
         "description": "The statute config with its verified flags, for the assumptions drawer.\n\nReturns a labelled stub when statute_config.json is absent so the offline\ndemo still runs. No value here is treated as statutory by the API.",

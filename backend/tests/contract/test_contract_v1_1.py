@@ -176,14 +176,23 @@ def test_every_v1_1_model_is_published_as_a_component():
     assert not missing, f"v1.1 components missing from openapi.json: {missing}"
 
 
-def test_v1_1_added_components_without_adding_paths():
-    """The shapes ship before the routes (architecture_v4 section 9)."""
+def test_v1_1_adds_cases_routes_without_touching_a_v1_0_path():
+    """Contract v1.1 may add paths; it may not change one that already existed.
+
+    The v1.0 path set is still pinned by
+    `test_every_v1_0_path_is_byte_identical`; this asserts the *additions* are only
+    the case routes that section 9 declares, so a stray endpoint fails here.
+    """
     base = _baseline()
     live = app.openapi()
-    assert set(live["paths"]) == set(base["paths"]), (
-        "v1.1 must not declare a path until its route exists: "
-        f"{sorted(set(live['paths']) - set(base['paths']))}"
-    )
+    added_paths = set(live["paths"]) - set(base["paths"])
+    assert added_paths == {
+        "/api/v1/cases",
+        "/api/v1/cases/{case_id}",
+        "/api/v1/cases/{case_id}/events",
+        "/api/v1/cases/{case_id}/events/verify",
+    }, f"unexpected new paths in contract v1.1: {sorted(added_paths)}"
+    assert set(base["paths"]) <= set(live["paths"]), "a v1.0 path disappeared"
     added = set(live["components"]["schemas"]) - set(base["components"])
     assert len(added) >= 12, f"expected the v1.1 models to be added, got {sorted(added)}"
 

@@ -4,6 +4,103 @@
  */
 
 export interface paths {
+    "/api/v1/cases": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Cases
+         * @description Every case, with the figures the Dues home shows.
+         *
+         *     Reading may create an evaluation per case (see `_ensure_evaluation`), so the
+         *     first call after midnight is the expensive one.
+         */
+        get: operations["list_cases_api_v1_cases_get"];
+        put?: never;
+        /**
+         * Create Case
+         * @description Create a case from approved fields, evaluate it, and open its audit trail.
+         *
+         *     The client's `case_id` is replaced by a server-issued ULID: an id that a client
+         *     can choose is an id a client can collide with or forge.
+         *
+         *     `buyer_contact` is accepted so the caller can draft the acceptance invite, and is
+         *     **not stored** — there is no column for it in the architecture_v4 section 4
+         *     schema, and persisting personal data needs a DPDP decision the repo has not
+         *     taken. No phone number or email is logged.
+         */
+        post: operations["create_case_api_v1_cases_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cases/{case_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Case
+         * @description Case, latest evaluation, active track and the actions allowed right now.
+         */
+        get: operations["get_case_api_v1_cases__case_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cases/{case_id}/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Case Events
+         * @description The append-only, hash-chained trail for one case, in sequence order.
+         */
+        get: operations["list_case_events_api_v1_cases__case_id__events_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cases/{case_id}/events/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Verify Case Events
+         * @description Recompute the chain and name the first bad sequence, if any.
+         *
+         *     Tamper-evident, not tamper-proof: say it that way in the pitch.
+         */
+        get: operations["verify_case_events_api_v1_cases__case_id__events_verify_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/config": {
         parameters: {
             query?: never;
@@ -315,6 +412,23 @@ export interface components {
          * @enum {string}
          */
         BuyerAcceptanceStatus: "NOT_REQUESTED" | "AWAITING" | "ACCEPTED" | "REJECTED" | "EXPIRED";
+        /**
+         * BuyerContact
+         * @description Buyer contact details, used to draft the acceptance invite.
+         *
+         *     Personal data (v4 section 8). Deliberately **not persisted**: no column exists
+         *     for it in the section 4 schema, and storing contact details needs a DPDP
+         *     decision the repo has not taken. The create route accepts them so the caller can
+         *     send the invite from its own client; see the route's docstring.
+         */
+        BuyerContact: {
+            /** Email */
+            email?: string | null;
+            /** Name */
+            name?: string | null;
+            /** Phone */
+            phone?: string | null;
+        };
         /** BuyerCost */
         BuyerCost: {
             deferral: components["schemas"]["Deferral"];
@@ -331,11 +445,8 @@ export interface components {
         Case: {
             /** Accepted Amount */
             accepted_amount: string;
-            /**
-             * Buyer Gstin
-             * @default null
-             */
-            buyer_gstin: string | null;
+            /** Buyer Gstin */
+            buyer_gstin?: string | null;
             /** Config Version */
             config_version: string;
             /**
@@ -343,11 +454,8 @@ export interface components {
              * Format: date-time
              */
             created_at: string;
-            /**
-             * Delivery Date
-             * @default null
-             */
-            delivery_date: string | null;
+            /** Delivery Date */
+            delivery_date?: string | null;
             /** Engine Version */
             engine_version: string;
             /**
@@ -373,20 +481,46 @@ export interface components {
             supplier_ref: string;
         };
         /**
+         * CaseCreateRequest
+         * @description `POST /api/v1/cases` — the approved fields, plus buyer contact details.
+         *
+         *     The body is the evaluate-case body, so a caller that already has a verified
+         *     `CaseEvaluationRequest` (the extraction approve step) can post it unchanged.
+         */
+        CaseCreateRequest: {
+            /** Acknowledgments */
+            acknowledgments?: components["schemas"]["Acknowledgment"][];
+            buyer: components["schemas"]["Buyer"];
+            buyer_contact?: components["schemas"]["BuyerContact"] | null;
+            /** Case Id */
+            case_id: string;
+            config_overrides?: components["schemas"]["ConfigOverrides"] | null;
+            /**
+             * Contract Version
+             * @default 1.0
+             */
+            contract_version: string;
+            evidence: components["schemas"]["Evidence"];
+            /** Objections */
+            objections?: components["schemas"]["Objection"][];
+            /** Part Payments */
+            part_payments?: components["schemas"]["PartPayment"][];
+            supplier: components["schemas"]["Supplier"];
+            transaction: components["schemas"]["Transaction"];
+        };
+        /**
          * CaseDetail
          * @description `GET /api/v1/cases/{id}` (architecture_v4 section 9).
          */
         CaseDetail: {
-            /** @default null */
-            active_track: components["schemas"]["Track"] | null;
+            active_track?: components["schemas"]["Track"] | null;
             /**
              * Available Actions
              * @description Action codes the workflow allows from the current state.
              */
             available_actions?: string[];
             case: components["schemas"]["Case"];
-            /** @default null */
-            latest_evaluation: components["schemas"]["CaseEvaluationResponse"] | null;
+            latest_evaluation?: components["schemas"]["CaseEvaluationResponse"] | null;
         };
         /** CaseEvaluationRequest */
         CaseEvaluationRequest: {
@@ -438,6 +572,50 @@ export interface components {
             /** Warnings */
             warnings: components["schemas"]["Warning"][];
         };
+        /** CaseListResponse */
+        CaseListResponse: {
+            /** Cases */
+            cases: components["schemas"]["CaseSummary"][];
+            /** Count */
+            count: number;
+        };
+        /**
+         * CaseSummary
+         * @description One row of the Dues home (`GET /api/v1/cases`).
+         */
+        CaseSummary: {
+            /** Accepted Amount */
+            accepted_amount: string;
+            active_track?: components["schemas"]["Track"] | null;
+            /** Available Actions */
+            available_actions?: string[];
+            /** Buyer Gstin */
+            buyer_gstin?: string | null;
+            /**
+             * Calculation Date
+             * Format: date
+             */
+            calculation_date: string;
+            /**
+             * Days Overdue
+             * @default 0
+             */
+            days_overdue: number;
+            /** Due Date */
+            due_date?: string | null;
+            /** Id */
+            id: string;
+            /** Invoice No */
+            invoice_no: string;
+            /**
+             * Stage
+             * @description Recovery stage 1-4 from the engine's readiness, or the track's own stage.
+             */
+            stage?: number | null;
+            state: components["schemas"]["TrackState"];
+            /** Supplier Ref */
+            supplier_ref: string;
+        };
         /**
          * ChainVerifyResult
          * @description `GET /api/v1/cases/{id}/events/verify`.
@@ -445,11 +623,8 @@ export interface components {
         ChainVerifyResult: {
             /** Checked */
             checked: number;
-            /**
-             * First Bad Seq
-             * @default null
-             */
-            first_bad_seq: number | null;
+            /** First Bad Seq */
+            first_bad_seq?: number | null;
             /** Valid */
             valid: boolean;
         };
@@ -657,11 +832,8 @@ export interface components {
             prev_hash: string;
             /** Seq */
             seq: number;
-            /**
-             * Track Id
-             * @default null
-             */
-            track_id: string | null;
+            /** Track Id */
+            track_id?: string | null;
             /** Type */
             type: string;
         };
@@ -1309,11 +1481,8 @@ export interface components {
         Track: {
             /** Case Id */
             case_id: string;
-            /**
-             * Closed At
-             * @default null
-             */
-            closed_at: string | null;
+            /** Closed At */
+            closed_at?: string | null;
             /**
              * Created At
              * Format: date-time
@@ -1438,6 +1607,165 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    list_cases_api_v1_cases_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CaseListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_case_api_v1_cases_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CaseCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CaseDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_case_api_v1_cases__case_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                case_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CaseDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_case_events_api_v1_cases__case_id__events_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                case_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Event"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    verify_case_events_api_v1_cases__case_id__events_verify_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                case_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChainVerifyResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_config_api_v1_config_get: {
         parameters: {
             query?: never;

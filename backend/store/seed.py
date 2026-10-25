@@ -24,7 +24,7 @@ from sqlalchemy.orm import Session
 
 from backend.store import db as _db
 from backend.store.ids import deterministic_ulid
-from backend.store.models import Case
+from backend.store.models import Case, Event
 
 PRESETS_DIR = Path(__file__).resolve().parents[1] / "presets"
 
@@ -92,7 +92,14 @@ def case_from_preset(preset_id: str, document: dict[str, Any]) -> Case:
 
 
 def seed_presets(session: Session, *, replace: bool = True) -> list[Case]:
-    """Insert every preset as a case. `replace=True` updates rows with the same id."""
+    """Insert every preset as a case, each with an opening audit event.
+
+    The event is what makes `GET /cases/{id}/events` and the judge console's "verify
+    chain" meaningful for demo data: a preset-shaped case should not look like it
+    appeared from nowhere.
+    """
+    from backend.store import audit
+
     seeded: list[Case] = []
     for path in preset_files():
         document = json.loads(path.read_text(encoding="utf-8"))
@@ -102,9 +109,24 @@ def seed_presets(session: Session, *, replace: bool = True) -> list[Case]:
             if not replace:
                 seeded.append(existing)
                 continue
+            # Re-seeding a case must also clear its chain, or the new "case.created"
+            # event would link to a previous run's hash and seq 1 would not exist.
+            for stale in session.exec(
+                select(Event).where(Event.case_id == case.id)
+            ).all():
+                session.delete(stale)
             session.delete(existing)
             session.flush()
         session.add(case)
+        session.flush()
+        audit.append_event(
+            session,
+            case_id=case.id,
+            type="case.created",
+            payload={"invoice_no": case.invoice_no, "source": "preset", "preset_id": path.stem},
+            actor="SYSTEM",
+            created_at=case.created_at,
+        )
         seeded.append(case)
     session.flush()
     return seeded
