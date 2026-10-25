@@ -16,20 +16,23 @@ export function StatusIcon({
   label,
   icon,
   size = "md",
+  wrap = false,
 }: {
   tone: Tone;
   label: string;
   icon?: IconName;
   size?: "sm" | "md";
+  /** Let a long label wrap inside the pill (used in narrow table cells). */
+  wrap?: boolean;
 }) {
   return (
     <span
       className={`inline-flex items-center gap-1.5 rounded-full font-medium ${TONE_CLASS[tone]} ${
-        size === "sm" ? "h-6 px-2 text-xs" : "h-7 px-2.5 text-[0.8125rem]"
-      }`}
+        size === "sm" ? "min-h-6 px-2 text-xs" : "min-h-7 px-2.5 text-[0.8125rem]"
+      } ${wrap ? "max-w-full py-0.5" : ""}`}
     >
       <Icon name={icon ?? TONE_ICON[tone]} className={size === "sm" ? "h-3.5 w-3.5" : "h-4 w-4"} />
-      <span className="whitespace-nowrap">{label}</span>
+      <span className={wrap ? "text-left leading-snug whitespace-normal" : "whitespace-nowrap"}>{label}</span>
     </span>
   );
 }

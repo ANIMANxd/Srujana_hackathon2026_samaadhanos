@@ -22,10 +22,10 @@ const STATUS_ICON: Record<JurisdictionStatus, IconName> = {
  * state a link to its explanation panel (/eligibility/[id]); leave it out where
  * the pill sits inside another link (the dues table) or on that panel itself.
  */
-export function EligibilityPill({ status, caseId }: { status: JurisdictionStatus; caseId?: string }) {
+export function EligibilityPill({ status, caseId, wrap = false }: { status: JurisdictionStatus; caseId?: string; wrap?: boolean }) {
   const { t } = useT();
   const href = useHref();
-  const pill = <StatusIcon size="sm" tone={eligibilityTone(status)} icon={STATUS_ICON[status]} label={t(`eligibility.${status}`)} />;
+  const pill = <StatusIcon size="sm" tone={eligibilityTone(status)} icon={STATUS_ICON[status]} label={t(`eligibility.${status}`)} wrap={wrap} />;
   if (!caseId || status === "ELIGIBLE") return pill;
   return (
     <Link
