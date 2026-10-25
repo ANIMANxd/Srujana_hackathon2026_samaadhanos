@@ -106,3 +106,7 @@ date/time, role, prompt id, what changed, what is unverified, open questions rai
 2026-10-25 · Frontend agent (Mochi) · clean-outgoing-messages
 - The text behind "Open in WhatsApp / email / Copy" for stages 1 to 3 is now a plain message (lib/outgoing.ts `toPlainMessage`): no DRAFT title or banner, no assumptions or open-points sections, no disclaimer footer, no Markdown marks (tables become "Label: value" lines), no em or en dashes (replaced by a spaced hyphen), and the term sheet's own "draft" wording is neutralised. The DRAFT chip, the "nothing is sent" line and the server PDF keep the label for the owner. The stage 4 evidence pack is unchanged.
 - Checked with a browser against the real backend: the WhatsApp link text for stages 1, 2 and 3 has no "draft" line, no long dash and no Markdown. Every figure and date is the server's, word for word.
+
+2026-10-25 · Frontend agent (Mochi) · dues-names-and-preview
+- Dues rows for stored cases now show the buyer name (matched on GSTIN against the bundled sample inputs; the case list has no buyer name, so a `buyer_name` on CaseSummary would be cleaner) with the invoice number underneath. The recover card shows the opening of the first message ("Your first message is ready") before anything is pressed.
+- Reset the demo database (`python -m backend.store`) to the 7 seeded cases; earlier test runs had left duplicate demo invoices in it.

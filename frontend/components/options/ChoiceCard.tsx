@@ -2,21 +2,23 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, type ReactNode } from "react";
-import { startRecovery } from "@/lib/api";
+import { useEffect, useState, type ReactNode } from "react";
+import { generateArtifact, startRecovery } from "@/lib/api";
+import { toPlainMessage } from "@/lib/outgoing";
 import { useEarlyActions } from "@/lib/earlyActions";
 import { simClear } from "@/lib/sim";
 import { date as fmtDate, money } from "@/lib/format";
 import { useT } from "@/lib/i18n";
 import type { MessageKey } from "@/lib/i18n/en";
 import { useHref } from "@/lib/params";
-import type { Stage, Track } from "@/lib/types";
+import type { CaseRequest, CaseResponse, Stage, Track } from "@/lib/types";
 import { useOptions } from "@/lib/useOptions";
 import type { TrackView } from "@/lib/useTrack";
 import { IdempotentButton } from "../common/IdempotentButton";
 import { Icon } from "../common/Icon";
 import { Skeleton } from "../common/States";
 import { StatusIcon } from "../common/StatusIcon";
+import { kindFor } from "../send/SendPanel";
 import { DemoBadge } from "./DemoBadge";
 
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
@@ -107,7 +109,47 @@ function Card({
  * "recommended" mark: the server's `recommendation` is always null. Every
  * figure comes from GET /cases/{id}/options.
  */
-export function ChoiceCard({ caseId, tracking, stage }: { caseId: string; tracking: TrackView; stage: Stage }) {
+/** The first lines of the message that "Start recovery" opens, so the owner sees real text before pressing anything. */
+function MessagePreview({ request, response, stage }: { request: CaseRequest; response: CaseResponse; stage: Stage }) {
+  const { t } = useT();
+  const [text, setText] = useState<string | null>(null);
+  useEffect(() => {
+    if (stage === 4) return;
+    let alive = true;
+    generateArtifact(kindFor(stage, request, response), request, null).then(
+      (a) => alive && a && setText(toPlainMessage(a.data.markdown)),
+      () => undefined,
+    );
+    return () => {
+      alive = false;
+    };
+  }, [request, response, stage]);
+  if (!text) return null;
+  const lines = text.split(/\r?\n/).filter((l) => l.trim() !== "");
+  // The opening of the message itself, not its To / From / Subject header lines.
+  const body = lines.filter((l) => !/^(to|from|subject|parties|about|status):/i.test(l));
+  const preview = body.slice(0, 2).join(" ");
+  return (
+    <div className="rounded-lg border border-rule bg-paper px-3 py-2.5 text-sm">
+      <p className="text-xs font-medium text-ink-500">{t("options.preview_label")}</p>
+      <p className="mt-1 line-clamp-3 text-ink-800">{preview}</p>
+    </div>
+  );
+}
+
+export function ChoiceCard({
+  caseId,
+  tracking,
+  stage,
+  request,
+  response,
+}: {
+  caseId: string;
+  tracking: TrackView;
+  stage: Stage;
+  request: CaseRequest;
+  response: CaseResponse;
+}) {
   const { t } = useT();
   const href = useHref();
   const router = useRouter();
@@ -237,6 +279,8 @@ export function ChoiceCard({ caseId, tracking, stage }: { caseId: string; tracki
         action={recAction}
         extra={
           recOpen ? (
+            <div className="flex flex-col gap-3">
+              <MessagePreview request={request} response={response} stage={stage} />
             <details className="text-sm text-ink-700">
               <summary className="link cursor-pointer select-none">{t("options.change_date")}</summary>
               <label className="mt-2 flex flex-col gap-1">
@@ -249,6 +293,7 @@ export function ChoiceCard({ caseId, tracking, stage }: { caseId: string; tracki
                 />
               </label>
             </details>
+            </div>
           ) : null
         }
       />

@@ -809,6 +809,7 @@ export const en = {
   "decision.choose": "How do you want to get paid?",
   "decision.details": "Full details: timeline, interest, evidence",
   "decision.back": "Back to summary",
+  "options.preview_label": "Your first message is ready:",
   "options.early.pitch": "Your buyer accepts, financiers bid, and you pick one.",
   "options.early.cta": "Get paid early",
   "options.early.na": "Not available",

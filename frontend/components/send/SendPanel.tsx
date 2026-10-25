@@ -26,7 +26,7 @@ function todayLocal(): string {
 }
 
 /** Stage 1 asks for receipt first when there is no delivery proof (B8). */
-function kindFor(stage: Stage, req: CaseRequest, res: CaseResponse): ArtifactKind {
+export function kindFor(stage: Stage, req: CaseRequest, res: CaseResponse): ArtifactKind {
   if (stage === 2) return "STAGE2_CFO_MEMO";
   if (stage === 3) return "STAGE3_SETTLEMENT_TERMSHEET";
   if (stage === 4) return "STAGE4_EVIDENCE_PACK";

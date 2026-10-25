@@ -148,6 +148,8 @@ export function DuesScreen() {
   const stored = useCases();
   const router = useRouter();
   const simCases = useSimulatedCases(stored.cases ?? []);
+  // The case list carries no buyer name, so match the buyer's GSTIN against the bundled sample inputs.
+  const buyerNames = useMemo(() => new Map((rows ?? []).flatMap((r) => (r.request.buyer.gstin ? [[r.request.buyer.gstin, r.request.buyer.name] as const] : []))), [rows]);
 
   useEffect(() => {
     let alive = true;
@@ -245,7 +247,7 @@ export function DuesScreen() {
           </div>
           <ul aria-label={t("dues.list_label")} className="divide-y divide-rule">
             {cases.map((c) => (
-              <CaseRow key={c.id} row={c} />
+              <CaseRow key={c.id} row={c} buyerName={c.buyer_gstin ? buyerNames.get(c.buyer_gstin) : undefined} />
             ))}
             {sampleRows.map((r) => (
               <BuyerRow key={r.id} row={r} />

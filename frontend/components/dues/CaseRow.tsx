@@ -17,7 +17,7 @@ export const GRID =
   "md:grid-cols-[minmax(0,2fr)_minmax(0,1.8fr)_minmax(0,0.75fr)_minmax(0,1.05fr)_minmax(0,1.4fr)_1.25rem]";
 
 /** One stored case: amount, days overdue or "due in N days", and where its track stands. */
-export function CaseRow({ row }: { row: CaseSummary }) {
+export function CaseRow({ row, buyerName }: { row: CaseSummary; buyerName?: string }) {
   const { t } = useT();
   const href = useHref();
   const chip = trackChip(row.active_track);
@@ -32,8 +32,8 @@ export function CaseRow({ row }: { row: CaseSummary }) {
         className={`group grid grid-cols-2 items-center gap-x-4 gap-y-2 px-5 py-4 transition-colors hover:bg-paper ${GRID}`}
       >
         <div className="col-span-2 flex min-w-0 flex-col gap-0.5 md:col-span-1">
-          <span className="truncate font-medium text-ink-950">{t("dues.row.invoice", { no: row.invoice_no })}</span>
-          <span className="num truncate text-xs text-ink-500">{row.buyer_gstin ?? row.supplier_ref}</span>
+          <span className="truncate font-medium text-ink-950">{buyerName ?? t("dues.row.invoice", { no: row.invoice_no })}</span>
+          <span className="num truncate text-xs text-ink-500">{buyerName ? row.invoice_no : (row.buyer_gstin ?? row.supplier_ref)}</span>
         </div>
 
         <div className="col-span-2 min-w-0 md:col-span-1">
