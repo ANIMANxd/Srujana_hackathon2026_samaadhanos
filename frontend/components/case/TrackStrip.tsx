@@ -3,6 +3,8 @@
 import { useT } from "@/lib/i18n";
 import type { TrackView } from "@/lib/useTrack";
 import { Icon } from "../common/Icon";
+import { POLL_SECONDS } from "@/lib/useTrack";
+import { DemoBadge } from "../options/DemoBadge";
 import { Banner } from "../shell/Banners";
 
 /**
@@ -19,10 +21,13 @@ export function TrackStrip({ tracking }: { tracking: TrackView }) {
     <div className="no-print flex flex-col gap-2">
       {offline && <Banner tone="warn" icon="lock" message="track.offline_sample" />}
       <p className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-ink-600">
-        <span>{kind ? t(`track.option.${kind}`) : t("track.option.none")}</span>
+        <span className="inline-flex items-center gap-2">
+          {kind ? t(`track.option.${kind}`) : t("track.option.none")}
+          {kind === "FINANCING" && <DemoBadge compact />}
+        </span>
         <span className="inline-flex items-center gap-1.5">
           <Icon name="info" className="h-3.5 w-3.5" />
-          {tracking.live === "stream" ? t("track.live_stream") : tracking.live === "polling" ? t("track.live_polling") : t("track.live_off")}
+          {tracking.live === "stream" ? t("track.live_stream") : tracking.live === "polling" ? t("track.live_polling", { n: POLL_SECONDS }) : t("track.live_off")}
         </span>
       </p>
     </div>

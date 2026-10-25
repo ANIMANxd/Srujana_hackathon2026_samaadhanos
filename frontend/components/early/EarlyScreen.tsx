@@ -239,7 +239,17 @@ export function EarlyScreen({ caseId }: { caseId: string }) {
         </section>
       )}
 
-      <ol className="flex flex-col gap-3">
+      {/* Tells a screen reader which step the server says is current, without moving focus. */}
+      <p className="sr-only" role="status" aria-live="polite">
+        {view.finished
+          ? t("early.stepper.finished", { total: EARLY_STEPS.length })
+          : view.failure && view.stoppedAt
+            ? t("early.stepper.stopped", { n: stepIndex(view.stoppedAt) + 1, total: EARLY_STEPS.length, title: t(`early.step.${view.stoppedAt}` as MessageKey) })
+            : view.current
+              ? t("early.stepper.now", { n: stepIndex(view.current) + 1, total: EARLY_STEPS.length, title: t(`early.step.${view.current}` as MessageKey) })
+              : ""}
+      </p>
+      <ol aria-label={t("early.stepper")} className="flex flex-col gap-3">
         {EARLY_STEPS.map((step, n) => {
           const st = statusOf(step);
           const body = bodyOf(step);
@@ -251,8 +261,9 @@ export function EarlyScreen({ caseId }: { caseId: string }) {
             >
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <h3 className="section-title flex items-center gap-2">
-                  <span className="font-mono text-xs text-ink-500">{n + 1}</span>
+                  <span className="font-mono text-xs text-ink-500" aria-hidden="true">{n + 1}</span>
                   {t(`early.step.${step}` as MessageKey)}
+                  <span className="sr-only">{t("early.step_of", { n: n + 1, total: EARLY_STEPS.length })}</span>
                 </h3>
                 <span className="flex flex-wrap items-center gap-2">
                   <StepStatusPill status={st} />

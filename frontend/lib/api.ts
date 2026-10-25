@@ -56,13 +56,15 @@ export class ApiError extends Error {
     public code: string,
     message: string,
     public field: string | null = null,
+    /** The v1.1 envelope's `details`, when the server sent one. */
+    public details: Record<string, unknown> | null = null,
   ) {
     super(message);
     this.name = "ApiError";
   }
 }
 
-type ErrorEnvelope = { error: { code: string; message: string; field?: string | null } };
+type ErrorEnvelope = { error: { code: string; message: string; field?: string | null; details?: Record<string, unknown> | null } };
 
 function isEnvelope(v: unknown): v is ErrorEnvelope {
   if (typeof v !== "object" || v === null || !("error" in v)) return false;
@@ -88,7 +90,7 @@ async function call<T>(path: string, init?: RequestInit): Promise<T> {
     body = null;
   }
   if (res.ok) return body as T;
-  if (isEnvelope(body)) throw new ApiError(res.status, body.error.code, body.error.message, body.error.field ?? null);
+  if (isEnvelope(body)) throw new ApiError(res.status, body.error.code, body.error.message, body.error.field ?? null, body.error.details ?? null);
   // A 5xx without the contract envelope is the dev proxy failing to reach FastAPI.
   if (res.status >= 500) throw new BackendUnreachable(`Backend answered ${res.status}`);
   throw new ApiError(res.status, `HTTP_${res.status}`, res.statusText || "Request failed");

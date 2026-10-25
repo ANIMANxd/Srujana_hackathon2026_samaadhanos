@@ -59,6 +59,74 @@ each screen is telling them.
   still available to assistive technology and on hover, but a sighted phone
   user may need the colour and the warning triangle to read it.
 
+## v4 audit (2026-10-25)
+
+Scope: Dues from `GET /cases`, the choice card, `/case/[id]/early` in every track
+state, the e-sign drawer, the recovery ladder and send drawer wiring, and the
+judge demo controls. `docs/frontend-structure.md` does not exist, so the copy
+rules used are the ones in `architecture_v4_two_options.md` section 10 and the
+task: no "instant cash", "guaranteed", "bad cop", "shield" or "institutional
+ledger"; no real bank, platform or provider names; no Aadhaar or government
+styling.
+
+How it was checked: a headless browser against a stand-in server walked the pages
+above (dues; case with no track, financing and recovery tracks; the early page in
+all eight states plus no track; the e-sign drawer; the judge console). For each
+page a script measured text contrast against its effective background (AA:
+4.5, or 3 for large text), listed unnamed controls, tabbed through up to 30 stops
+checking for a visible focus ring, matched money against Indian grouping, and
+searched the visible text for the forbidden words and a list of real names.
+
+Result before fixes: no contrast failures, no unnamed controls, no focus stop
+without a ring, every rupee amount in Indian grouping, no forbidden word or real
+name. The failures below were found by reading the code and the rules.
+
+### Fixed
+
+- **DEMO badge missing where Option 1 appears.** Added a short "Demo" badge to the
+  Dues track chip, to the case page's track strip ("Active option: Get paid
+  early") and to the "recovery is locked" notice. The choice card column, every
+  early step and the e-sign drawer already carried one.
+- **A word that reads as a recommendation.** The recovery ladder and escalation
+  tab labelled the engine's next stage "Recommended", which sits right under the
+  two-option card and could read as advice to take Option 2. It now says "Next
+  step" (English and Kannada). The e-sign "best"/"recommend" scan is clean.
+- **Numbers typed into copy or code.** The e-sign hint named the demo code
+  (123456) and the digit count, the live-update line said "every 3 seconds", the
+  scenario list said "3 times", and the e-sign modal counted attempts from a
+  constant of 3. The code is no longer shown, the digit count and polling
+  interval come from constants, and attempts left come only from the server's
+  `attempts_left` (in the session or the refused-code error details). Until the
+  server sends it, the modal says only that attempts are limited.
+- **Status by colour alone.** The refused-code message in the e-sign drawer was
+  red text only; it now has a warning icon. (Every status pill already carried an
+  icon and a word.)
+- **The stepper was a bare list.** It now has a name, each step reads "Step n of
+  6" to a screen reader, and a polite live line announces which step the server
+  says is current (or where it stopped) without moving focus.
+
+### Checked and left as is
+
+- Keyboard order on the early page is header, "Back to the case", then the
+  controls of the current step only; later steps hold nothing focusable until the
+  server reaches them. The e-sign drawer keeps focus inside after 30 Tab presses
+  and closes on Escape.
+- "TReDS" and "RBI Bank Rate" stay: the first is the scheme the product is about,
+  the second a statutory term, not a company or platform brand. Bank rate
+  figures come from the engine.
+- "No Aadhaar number is collected or stored" is the required disclaimer, so a scan
+  for "Aadhaar" will always find it.
+
+### Known gaps
+
+- The v4 strings are English only; the Kannada dictionary falls back to English
+  for them. Server-supplied notes and reasons on the options and early screens are
+  shown as the server sends them.
+- The Dues "Paid early (simulated)" figure sums invoice amounts in the browser
+  (exact paise). It should come from the server.
+- Contrast was measured with computed colours for light mode only.
+- Everything above was run against a stand-in server, not the real backend.
+
 ## Re-running the check
 
 ```bash

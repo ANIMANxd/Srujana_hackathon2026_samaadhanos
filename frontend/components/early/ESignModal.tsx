@@ -12,9 +12,12 @@ import { IdempotentButton } from "../common/IdempotentButton";
 import { Banner } from "../shell/Banners";
 import { DemoBadge } from "../options/DemoBadge";
 
-const OTP = /^\d{6}$/;
-/** The mock provider's own rule (architecture_v4 section 7.1): 3 tries, then the session fails. */
-const MAX_ATTEMPTS = 3;
+const OTP_LENGTH = 6;
+const OTP = new RegExp(`^[0-9]{${OTP_LENGTH}}$`);
+/** A whole number the server reported (`attempts_left`), or null: the count is never worked out here. */
+function serverCount(v: unknown): number | null {
+  return typeof v === "number" && Number.isInteger(v) && v >= 0 ? v : null;
+}
 
 /**
  * The simulated eSign step, shown as a modal-style panel (Esc closes, focus
@@ -58,11 +61,13 @@ export function ESignModal({
   const { t } = useT();
   const [otp, setOtp] = useState("");
   const [wrong, setWrong] = useState(0);
+  const [reported, setReported] = useState<number | null>(null);
   const now = useNow(1000);
   const left = session ? timeLeft(session.expires_at, now, true) : null;
   const expired = session?.status === "EXPIRED" || left?.expired === true;
-  const attempts = MAX_ATTEMPTS - wrong;
-  const failed = session?.status === "FAILED" || attempts <= 0;
+  // From the refused-code answer, else from the session if the server includes it; never counted here.
+  const attempts = reported ?? serverCount((session as { attempts_left?: unknown } | null)?.attempts_left);
+  const failed = session?.status === "FAILED" || attempts === 0;
   const blocked = !session || expired || failed;
   const rejected = wrong > 0 && otp === "";
   const complete = OTP.test(otp);
@@ -145,23 +150,28 @@ export function ESignModal({
                 className="field-input num max-w-[10rem] tracking-[0.3em]"
                 inputMode="numeric"
                 autoComplete="one-time-code"
-                maxLength={6}
+                maxLength={OTP_LENGTH}
                 value={otp}
                 data-autofocus
                 aria-invalid={rejected}
                 aria-describedby="otp-hint otp-attempts"
-                onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, OTP_LENGTH))}
               />
               <span id="otp-hint" className="mt-1.5 block text-xs text-ink-500">
-                {t("early.esign.otp_hint")}
+                {t("early.esign.otp_hint", { n: OTP_LENGTH })}
               </span>
             </label>
             <p id="otp-attempts" className="text-xs text-ink-600">
-              {attempts === 1 ? t("early.esign.attempts_one") : t("early.esign.attempts", { n: attempts })}
+              {attempts === null ? t("early.esign.attempts_limited") : attempts === 1 ? t("early.esign.attempts_one") : t("early.esign.attempts", { n: attempts })}
             </p>
             {/* Announced when it appears; cleared as soon as the person types again. */}
-            <p role="alert" className="min-h-5 text-sm text-block">
-              {rejected ? t("early.esign.bad_otp") : ""}
+            <p role="alert" className="flex min-h-5 items-center gap-1.5 text-sm text-block">
+              {rejected && (
+                <>
+                  <Icon name="warn" className="h-4 w-4 shrink-0" />
+                  {t("early.esign.bad_otp")}
+                </>
+              )}
             </p>
             <div>
               <IdempotentButton
@@ -173,6 +183,7 @@ export function ESignModal({
                     // A refused code is a definite answer, not a failure of the button.
                     if (e instanceof ApiError && e.status !== 409 && e.status < 500) {
                       setWrong((n) => n + 1);
+                      setReported(serverCount(e.details?.attempts_left));
                       setOtp("");
                       return;
                     }
