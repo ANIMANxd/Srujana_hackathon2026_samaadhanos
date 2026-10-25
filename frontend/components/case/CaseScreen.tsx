@@ -48,7 +48,7 @@ export function CaseScreen({ caseId }: { caseId: string }) {
 
   return (
     <div className="flex flex-col gap-6">
-      <CaseHeader caseId={caseId} request={ev.request} response={res} showViewToggle={Boolean(res && !notCovered)} />
+      <CaseHeader caseId={caseId} request={ev.request} response={res} showViewToggle={Boolean(res)} />
       <DataBanners placeholder={placeholder} needsBackend={ev.status === "needs_backend"} />
       {ev.error && res && <ErrorState message={ev.error} onRetry={ev.retry} />}
 
@@ -69,10 +69,10 @@ export function CaseScreen({ caseId }: { caseId: string }) {
 
       {res && ev.request && ev.status !== "needs_backend" && (
         <div className={`flex flex-col gap-4 transition-opacity ${ev.refreshing ? "opacity-70" : ""}`} aria-busy={ev.refreshing}>
-          {notCovered ? (
+          {view === "cfo" ? (
+            <CfoCostLines caseId={caseId} request={ev.request} response={res} placeholder={placeholder} onChangeRequest={ev.setRequest} />
+          ) : notCovered ? (
             <NotCovered request={ev.request} response={res} />
-          ) : view === "cfo" ? (
-            <CfoCostLines request={ev.request} response={res} placeholder={placeholder} onChangeRequest={ev.setRequest} />
           ) : (
             <>
               {res.jurisdiction.status === "INSUFFICIENT_DATA" && (

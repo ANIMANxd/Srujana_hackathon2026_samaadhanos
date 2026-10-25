@@ -4,10 +4,13 @@ import { useState, type ReactNode } from "react";
 import { date, money, pct } from "@/lib/format";
 import { useT } from "@/lib/i18n";
 import type { CaseRequest, CaseResponse } from "@/lib/types";
+import { Icon } from "../common/Icon";
 import { Money } from "../common/Money";
 import { StatusIcon } from "../common/StatusIcon";
 import { LiveInterestTicker } from "../case/LiveInterestTicker";
 import { PlaceholderBadge } from "../shell/PlaceholderBadge";
+import { CfoSettlementOptions } from "./CfoSettlementOptions";
+import { CfoUnavailable } from "./CfoUnavailable";
 
 const DECIMAL = /^\d+(\.\d{1,4})?$/;
 
@@ -26,16 +29,18 @@ function Line({ n, title, sub, children }: { n: number; title: string; sub: stri
 }
 
 /**
- * Buyer CFO view (F5): three SEPARATE cost lines, advisory tone, never one total
+ * Buyer CFO view (F6): three SEPARATE cost lines, advisory tone, never one total
  * (golden rule 8). The only inputs are the buyer's own assumptions, which go
  * back to the engine for recomputation.
  */
 export function CfoCostLines({
+  caseId,
   request,
   response,
   placeholder,
   onChangeRequest,
 }: {
+  caseId: string;
   request: CaseRequest;
   response: CaseResponse;
   placeholder: boolean;
@@ -47,13 +52,7 @@ export function CfoCostLines({
   const [coc, setCoc] = useState(request.buyer.cost_of_capital_pct);
   const [years, setYears] = useState(request.transaction.years_deferred ?? "");
 
-  if (!bc) {
-    return (
-      <section className="panel p-6">
-        <p className="text-sm text-ink-700">{t("cfo.unavailable")}</p>
-      </section>
-    );
-  }
+  if (!bc) return <CfoUnavailable caseId={caseId} response={response} />;
 
   const cocValid = DECIMAL.test(coc);
   const yearsValid = years === "" || DECIMAL.test(years);
@@ -113,6 +112,10 @@ export function CfoCostLines({
           ) : (
             <p className="text-sm text-ink-700">{t("cfo.deferral.none")}</p>
           )}
+          <p className="flex gap-2 rounded-md bg-paper px-3 py-2.5 text-sm font-medium text-ink-900">
+            <Icon name="info" className="mt-0.5 h-4 w-4 shrink-0 text-saffron-600" />
+            {t("cfo.deferral.explainer")}
+          </p>
           <p className="text-xs text-ink-500">{t("cfo.deferral.body")} {t("cfo.deferral.note")}</p>
         </Line>
 
@@ -155,6 +158,7 @@ export function CfoCostLines({
           </ul>
         </section>
       )}
+      {fin && <CfoSettlementOptions caseId={caseId} request={request} />}
     </div>
   );
 }
