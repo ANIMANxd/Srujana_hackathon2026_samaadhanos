@@ -4,7 +4,15 @@
 // No legal math here: requests and responses pass through untouched.
 
 import { artifactFixture, asExtraction, asRequest, asResponse, fixtureFor, FIXTURES } from "./fixtures";
-import { offlineBids, offlineCaseDetail, offlineChainResult, offlineEvents, offlineOptions } from "./fixturesV4";
+import {
+  offlineBids,
+  offlineCaseDetail,
+  offlineChainResult,
+  offlineEsign,
+  offlineEvents,
+  offlineOptions,
+  offlinePayout,
+} from "./fixturesV4";
 import type {
   ArtifactKind,
   ArtifactResponse,
@@ -17,6 +25,7 @@ import type {
   ESignSession,
   ExtractionResponse,
   OptionsResponse,
+  PayoutStatus,
   PresetSummary,
   SettlementSimulationResponse,
   StatuteConfig,
@@ -276,6 +285,25 @@ export function listBids(id: string): Promise<Sourced<Bid[]>> {
 /** Selecting a bid creates the (mock) eSign session. */
 export function selectBid(id: string, bidId: string, opts: MutationOptions): Promise<ESignSession> {
   return mutate<ESignSession>(`${caseUrl(id)}/financing/bids/${encodeURIComponent(bidId)}/select`, opts);
+}
+
+// ASSUMED routes (not in architecture_v4 section 9; raised in the worklog): the
+// signing session and the payout have no read endpoint there, and the OTP step
+// has no submit endpoint. Case-scoped like the rest of the financing routes.
+
+/** The (mock) eSign session of the selected bid. */
+export function getEsignSession(id: string): Promise<Sourced<ESignSession>> {
+  return readOrSample(() => call<ESignSession>(`${caseUrl(id)}/financing/esign`), offlineEsign);
+}
+
+/** Submit the demo OTP. No Aadhaar field exists anywhere in this call. */
+export function submitEsignOtp(id: string, otp: string, opts: MutationOptions): Promise<ESignSession> {
+  return mutate<ESignSession>(`${caseUrl(id)}/financing/esign/otp`, opts, { otp });
+}
+
+/** The (mock) payout: its MOCK reference, UTR and amount. */
+export function getPayout(id: string): Promise<Sourced<PayoutStatus>> {
+  return readOrSample(() => call<PayoutStatus>(`${caseUrl(id)}/financing/payout`), offlinePayout);
 }
 
 export function cancelFinancing(id: string, opts: MutationOptions): Promise<CaseDetail> {

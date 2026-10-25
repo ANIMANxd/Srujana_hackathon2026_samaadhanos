@@ -31,6 +31,8 @@ export type TrackView = {
 const POLL_MS = 3000;
 const OFFLINE_RETRY_MS = 10_000;
 const STREAM_RETRY_MS = 15_000;
+// A stream can be open yet silent (a proxy that buffers events), so a slow poll runs alongside it.
+const STREAM_SAFETY_MS = 10_000;
 
 /**
  * `enabled` false keeps the hook inert (stateless preset and legacy cases).
@@ -118,7 +120,7 @@ export function useTrack(caseId: string, enabled: boolean, offlineState?: string
         if (typeof EventSource === "undefined") return; // polling already runs
         es = new EventSource(streamUrl(caseId));
         es.onopen = () => {
-          stopPolling();
+          startPolling(STREAM_SAFETY_MS);
           setLive("stream");
         };
         es.onmessage = () => {

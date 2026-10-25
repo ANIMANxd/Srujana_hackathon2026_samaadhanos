@@ -14,7 +14,7 @@
 // `?legacy=1` forces the stateless path for any id.
 
 import { useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { ApiError, BackendUnreachable, evaluate, getPresetRequest, offlineResponseFor, type Source } from "./api";
 import { getEdited, getUploaded, sameRequest, setEdited } from "./caseStore";
 import { asRequest, asResponse, fixtureFor } from "./fixtures";
@@ -63,15 +63,19 @@ async function resolveBase(caseId: string): Promise<Resolved | null> {
 
 type Mode = "pending" | "local" | "server";
 
+const noopSubscribe = () => () => {};
+
 export function useEvaluation(caseId: string): Evaluation {
   const search = useSearchParams();
   const legacy = search.get("legacy") === "1";
   const offlineState = search.get("state");
   // Storage is only readable on the client; the server render is the loading skeleton either way.
-  const mode = useMemo<Mode>(() => {
-    if (typeof window === "undefined") return "pending";
-    return legacy || getUploaded(caseId) || fixtureFor(caseId) ? "local" : "server";
-  }, [caseId, legacy]);
+  // useSyncExternalStore keeps hydration identical to the server render ("pending"), then switches.
+  const mode = useSyncExternalStore<Mode>(
+    noopSubscribe,
+    () => (legacy || getUploaded(caseId) || fixtureFor(caseId) ? "local" : "server"),
+    () => "pending",
+  );
   const tracking = useTrack(caseId, mode === "server", offlineState);
   const serverEval = useMemo(() => asResponse(tracking.caseDetail?.latest_evaluation), [tracking.caseDetail]);
   const [resolved, setResolved] = useState<Resolved | null>(null);

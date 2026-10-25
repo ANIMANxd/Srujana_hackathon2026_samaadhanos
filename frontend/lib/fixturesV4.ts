@@ -4,7 +4,16 @@
 // nothing here is computed in the browser.
 
 import { RAW_V4 } from "@/fixtures";
-import type { AuditEvent, Bid, CaseDetail, ChainVerifyResult, OptionsResponse, TrackState } from "./types";
+import type {
+  AuditEvent,
+  Bid,
+  CaseDetail,
+  ChainVerifyResult,
+  ESignSession,
+  OptionsResponse,
+  PayoutStatus,
+  TrackState,
+} from "./types";
 
 function payload(name: string): unknown {
   const f = RAW_V4[name];
@@ -46,6 +55,16 @@ export function offlineCaseDetail(state?: string | null): CaseDetail | null {
 export function offlineOptions(variant?: string | null): OptionsResponse | null {
   const v = payload(variant === "overdue" ? "options-not-financeable-overdue" : "options-financeable");
   return isObject(v) && isObject(v.get_paid_early) ? (v as unknown as OptionsResponse) : null;
+}
+
+export function offlineEsign(): ESignSession | null {
+  const v = payload("esign-session");
+  return isObject(v) && typeof v.session_id === "string" ? (v as unknown as ESignSession) : null;
+}
+
+export function offlinePayout(): PayoutStatus | null {
+  const v = payload("payout");
+  return isObject(v) && typeof v.payout_ref === "string" ? (v as unknown as PayoutStatus) : null;
 }
 
 export function offlineBids(): Bid[] | null {
