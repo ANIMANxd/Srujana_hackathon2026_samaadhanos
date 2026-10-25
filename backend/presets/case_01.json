@@ -1,7 +1,7 @@
 {
-  "title": "CASE-01 — Net-90 PO clamped to the 45-day cap, delay priced at 16.50%",
+  "title": "CASE-01 — Net-90 PO clamped to the 45-day cap, 205 days of delay priced across a Bank Rate change",
   "note": "INPUT ONLY, synthetic (golden rule 11): no real parties, Udyam or GSTIN numbers. No outputs are stored here; every number comes from the engine.",
-  "why_calculation_date": "Deliberate, per architecture.md section 12: calculation_date is 2026-04-15, which sits inside the 5.50% Bank Rate epoch, so this delay must show 16.50% (3 x 5.50) and NOT the 17.25% v2 printed for the same period. Choosing a date after 2026-10-07 would show 17.25% and split the ledger across epochs instead. delivery_date is 2026-02-16 so that the appointed day (2026-04-03, i.e. delivery + 45 clamped days + 1) falls on or after 2026-04-01, the earliest epoch the config holds: Bank Rate epochs before that date are not captured yet (V1 uncaptured, CR-8), so an earlier delay cannot be priced at all.",
+  "why_calculation_date": "Deliberate, per architecture.md section 12: calculation_date is 2026-10-24 (demo day), so this file prices a 205-day delay and the ledger must split at the 2026-10-07 Bank Rate epoch: 16.50% (3 x 5.50) from the appointed day to 06-Oct, then 17.25% (3 x 5.75) from 07-Oct. The 2026-04-15 date used earlier showed only 13 days overdue because delivery_date is 2026-02-16; that is why the headline was small. delivery_date stays 2026-02-16 so the appointed day (2026-04-03, i.e. delivery + 45 clamped days + 1) falls on or after 2026-04-01, the earliest epoch the config holds: Bank Rate epochs before that date are not captured yet (V1 uncaptured, CR-8), so an earlier appointment cannot be priced at all.",
   "request": {
     "contract_version": "1.0",
     "case_id": "case_01",
@@ -28,7 +28,7 @@
       "delivery_date": "2026-02-16",
       "principal": "1250000.00",
       "written_credit_days": 90,
-      "calculation_date": "2026-04-15",
+      "calculation_date": "2026-10-24",
       "years_deferred": "1.00"
     },
     "objections": [],
