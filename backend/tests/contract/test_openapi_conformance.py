@@ -59,8 +59,18 @@ WRITE_PATHS = {
     "/api/v1/cases/{case_id}/financing/buyer-acceptance",
     "/api/v1/cases/{case_id}/financing/bids/{bid_id}/select",
     "/api/v1/cases/{case_id}/financing/cancel",
+    "/api/v1/webhooks/esign",
+    "/api/v1/webhooks/marketplace",
+    "/api/v1/webhooks/disbursement",
 }
 UPLOAD_PATHS = {"/api/v1/extract-evidence"}
+# `GET /cases/{id}/stream` is an infinite `text/event-stream`. A synchronous client
+# cannot consume it without hanging, so it is exercised by
+# `tests/dev/webhooks/test_webhooks.py::test_a_committed_transition_notifies_the_sse_broker`
+# (the broker) and `::test_the_stream_message_format_is_a_single_data_line` (the frame
+# format). It is listed here so the coverage test still fails if a *fourth* kind of
+# path appears undeclared.
+STREAM_PATHS = {"/api/v1/cases/{case_id}/stream"}
 
 
 def _escape(segment: str) -> str:
@@ -99,7 +109,7 @@ def _preset_request() -> dict:
 def test_every_declared_path_is_exercised():
     """A new path in openapi.json must come with a test that calls it."""
     declared = set(SPEC["paths"])
-    exercised = READ_PATHS | WRITE_PATHS | UPLOAD_PATHS
+    exercised = READ_PATHS | WRITE_PATHS | UPLOAD_PATHS | STREAM_PATHS
     assert declared == exercised, (
         f"undeclared-but-exercised: {sorted(exercised - declared)}; "
         f"declared-but-never-called: {sorted(declared - exercised)}"
@@ -211,6 +221,42 @@ def test_financing_routes_match_the_contract():
         cancel.json(),
         "POST /financing/cancel",
     )
+
+
+def test_webhook_routes_match_the_contract(monkeypatch):
+    """All three providers are called for real, with a valid signature."""
+    import time
+
+    from backend.app import security
+
+    monkeypatch.setenv("WEBHOOK_SECRET_ESIGN", "conformance-esign")
+    case_id = _financing_case()
+
+    for provider, event_type in (
+        ("esign", "esign.completed"),
+        ("marketplace", "fu.accepted"),
+        ("disbursement", "payout.processed"),
+    ):
+        secret = f"conformance-{provider}"
+        monkeypatch.setenv(f"WEBHOOK_SECRET_{provider.upper()}", secret)
+        payload = {
+            "case_id": case_id,
+            "event_id": f"MOCK-EVT-CONFORMANCE-{provider}",
+            "type": event_type,
+        }
+        raw = json.dumps(payload, separators=(",", ":")).encode()
+        stamp = str(int(time.time()))
+        headers = {
+            security.TIMESTAMP_HEADER: stamp,
+            security.SIGNATURE_HEADER: security.signature_for(raw, stamp, secret),
+            security.EVENT_ID_HEADER: payload["event_id"],
+            "Content-Type": "application/json",
+        }
+        response = client.post(f"/api/v1/webhooks/{provider}", content=raw, headers=headers)
+        assert response.status_code == 200, f"{provider}: {response.text[:300]}"
+        # Handled, parked or rejected are all legitimate here; the path is exercised
+        # and the envelope is checked.
+        assert {"duplicate", "outcome", "provider_event_id"} <= set(response.json())
 
 
 def test_create_case_matches_the_contract():

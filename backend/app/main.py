@@ -131,9 +131,13 @@ app.openapi = _openapi_with_v1_1
 # picks up both the frozen v1.0 operations and these additive ones.
 from backend.app.routes.cases import router as cases_router  # noqa: E402
 from backend.app.routes.financing import router as financing_router  # noqa: E402
+from backend.app.routes.webhooks import router as webhooks_router  # noqa: E402
+from backend.app.routes.events import router as events_router  # noqa: E402
 
 app.include_router(cases_router)
 app.include_router(financing_router)
+app.include_router(webhooks_router)
+app.include_router(events_router)
 
 
 # ------------------------------------------------------------- errors ----

@@ -4010,6 +4010,47 @@
         ]
       }
     },
+    "/api/v1/cases/{case_id}/stream": {
+      "get": {
+        "description": "Live track updates for one case. 404 for an unknown case, like the other reads.",
+        "operationId": "stream_case_api_v1_cases__case_id__stream_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "case_id",
+            "required": true,
+            "schema": {
+              "title": "Case Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Stream Case",
+        "tags": [
+          "events"
+        ]
+      }
+    },
     "/api/v1/config": {
       "get": {
         "description": "The statute config with its verified flags, for the assumptions drawer.\n\nReturns a labelled stub when statute_config.json is absent so the offline\ndemo still runs. No value here is treated as statutory by the API.",
@@ -4271,6 +4312,63 @@
           }
         },
         "summary": "Simulate Settlement"
+      }
+    },
+    "/api/v1/webhooks/disbursement": {
+      "post": {
+        "operationId": "disbursement_webhook_api_v1_webhooks_disbursement_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Disbursement Webhook",
+        "tags": [
+          "webhooks"
+        ]
+      }
+    },
+    "/api/v1/webhooks/esign": {
+      "post": {
+        "operationId": "esign_webhook_api_v1_webhooks_esign_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Esign Webhook",
+        "tags": [
+          "webhooks"
+        ]
+      }
+    },
+    "/api/v1/webhooks/marketplace": {
+      "post": {
+        "operationId": "marketplace_webhook_api_v1_webhooks_marketplace_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Marketplace Webhook",
+        "tags": [
+          "webhooks"
+        ]
       }
     }
   }

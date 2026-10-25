@@ -218,16 +218,25 @@ class IdempotencyKey(SQLModel, table=True):
 
 
 class WebhookInbox(SQLModel, table=True):
-    """Every provider delivery, deduplicated by `provider_event_id`.
+    """Every verified provider delivery, deduplicated by `provider_event_id`.
 
     A duplicate is recorded and returns 200 with no side effects; an event that is
-    not valid for the current state is stored and parked (`docs/webhooks.md`).
+    not valid for the current state is stored and **parked**, then retried after the
+    next successful transition on the same track (`docs/webhooks.md`).
+
+    The body is stored because a parked event has to be applied later, and
+    re-fetching it is not possible. Only verified deliveries are stored: an
+    unverified body is attacker-controlled data and never enters the inbox.
     """
 
     __tablename__ = "webhook_inbox"
+    __table_args__ = (Index("ix_webhook_inbox_track_outcome", "track_id", "outcome"),)
 
     provider_event_id: str = Field(primary_key=True, max_length=80)
     provider: str
+    case_id: str | None = Field(default=None, index=True)
+    track_id: str | None = None
+    payload_json: dict[str, Any] = Field(default_factory=dict, sa_column=Column(JSON, nullable=False))
     received_at: datetime = Field(default_factory=utc_now)
     signature_ok: bool
     processed_at: datetime | None = None

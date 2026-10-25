@@ -196,6 +196,10 @@ def test_v1_1_adds_cases_routes_without_touching_a_v1_0_path():
         "/api/v1/cases/{case_id}/financing/bids/{bid_id}/select",
         "/api/v1/cases/{case_id}/financing/buyer-acceptance",
         "/api/v1/cases/{case_id}/financing/cancel",
+        "/api/v1/cases/{case_id}/stream",
+        "/api/v1/webhooks/esign",
+        "/api/v1/webhooks/marketplace",
+        "/api/v1/webhooks/disbursement",
     }, f"unexpected new paths in contract v1.1: {sorted(added_paths)}"
     assert set(base["paths"]) <= set(live["paths"]), "a v1.0 path disappeared"
     added = set(live["components"]["schemas"]) - set(base["components"])
