@@ -17,6 +17,8 @@ import { CfoCostLines } from "../cfo/CfoCostLines";
 import { SendPanel } from "../send/SendPanel";
 import { AssumptionsDrawer } from "./AssumptionsDrawer";
 import { CaseHeader } from "./CaseHeader";
+import { CaseTabs } from "./CaseTabs";
+import { EvidenceTab } from "../evidence/EvidenceTab";
 import { EscalationLadder } from "./EscalationLadder";
 import { GuidanceCard } from "./GuidanceCard";
 import { LimitationCard } from "./LimitationCard";
@@ -29,7 +31,7 @@ export function CaseScreen({ caseId }: { caseId: string }) {
   const { t } = useT();
   const href = useHref();
   const router = useRouter();
-  const { view, send } = useUrlState();
+  const { view, send, tab } = useUrlState();
   const ev = useEvaluation(caseId);
   const cfg = useConfig();
   const log = useSendLog(caseId);
@@ -41,7 +43,7 @@ export function CaseScreen({ caseId }: { caseId: string }) {
   const res = ev.response;
   const placeholder = isPlaceholder(res);
   const notCovered = res ? isNotCovered(res) : false;
-  const closeSend = () => router.replace(href(`/case/${caseId}`), { scroll: false });
+  const closeSend = () => router.replace(href(`/case/${caseId}`, { tab }), { scroll: false });
 
   return (
     <div className="flex flex-col gap-6">
@@ -81,16 +83,23 @@ export function CaseScreen({ caseId }: { caseId: string }) {
                   </Link>
                 </p>
               )}
-              <GuidanceCard caseId={caseId} response={res} config={cfg.config} placeholder={placeholder} />
-              <StatuteTimeline response={res} />
-              <div className="grid gap-4 lg:grid-cols-[3fr_2fr]">
-                <MoneyCard response={res} placeholder={placeholder} />
-                <div className="flex flex-col gap-4">
-                  <LimitationCard limitation={res.limitation} />
-                  <AssumptionsDrawer response={res} config={cfg.config} configLoading={cfg.loading} configIsStub={cfg.isStub} />
-                </div>
-              </div>
-              <EscalationLadder caseId={caseId} response={res} log={log} />
+              <CaseTabs caseId={caseId} />
+              {tab === "evidence" && ev.base ? (
+                <EvidenceTab caseId={caseId} request={ev.request} base={ev.base} response={res} onChange={ev.setRequest} />
+              ) : (
+                <>
+                  <GuidanceCard caseId={caseId} response={res} config={cfg.config} placeholder={placeholder} />
+                  <StatuteTimeline response={res} />
+                  <div className="grid gap-4 lg:grid-cols-[3fr_2fr]">
+                    <MoneyCard response={res} placeholder={placeholder} />
+                    <div className="flex flex-col gap-4">
+                      <LimitationCard limitation={res.limitation} />
+                      <AssumptionsDrawer response={res} config={cfg.config} configLoading={cfg.loading} configIsStub={cfg.isStub} />
+                    </div>
+                  </div>
+                  <EscalationLadder caseId={caseId} response={res} log={log} />
+                </>
+              )}
             </>
           )}
         </div>

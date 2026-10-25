@@ -41,6 +41,10 @@ export const kn: Partial<Record<MessageKey, string>> = {
   "dues.title": "ಬಾಕಿಗಳು",
   "dues.subtitle": "ಹೆಚ್ಚು ತಡವಾದವು ಮೊದಲು.",
 
+  // tabs
+  "tab.overview": "ಸಾರಾಂಶ",
+  "tab.evidence": "ಸಾಕ್ಷ್ಯ ಮತ್ತು ಕಾಲಾನುಕ್ರಮ",
+
   // case card (MVP set)
   "case.view.supplier": "ಪೂರೈಕೆದಾರ (supplier)",
   "case.view.cfo": "ಖರೀದಿದಾರ CFO",

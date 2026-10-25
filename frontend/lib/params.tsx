@@ -6,9 +6,9 @@
 import { createContext, useCallback, useContext, type ReactNode } from "react";
 import { buildHref, type UrlState } from "./params-parse";
 
-export type { SendStage, UrlState, View } from "./params-parse";
+export type { CaseTab, SendStage, UrlState, View } from "./params-parse";
 
-const ParamsContext = createContext<UrlState>({ lang: "en", view: "supplier", judge: false, send: null });
+const ParamsContext = createContext<UrlState>({ lang: "en", view: "supplier", judge: false, send: null, tab: "overview" });
 
 export function ParamsProvider({ value, children }: { value: UrlState; children: ReactNode }) {
   return <ParamsContext.Provider value={value}>{children}</ParamsContext.Provider>;

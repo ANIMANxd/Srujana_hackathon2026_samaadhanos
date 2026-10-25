@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { listPresets } from "@/lib/api";
 import { setEdited } from "@/lib/caseStore";
 import { evidencePresent } from "@/lib/derive";
+import { withDeliveryProof } from "@/lib/requestEdits";
 import { count, date, money } from "@/lib/format";
 import { useT } from "@/lib/i18n";
 import type { MessageKey } from "@/lib/i18n/en";
@@ -21,14 +22,10 @@ import type {
   RateMode,
 } from "@/lib/types";
 import { Drawer } from "../common/Drawer";
+import { AMOUNT, DATE, DECIMAL, INT, TextField } from "../common/TextField";
 import { Icon } from "../common/Icon";
 import { EligibilityPill } from "../case/EligibilityPill";
 
-const DATE = /^\d{4}-\d{2}-\d{2}$/;
-const AMOUNT = /^\d+(\.\d{1,2})?$/;
-const INT = /^\d+$/;
-const PCT = /^\d+(\.\d{1,4})?$/;
-const CRORE = /^\d+(\.\d{1,4})?$/;
 
 const CLASSES: EnterpriseClass[] = ["MICRO", "SMALL", "MEDIUM", "UNKNOWN"];
 const ACTIVITIES: Activity[] = ["MANUFACTURING", "SERVICES", "TRADING"];
@@ -63,48 +60,6 @@ export function judgeCase(ev: Evaluation): JudgeCase | null {
     setRequest: ev.setRequest,
     reset: ev.reset,
   };
-}
-
-/** Field that keeps its own draft text and only commits valid values. */
-function TextField({
-  label,
-  value,
-  pattern,
-  errorKey,
-  allowEmpty,
-  onCommit,
-}: {
-  label: string;
-  value: string;
-  pattern: RegExp;
-  errorKey: MessageKey;
-  allowEmpty: boolean;
-  onCommit: (v: string) => void;
-}) {
-  const { t } = useT();
-  const [draft, setDraft] = useState(value);
-  const [synced, setSynced] = useState(value);
-  if (synced !== value) {
-    setSynced(value);
-    setDraft(value);
-  }
-  const valid = (allowEmpty && draft === "") || pattern.test(draft);
-  return (
-    <label className="block">
-      <span className="field-label">{label}</span>
-      <input
-        className="field-input num"
-        value={draft}
-        aria-invalid={!valid}
-        onChange={(e) => {
-          const v = e.target.value.trim();
-          setDraft(v);
-          if ((allowEmpty && v === "") || pattern.test(v)) onCommit(v);
-        }}
-      />
-      {!valid && <span className="mt-1 block text-xs text-block">{t(errorKey)}</span>}
-    </label>
-  );
 }
 
 function Select<T extends string>({
@@ -226,17 +181,7 @@ function EditForm({ c }: { c: JudgeCase }) {
     const base = obj ?? { raised_date: tx.delivery_date ?? tx.invoice_date, is_written: true, description: null, resolved_date: null };
     set({ ...r, objections: [{ ...base, ...patch }, ...(r.objections ?? []).slice(1)] });
   };
-  /** Delivery proof is two inputs together (rehearsal 2): the date and the evidence item. */
-  const setDeliveryProof = (held: boolean) => {
-    const items = r.evidence.items.some((i) => i.kind === "DELIVERY_PROOF")
-      ? r.evidence.items.map((i) => (i.kind === "DELIVERY_PROOF" ? { ...i, present: held, ref: held ? i.ref : null } : i))
-      : [...r.evidence.items, { kind: "DELIVERY_PROOF" as const, present: held, ref: null }];
-    set({
-      ...r,
-      evidence: { ...r.evidence, items },
-      transaction: { ...tx, delivery_date: held ? tx.delivery_date ?? c.base.transaction.delivery_date ?? null : null },
-    });
-  };
+  const setDeliveryProof = (held: boolean) => set(withDeliveryProof(r, held, c.base));
   const diff = changes(c.base, r, t);
 
   return (
@@ -268,8 +213,8 @@ function EditForm({ c }: { c: JudgeCase }) {
         <TextField label={t("judge.f.udyam_date")} value={r.supplier.udyam_registration_date ?? ""} pattern={DATE} errorKey="judge.invalid_date" allowEmpty onCommit={(v) => setSupplier({ udyam_registration_date: v || null })} />
         <Select label={t("judge.f.class")} value={r.supplier.enterprise_class} options={CLASSES} optionLabel={(k) => t(`class.${k}`)} allowDefault={false} onChange={(v) => v && setSupplier({ enterprise_class: v })} />
         <Select label={t("judge.f.activity")} value={r.supplier.activity} options={ACTIVITIES} optionLabel={(k) => t(`activity.${k}`)} allowDefault={false} onChange={(v) => v && setSupplier({ activity: v })} />
-        <TextField label={t("judge.f.investment")} value={r.supplier.investment_cr ?? ""} pattern={CRORE} errorKey="judge.invalid_crore" allowEmpty onCommit={(v) => setSupplier({ investment_cr: v || null })} />
-        <TextField label={t("judge.f.turnover")} value={r.supplier.turnover_cr ?? ""} pattern={CRORE} errorKey="judge.invalid_crore" allowEmpty onCommit={(v) => setSupplier({ turnover_cr: v || null })} />
+        <TextField label={t("judge.f.investment")} value={r.supplier.investment_cr ?? ""} pattern={DECIMAL} errorKey="judge.invalid_crore" allowEmpty onCommit={(v) => setSupplier({ investment_cr: v || null })} />
+        <TextField label={t("judge.f.turnover")} value={r.supplier.turnover_cr ?? ""} pattern={DECIMAL} errorKey="judge.invalid_crore" allowEmpty onCommit={(v) => setSupplier({ turnover_cr: v || null })} />
       </fieldset>
 
       <fieldset className="grid gap-3 border-t border-rule pt-5 sm:grid-cols-2">
@@ -284,7 +229,7 @@ function EditForm({ c }: { c: JudgeCase }) {
 
       <fieldset className="grid gap-3 border-t border-rule pt-5 sm:grid-cols-2">
         <legend className="eyebrow mb-3 pt-5">{t("judge.group.rate")}</legend>
-        <TextField label={t("judge.f.bank_rate")} value={overrides.bank_rate_pct ?? ""} pattern={PCT} errorKey="judge.invalid_pct" allowEmpty onCommit={(v) => setOverrides({ bank_rate_pct: v || null })} />
+        <TextField label={t("judge.f.bank_rate")} value={overrides.bank_rate_pct ?? ""} pattern={DECIMAL} errorKey="judge.invalid_pct" allowEmpty onCommit={(v) => setOverrides({ bank_rate_pct: v || null })} />
         <Select label={t("judge.f.rate_mode")} value={overrides.rate_mode ?? ""} options={RATE_MODES} optionLabel={(k) => t(`mode.${k}`)} allowDefault onChange={(v) => setOverrides({ rate_mode: v })} />
         <Select label={t("judge.f.appropriation")} value={overrides.appropriation_mode ?? ""} options={APPROPRIATIONS} optionLabel={(k) => t(`appropriation.${k}`)} allowDefault onChange={(v) => setOverrides({ appropriation_mode: v })} />
         <Select label={t("judge.f.silpi")} value={overrides.silpi_test_date ?? ""} options={SILPI} optionLabel={(k) => t(`silpi.${k}`)} allowDefault onChange={(v) => setOverrides({ silpi_test_date: v })} />

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, type ReactNode } from "react";
 import { I18nProvider, useT } from "@/lib/i18n";
-import { ParamsProvider, useHref, type UrlState } from "@/lib/params";
+import { ParamsProvider, useHref, useUrlState, type UrlState } from "@/lib/params";
 import { JUDGE_EVENT, useConnection, type Connection } from "@/lib/useConnection";
 import { Icon } from "../common/Icon";
 
@@ -65,13 +65,14 @@ function NavLink({ to, children }: { to: string; children: ReactNode }) {
 function LangToggle() {
   const { t, lang } = useT();
   const href = useHref();
+  const { tab, send } = useUrlState();
   const path = usePathname();
   return (
     <div role="group" aria-label={t("nav.language")} className="inline-flex h-7 items-center rounded-full border border-rule bg-paper-raised p-0.5 text-xs">
       {(["en", "kn"] as const).map((l) => (
         <Link
           key={l}
-          href={href(path, { lang: l })}
+          href={href(path, { lang: l, tab, send })}
           scroll={false}
           lang={l}
           aria-current={lang === l ? "true" : undefined}

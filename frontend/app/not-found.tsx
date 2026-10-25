@@ -3,7 +3,7 @@ import { NotFoundState } from "@/components/common/States";
 
 export default function NotFound() {
   return (
-    <AppShell state={{ lang: "en", view: "supplier", judge: false, send: null }}>
+    <AppShell state={{ lang: "en", view: "supplier", judge: false, send: null, tab: "overview" }}>
       <NotFoundState />
     </AppShell>
   );
