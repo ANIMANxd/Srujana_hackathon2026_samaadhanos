@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, type ReactNode } from "react";
 import { I18nProvider, useT } from "@/lib/i18n";
 import { ParamsProvider, useHref, type UrlState } from "@/lib/params";
-import { JUDGE_EVENT, useConnection } from "@/lib/useConnection";
+import { JUDGE_EVENT, useConnection, type Connection } from "@/lib/useConnection";
 import { Icon } from "../common/Icon";
 
 function Wordmark() {
@@ -21,15 +21,13 @@ function Wordmark() {
   );
 }
 
-/** Connection to the engine: the one place the offline state is announced. */
-function ConnectionPill() {
+/** Compact engine status next to the language toggle. */
+function ConnectionPill({ conn }: { conn: Connection }) {
   const { t } = useT();
-  const conn = useConnection();
   const label = conn === "live" ? t("conn.live") : conn === "offline" ? t("conn.offline") : t("conn.checking");
   const hint = conn === "live" ? t("conn.live_hint") : conn === "offline" ? t("conn.offline_hint") : undefined;
   return (
     <span
-      role="status"
       title={hint}
       className={`inline-flex h-7 items-center gap-2 rounded-full border px-2.5 text-xs font-medium ${
         conn === "offline" ? "border-warn/30 bg-warn-wash text-warn" : "border-rule bg-paper-raised text-ink-700"
@@ -92,6 +90,7 @@ function LangToggle() {
 function TopNav() {
   const { t } = useT();
   const href = useHref();
+  const conn = useConnection();
   return (
     <header className="no-print sticky top-0 z-40 border-b border-rule bg-paper-raised/90 backdrop-blur-md">
       <div className="mx-auto flex h-14 max-w-[1120px] items-center justify-between gap-4 px-4 sm:px-8">
@@ -104,7 +103,7 @@ function TopNav() {
         </div>
         <div className="flex items-center gap-2">
           <LangToggle />
-          <ConnectionPill />
+          <ConnectionPill conn={conn} />
           <button
             type="button"
             onClick={() => window.dispatchEvent(new Event(JUDGE_EVENT))}
@@ -122,6 +121,16 @@ function TopNav() {
           </div>
         </div>
       </div>
+      {conn === "offline" && (
+        // F1: persistent "Offline demo data" banner. It lives in the sticky top
+        // bar so it stays on screen on every page while the backend is down.
+        <div role="status" className="border-t border-warn/20 bg-warn-wash">
+          <p className="mx-auto flex max-w-[1120px] items-center gap-2 px-4 py-1.5 text-xs font-medium text-warn sm:px-8">
+            <Icon name="warn" className="h-3.5 w-3.5" />
+            {t("banner.offline")}
+          </p>
+        </div>
+      )}
     </header>
   );
 }

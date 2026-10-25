@@ -21,7 +21,9 @@ export const kn: Partial<Record<MessageKey, string>> = {
   "nav.judge": "ತೀರ್ಪುಗಾರರ ಕನ್ಸೋಲ್ (judge console)",
   "nav.language": "ಭಾಷೆ",
   "conn.live": "ಎಂಜಿನ್ ಸಕ್ರಿಯ",
-  "conn.offline": "ಆಫ್‌ಲೈನ್ · ಉಳಿಸಿದ ಫಲಿತಾಂಶಗಳು",
+  "conn.offline": "ಆಫ್‌ಲೈನ್",
+  "banner.offline":
+    "ಆಫ್‌ಲೈನ್ ಡೆಮೊ ಡೇಟಾ (offline demo data). ಬ್ಯಾಕೆಂಡ್ ಲಭ್ಯವಿಲ್ಲ, ಆದ್ದರಿಂದ ಎಂಜಿನ್ ಮೊದಲೇ ಉಳಿಸಿದ ಫಲಿತಾಂಶಗಳನ್ನು ತೋರಿಸಲಾಗುತ್ತಿದೆ.",
   "conn.checking": "ಸಂಪರ್ಕಿಸಲಾಗುತ್ತಿದೆ",
   "footer.disclaimer":
     "ಉಲ್ಲೇಖಿತ ಮೂಲಗಳೊಂದಿಗೆ ಶಾಸನಬದ್ಧ ಲೆಕ್ಕಾಚಾರಗಳು (statutory computations). ದಾಖಲೆಗಳಿಂದ ಮಾಹಿತಿಯನ್ನು ಯಂತ್ರದ ಸಹಾಯದಿಂದ ಓದಲಾಗುತ್ತದೆ ಮತ್ತು ನೀವು ದೃಢೀಕರಿಸುತ್ತೀರಿ. ಇದು ನಿರ್ಧಾರಕ್ಕೆ ಸಹಾಯ ಮಾತ್ರ, ಕಾನೂನು ಸಲಹೆ ಅಲ್ಲ (not legal advice).",

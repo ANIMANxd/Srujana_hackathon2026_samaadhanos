@@ -24,7 +24,7 @@ export const en = {
   "lang.kn_short": "ಕ",
 
   "conn.live": "Engine live",
-  "conn.offline": "Offline · saved results",
+  "conn.offline": "Offline",
   "conn.checking": "Connecting",
   "conn.offline_hint": "The backend is not reachable. Preset cases show results the engine saved earlier.",
   "conn.live_hint": "Every figure on screen comes from the legal engine.",
@@ -32,6 +32,8 @@ export const en = {
   "footer.disclaimer":
     "Statutory computations with cited sources. Extraction is machine-assisted and human-confirmed. Decision support, not legal advice.",
 
+  "banner.offline":
+    "Offline demo data. The backend is not reachable, so preset cases show results the engine saved earlier; edited cases wait for the backend.",
   "banner.placeholder": "Placeholder data: these figures are samples, not engine results.",
   "banner.recompute": "Recompute needs the backend. Your edits are kept; new figures appear once it is reachable.",
 
