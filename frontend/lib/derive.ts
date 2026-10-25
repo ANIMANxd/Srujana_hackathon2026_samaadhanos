@@ -14,6 +14,15 @@ import type {
 
 export type Tone = "ok" | "warn" | "block" | "info";
 
+/** Whole days from `from` to `to` (YYYY-MM-DD), negative when `to` is earlier. Display only: used for "due in N days". */
+export function daysBetween(from: string, to: string): number | null {
+  const a = /^(\d{4})-(\d{2})-(\d{2})/.exec(from);
+  const b = /^(\d{4})-(\d{2})-(\d{2})/.exec(to);
+  if (!a || !b) return null;
+  const ms = Date.UTC(+b[1], +b[2] - 1, +b[3]) - Date.UTC(+a[1], +a[2] - 1, +a[3]);
+  return Math.round(ms / 86_400_000);
+}
+
 export const PLACEHOLDER_CODE = "PLACEHOLDER_DATA";
 export const GRN_WARNING_CODE = "GRN_MISSING_DEEMED_ACCEPTANCE";
 

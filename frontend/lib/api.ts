@@ -7,6 +7,7 @@ import { artifactFixture, asExtraction, asRequest, asResponse, fixtureFor, FIXTU
 import {
   offlineBids,
   offlineCaseDetail,
+  offlineCases,
   offlineChainResult,
   offlineEsign,
   offlineEvents,
@@ -20,6 +21,7 @@ import type {
   Bid,
   CaseDetail,
   CaseRequest,
+  CaseSummary,
   CaseResponse,
   ChainVerifyResult,
   ESignSession,
@@ -244,6 +246,18 @@ async function readOrSample<T>(live: () => Promise<T>, sample: () => T | null): 
 /** POST /cases: store the approved case; the server issues the id. */
 export function createCase(request: CaseRequest, opts: MutationOptions): Promise<CaseDetail> {
   return mutate<CaseDetail>("/cases", opts, request);
+}
+
+/** GET /cases: one summary per stored case (the Dues home). Offline: the saved sample case. */
+export function listCases(): Promise<Sourced<CaseSummary[]>> {
+  return readOrSample(
+    async () => {
+      const body = await call<{ cases: CaseSummary[] }>("/cases");
+      if (!Array.isArray(body?.cases)) throw new ApiError(500, "BAD_RESPONSE", "The case list did not match the contract.");
+      return body.cases;
+    },
+    offlineCases,
+  );
 }
 
 /** GET /cases/{id}. `offlineState` picks which saved sample stands in when the backend is down. */
