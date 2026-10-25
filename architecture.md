@@ -3,6 +3,14 @@
 Audience: Aniruddha (backend), Mochi (frontend), and every AI agent working in this repo.
 Status: **contract v1.0 is frozen once S1 in `prompts.md` is merged.** Changes after that go through the change protocol in section 9.
 
+> **v4 extension:** `docs/architecture_v4_two_options.md` adds the two-option model on top of this
+> document — a financing track alongside the recovery ladder, plus the store, finance, workflow,
+> ports/adapters, mock providers, webhooks, SSE and `contract v1.1` (additive) they need.
+> Everything here still applies; where the two differ, v3.x wins for the legal engine and the
+> v4 document wins for the new infrastructure. Its open questions are OQ-10 to OQ-14 in
+> `docs/open-questions.md`; the webhook, state-machine and threat-model extracts live in
+> `docs/webhooks.md`, `docs/state-machines.md` and `docs/threat-model.md`.
+
 ---
 
 ## 1. Principles (non-negotiable)

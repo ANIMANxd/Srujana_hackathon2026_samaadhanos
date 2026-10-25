@@ -16,6 +16,16 @@ engine runs on the documented default and surfaces `assumptions[]`/`warnings[]`.
 | OQ-8 | V9 buyer-pressure rules (GST credit reversal, MSME-1, appeal deposit) | gated off | Aniruddha | open |
 | OQ-9 | Evaluation cadence, start time, video rules | per V11 | both | open |
 
+### v4 two-option questions (`docs/architecture_v4_two_options.md` section 12)
+
+| ID | Question | Default until resolved | Owner | Status |
+|---|---|---|---|---|
+| OQ-10 | Can a financier or factor (as assignee) claim MSMED s.16 interest or refer to the MSEFC? | Assume **no**. Never claim it in UI or pitch | Aniruddha | open |
+| OQ-11 | Can an already-overdue invoice be financed on TReDS, and what happens to the interest accrued before financing? | Financing only before the due date (`financing.max_overdue_days=0`); show the interest-not-included note | Aniruddha | open |
+| OQ-12 | The current TReDS settlement timeline (2014 guidelines say T+2) and any newer RBI circular | Config value, `verified=false` until checked | Aniruddha | open |
+| OQ-13 | Is the turnover threshold for mandatory TReDS onboarding of buyers ₹250 cr (MSME Ministry notification) still current? | Mention only with a source | Aniruddha | open |
+| OQ-14 | Factoring Regulation Act: notice of assignment and registration of the assignment with the Central Registry (on TReDS this is handled by the platform) | The demo template says "per platform terms"; no legal claim | Aniruddha | open |
+
 ## Contract v1.0 — interpretive choices (API agent)
 
 Simplest-reading decisions taken while turning section 8 into Pydantic models.

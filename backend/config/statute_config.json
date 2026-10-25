@@ -130,5 +130,39 @@
     "source_ref": "V9",
     "verified": false,
     "note": "All gated off per section 5 and OQ-8. Emit related pressure-point rows only when a flag is true."
+  },
+  "treds": {
+    "value": {
+      "buyer_acceptance_required": true,
+      "without_recourse": true,
+      "settlement_days": 2
+    },
+    "source_ref": "RBI TReDS guidelines (2014)",
+    "verified": false,
+    "note": "Per architecture_v4_two_options.md section 9. The buyer must accept the factoring unit before financiers bid, and financing is without recourse to the MSME. settlement_days = 2 (T+2) is the 2014 guidance and is not checked against any newer RBI circular (OQ-12); it is a demo timeline until verified."
+  },
+  "financing": {
+    "value": {
+      "day_count": 365,
+      "min_amount": null,
+      "max_overdue_days": 0,
+      "advance_pct": "100.00"
+    },
+    "source_ref": "docs/architecture_v4_two_options.md section 9",
+    "verified": false,
+    "note": "day_count 365, advance_pct 100.00 (TReDS mode) and max_overdue_days 0 (financing only before the due date, OQ-11) are the documented defaults. min_amount is null on purpose: section 9 names the key without a value, so financeability must return a NOT_CONFIGURED reason plus an assumption rather than invent a threshold (golden rule 1)."
+  },
+  "mock_financing": {
+    "value": {
+      "rate_band": {
+        "low": "8.00",
+        "high": "12.00",
+        "label": "illustrative"
+      },
+      "platform_fee_pct": "0.10"
+    },
+    "source_ref": "illustrative",
+    "verified": false,
+    "note": "Illustrative demo values only, taken from the abridged example in architecture_v4_two_options.md section 9 (8.00-12.00% band, 0.10% fee). No market data was collected. These seed the mock bid engine; discount, fee and net amount are computed by backend/finance/ and never by the mock (trap: mock introduces maths bugs)."
   }
 }
