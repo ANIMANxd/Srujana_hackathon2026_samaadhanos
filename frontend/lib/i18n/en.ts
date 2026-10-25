@@ -859,6 +859,16 @@ export const en = {
   "early.live_off": "Updates paused while offline",
   "early.offline": "Backend offline: showing a saved sample, not your case. Changes are switched off.",
 
+  "recovery.title": "Your record for this step",
+  "recovery.prepare": "Prepare this step",
+  "recovery.prepare_hint": "Records that you prepared this step. Nothing is sent.",
+  "recovery.prepared": "Prepared",
+  "recovery.sent": "Sent by you",
+  "recovery.not_prepared": "Not prepared yet",
+  "recovery.mark_sent": "I've sent it",
+  "recovery.mark_hint": "Press this once you have sent it from your own app. We only record what you tell us.",
+  "recovery.use_first": "Open WhatsApp or email, or copy the draft, and send it yourself. Then you can record it here.",
+
   "action.conflict": "This changed in another tab. Refreshed.",
   "action.unreachable": "Could not reach the server. Nothing was changed twice; try again.",
   "action.failed": "That did not go through.",

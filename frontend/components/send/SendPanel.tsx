@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { ApiError, generateArtifact, type SourcedArtifact } from "@/lib/api";
-import { logPrepared } from "@/lib/caseStore";
+import { logPrepared, useSendLog } from "@/lib/caseStore";
 import { evidencePresent, stageLock } from "@/lib/derive";
 import { useT } from "@/lib/i18n";
 import { useHref } from "@/lib/params";
@@ -12,7 +12,11 @@ import type { ArtifactKind, CaseRequest, CaseResponse, Stage } from "@/lib/types
 import { Icon } from "../common/Icon";
 import { Markdown } from "../common/Markdown";
 import { StatusIcon } from "../common/StatusIcon";
+import { financingLocksRecovery } from "@/lib/recoveryFlow";
+import type { TrackView } from "@/lib/useTrack";
+import { LockedNotice } from "../early/LockedNotice";
 import { Banner } from "../shell/Banners";
+import { RecoveryActions } from "./RecoveryActions";
 import { SendButtons, isPhoneValid } from "./SendButtons";
 
 function todayLocal(): string {
@@ -47,12 +51,15 @@ export function SendPanel({
   request,
   response,
   offlineId,
+  tracking = null,
 }: {
   caseId: string;
   stage: Stage;
   request: CaseRequest;
   response: CaseResponse;
   offlineId: string | null;
+  /** Stored cases only: records prepared / sent against the recovery track. */
+  tracking?: TrackView | null;
 }) {
   const { t, tWarning } = useT();
   const href = useHref();
@@ -65,6 +72,8 @@ export function SendPanel({
   const [subjectEdit, setSubject] = useState<string | null>(null);
   const [reviewed, setReviewed] = useState(false);
   const [printing, setPrinting] = useState(false);
+  const [usedNow, setUsedNow] = useState(false);
+  const sendLog = useSendLog(caseId);
 
   useEffect(() => {
     let alive = true;
@@ -102,8 +111,13 @@ export function SendPanel({
   const edited = draft.state === "ready" && draft.text !== draft.artifact.data.markdown;
   const phoneValid = isPhoneValid(phone);
   const canAct = reviewed && text.trim().length > 0 && !locked;
-  const prepared = () => logPrepared(caseId, stage, todayLocal());
+  const used = usedNow || sendLog.some((e) => e.stage === stage);
+  const prepared = () => {
+    logPrepared(caseId, stage, todayLocal());
+    setUsedNow(true);
+  };
 
+  if (tracking && financingLocksRecovery(tracking.track)) return <LockedNotice dueDate={response.timeline?.due_date ?? null} />;
   if (locked) return <Banner tone="block" icon="lock" message="send.blocked" />;
 
   const artifact = draft.state === "ready" ? draft.artifact : null;
@@ -258,6 +272,8 @@ export function SendPanel({
         <Icon name="lock" className="h-3.5 w-3.5" />
         {t("send.disclaimer")}
       </p>
+
+      {tracking?.caseDetail && !isPack && <RecoveryActions caseId={caseId} stage={stage} tracking={tracking} used={used} />}
 
       {printing &&
         createPortal(
