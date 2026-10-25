@@ -19,6 +19,7 @@ import { AssumptionsDrawer } from "./AssumptionsDrawer";
 import { CaseHeader } from "./CaseHeader";
 import { CaseTabs } from "./CaseTabs";
 import { EvidenceTab } from "../evidence/EvidenceTab";
+import { MathTab } from "../math/MathTab";
 import { EscalationLadder } from "./EscalationLadder";
 import { GuidanceCard } from "./GuidanceCard";
 import { LimitationCard } from "./LimitationCard";
@@ -86,6 +87,16 @@ export function CaseScreen({ caseId }: { caseId: string }) {
               <CaseTabs caseId={caseId} />
               {tab === "evidence" && ev.base ? (
                 <EvidenceTab caseId={caseId} request={ev.request} base={ev.base} response={res} onChange={ev.setRequest} />
+              ) : tab === "math" ? (
+                <MathTab
+                  request={ev.request}
+                  response={res}
+                  placeholder={placeholder}
+                  config={cfg.config}
+                  configLoading={cfg.loading}
+                  configIsStub={cfg.isStub}
+                  onChange={ev.setRequest}
+                />
               ) : (
                 <>
                   <GuidanceCard caseId={caseId} response={res} config={cfg.config} placeholder={placeholder} />

@@ -8,7 +8,7 @@ export type View = "supplier" | "cfo";
 export type SendStage = 1 | 2 | 3;
 
 /** Case screen tab (?tab=evidence), linkable like the rest of the demo state. */
-export type CaseTab = "overview" | "evidence";
+export type CaseTab = "overview" | "evidence" | "math";
 
 export type UrlState = { lang: Lang; view: View; judge: boolean; send: SendStage | null; tab: CaseTab };
 
@@ -23,7 +23,7 @@ export function parseJudge(raw: Raw): boolean {
 }
 
 export function parseTab(raw: Raw): CaseTab {
-  return raw === "evidence" ? "evidence" : "overview";
+  return raw === "evidence" || raw === "math" ? raw : "overview";
 }
 
 export function parseSend(raw: Raw): SendStage | null {

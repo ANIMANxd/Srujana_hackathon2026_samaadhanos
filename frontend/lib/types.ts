@@ -40,6 +40,8 @@ export type ExtractedMessage = S["ExtractedMessage"];
 export type ExtractionMethod = S["ExtractionMethod"];
 export type MessageTag = S["MessageTag"];
 export type SourceKind = S["SourceKind"];
+export type SettlementSimulationResponse = S["SettlementSimulationResponse"];
+export type SettlementPayment = S["SettlementPayment"];
 
 export type ConfigEntry = {
   value: unknown;

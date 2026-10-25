@@ -44,6 +44,7 @@ export const kn: Partial<Record<MessageKey, string>> = {
   // tabs
   "tab.overview": "ಸಾರಾಂಶ",
   "tab.evidence": "ಸಾಕ್ಷ್ಯ ಮತ್ತು ಕಾಲಾನುಕ್ರಮ",
+  "tab.math": "ಲೆಕ್ಕಾಚಾರ (math)",
 
   // case card (MVP set)
   "case.view.supplier": "ಪೂರೈಕೆದಾರ (supplier)",

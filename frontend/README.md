@@ -43,6 +43,7 @@ samples show the extractor's saved results, and edited or uploaded cases say
 | `/upload` | Did the app read my invoice, PO or WhatsApp export correctly? (.txt; approve before anything is used) |
 | `/case/[id]` | What's happening with this invoice and what do I do now? (guidance card, timeline, money, ladder) |
 | `/case/[id]?tab=evidence` | What do I hold, and what did the engine make of it? (evidence locker with a WhatsApp line viewer, full statutory timeline, readiness gauge with locked stages explained, defenses, limitation bands; each with a "what this means for you" card) |
+| `/case/[id]?tab=math` | How was the number worked out? (KPI cards with rate segments, rate-mode and appropriation toggles re-run through config_overrides with the engine's own explanation, expandable ledger, assumptions drawer, settlement simulator via /simulate-settlement) |
 | `/case/[id]?view=cfo` | What does the buyer's finance team see? (three separate cost lines, never summed) |
 | `/case/[id]?send=n` (n = 1 to 3) | What exactly will I send? (slide-over drawer: engine draft, editable; WhatsApp / email / copy / PDF; nothing auto-sends). `/case/[id]/send/[stage]` shows the same panel as a page |
 | `/case/[id]/pack` | Am I ready for the MSME ODR portal? (checklist, chronology, interest sheet, certificate **template**) |

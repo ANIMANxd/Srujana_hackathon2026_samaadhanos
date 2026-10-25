@@ -22,6 +22,7 @@ const ROUTES = [
   "/case/case_06",
   "/case/case_04?tab=evidence",
   "/case/case_06?tab=evidence",
+  "/case/case_04?tab=math",
   "/eligibility/case_05a",
   "/case/does_not_exist",
 ];

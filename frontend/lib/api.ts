@@ -11,6 +11,7 @@ import type {
   CaseResponse,
   ExtractionResponse,
   PresetSummary,
+  SettlementSimulationResponse,
   StatuteConfig,
 } from "./types";
 
@@ -145,6 +146,17 @@ export async function extractEvidence(file: Blob, filename: string): Promise<Ext
   const response = asExtraction(body);
   if (!response) throw new ApiError(500, "BAD_RESPONSE", "The extraction result did not match the contract.");
   return response;
+}
+
+/**
+ * POST /simulate-settlement (8.1). The backend evaluates the case first, so the
+ * split always uses the engine's own claim; the browser only sends the terms.
+ */
+export async function simulateSettlement(
+  request: CaseRequest,
+  terms: { upfront_pct: string; waiver_pct: string; days_to_second_payment: number },
+): Promise<SettlementSimulationResponse> {
+  return postJson<SettlementSimulationResponse>("/simulate-settlement", { request, ...terms });
 }
 
 // ------------------------------------------------------------ artifacts ----
