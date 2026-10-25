@@ -6,6 +6,9 @@ python-dateutil>=2.9
 uvicorn>=0.30
 # Multipart uploads for /api/v1/extract-evidence (FastAPI File/Form support).
 python-multipart>=0.0.9
+# OpenAPI conformance tests: real responses and fixtures are validated against
+# contracts/openapi.json (backend/tests/contract/test_openapi_conformance.py).
+jsonschema>=4.18
 # Pure-Python PDF rendering for /generate-artifact (backend/artifacts/pdf.py).
 # The endpoint degrades to markdown + a warning if it is missing or fails.
 reportlab>=4.0
