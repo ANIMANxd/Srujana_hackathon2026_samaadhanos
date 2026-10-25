@@ -1,15 +1,31 @@
-// API client for contract v1.0. Same-origin /api/v1/* is proxied to FastAPI by
+// API client for contract v1.0 and v1.1. Same-origin /api/v1/* is proxied to FastAPI by
 // next.config.ts. When the backend is unreachable, preset cases fall back to
 // the synced fixtures and the caller is told the data is offline (F1).
 // No legal math here: requests and responses pass through untouched.
 
 import { artifactFixture, asExtraction, asRequest, asResponse, fixtureFor, FIXTURES } from "./fixtures";
+import {
+  offlineBids,
+  offlineCaseDetail,
+  offlineChainResult,
+  offlineEsign,
+  offlineEvents,
+  offlineOptions,
+  offlinePayout,
+} from "./fixturesV4";
 import type {
   ArtifactKind,
   ArtifactResponse,
+  AuditEvent,
+  Bid,
+  CaseDetail,
   CaseRequest,
   CaseResponse,
+  ChainVerifyResult,
+  ESignSession,
   ExtractionResponse,
+  OptionsResponse,
+  PayoutStatus,
   PresetSummary,
   SettlementSimulationResponse,
   StatuteConfig,
@@ -77,6 +93,22 @@ async function call<T>(path: string, init?: RequestInit): Promise<T> {
 function postJson<T>(path: string, payload: unknown): Promise<T> {
   return call<T>(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
 }
+
+/**
+ * Headers every v1.1 mutation carries (architecture_v4 §8): `idempotencyKey`
+ * is required; `ifMatch` is the track version the screen last saw. A stale
+ * version answers 409 and the caller refreshes.
+ */
+export type MutationOptions = { idempotencyKey: string; ifMatch?: number };
+
+function mutate<T>(path: string, opts: MutationOptions, payload?: unknown): Promise<T> {
+  const headers: Record<string, string> = { "Idempotency-Key": opts.idempotencyKey };
+  if (payload !== undefined) headers["Content-Type"] = "application/json";
+  if (opts.ifMatch !== undefined) headers["If-Match"] = String(opts.ifMatch);
+  return call<T>(path, { method: "POST", headers, body: payload === undefined ? undefined : JSON.stringify(payload) });
+}
+
+const caseUrl = (id: string) => `/cases/${encodeURIComponent(id)}`;
 
 // ------------------------------------------------------------ endpoints ----
 
@@ -189,3 +221,135 @@ export async function generateArtifact(
     };
   }
 }
+
+// ------------------------------------------------- contract v1.1: cases ----
+//
+// Shapes that architecture_v4 §9 does not spell out are assumed, not invented
+// silently: POST /cases takes the approved CaseEvaluationRequest and answers
+// with a CaseDetail; the track actions answer with the refreshed CaseDetail
+// (select-bid answers with the ESignSession it creates). Raised in the worklog.
+
+/** Offline reads fall back to the saved v1.1 samples; a sample is never your own case. */
+async function readOrSample<T>(live: () => Promise<T>, sample: () => T | null): Promise<Sourced<T>> {
+  try {
+    return { data: await live(), source: "live" };
+  } catch (e) {
+    if (!(e instanceof BackendUnreachable)) throw e;
+    const data = sample();
+    if (data === null) throw e;
+    return { data, source: "offline" };
+  }
+}
+
+/** POST /cases: store the approved case; the server issues the id. */
+export function createCase(request: CaseRequest, opts: MutationOptions): Promise<CaseDetail> {
+  return mutate<CaseDetail>("/cases", opts, request);
+}
+
+/** GET /cases/{id}. `offlineState` picks which saved sample stands in when the backend is down. */
+export function getCase(id: string, offlineState?: string | null): Promise<Sourced<CaseDetail>> {
+  return readOrSample(
+    async () => {
+      const body = await call<CaseDetail>(caseUrl(id));
+      if (typeof body?.case?.id !== "string") throw new ApiError(500, "BAD_RESPONSE", "The case did not match the contract.");
+      return body;
+    },
+    () => offlineCaseDetail(offlineState),
+  );
+}
+
+/** GET /cases/{id}/options: the two-option comparison. `recommendation` is always null. */
+export function getOptions(
+  id: string,
+  expectedPaymentDate?: string,
+  offlineVariant?: string | null,
+): Promise<Sourced<OptionsResponse>> {
+  const q = expectedPaymentDate ? `?expected_payment_date=${encodeURIComponent(expectedPaymentDate)}` : "";
+  return readOrSample(() => call<OptionsResponse>(`${caseUrl(id)}/options${q}`), () => offlineOptions(offlineVariant));
+}
+
+// ------------------------------------------------ contract v1.1: financing --
+
+export function startFinancing(id: string, opts: MutationOptions): Promise<CaseDetail> {
+  return mutate<CaseDetail>(`${caseUrl(id)}/financing`, opts);
+}
+
+export function requestBuyerAcceptance(id: string, opts: MutationOptions): Promise<CaseDetail> {
+  return mutate<CaseDetail>(`${caseUrl(id)}/financing/buyer-acceptance`, opts);
+}
+
+export function listBids(id: string): Promise<Sourced<Bid[]>> {
+  return readOrSample(() => call<Bid[]>(`${caseUrl(id)}/financing/bids`), offlineBids);
+}
+
+/** Selecting a bid creates the (mock) eSign session. */
+export function selectBid(id: string, bidId: string, opts: MutationOptions): Promise<ESignSession> {
+  return mutate<ESignSession>(`${caseUrl(id)}/financing/bids/${encodeURIComponent(bidId)}/select`, opts);
+}
+
+// ASSUMED routes (not in architecture_v4 section 9; raised in the worklog): the
+// signing session and the payout have no read endpoint there, and the OTP step
+// has no submit endpoint. Case-scoped like the rest of the financing routes.
+
+/** The (mock) eSign session of the selected bid. */
+export function getEsignSession(id: string): Promise<Sourced<ESignSession>> {
+  return readOrSample(() => call<ESignSession>(`${caseUrl(id)}/financing/esign`), offlineEsign);
+}
+
+/** Submit the demo OTP. No Aadhaar field exists anywhere in this call. */
+export function submitEsignOtp(id: string, otp: string, opts: MutationOptions): Promise<ESignSession> {
+  return mutate<ESignSession>(`${caseUrl(id)}/financing/esign/otp`, opts, { otp });
+}
+
+/** The (mock) payout: its MOCK reference, UTR and amount. */
+export function getPayout(id: string): Promise<Sourced<PayoutStatus>> {
+  return readOrSample(() => call<PayoutStatus>(`${caseUrl(id)}/financing/payout`), offlinePayout);
+}
+
+export function cancelFinancing(id: string, opts: MutationOptions): Promise<CaseDetail> {
+  return mutate<CaseDetail>(`${caseUrl(id)}/financing/cancel`, opts);
+}
+
+// ------------------------------------------------- contract v1.1: recovery --
+
+/** Start or resume recovery; `stage` prepares that stage's draft (nothing is sent). */
+export function startRecovery(id: string, stage: number | null, opts: MutationOptions): Promise<CaseDetail> {
+  return mutate<CaseDetail>(`${caseUrl(id)}/recovery`, opts, { stage });
+}
+
+/** The owner confirms they sent the draft themselves. */
+export function markRecoverySent(id: string, opts: MutationOptions): Promise<CaseDetail> {
+  return mutate<CaseDetail>(`${caseUrl(id)}/recovery/mark-sent`, opts);
+}
+
+// ------------------------------------------- contract v1.1: audit + stream --
+
+export function getEvents(id: string): Promise<Sourced<AuditEvent[]>> {
+  return readOrSample(() => call<AuditEvent[]>(`${caseUrl(id)}/events`), offlineEvents);
+}
+
+export function verifyEvents(id: string): Promise<Sourced<ChainVerifyResult>> {
+  return readOrSample(() => call<ChainVerifyResult>(`${caseUrl(id)}/events/verify`), offlineChainResult);
+}
+
+/** Same-origin URL for `EventSource` (GET /cases/{id}/stream, server-sent events). */
+export function streamUrl(id: string): string {
+  return `${BASE}${caseUrl(id)}/stream`;
+}
+
+// ---------------------------------------------- contract v1.1: judge mocks --
+// Judge console only; the server disables these in production. Bodies are the
+// mock provider's own scenario/clock settings, so they pass through as plain JSON.
+
+export type MockBody = Record<string, string | number | boolean | null>;
+
+export function setMockScenario(body: MockBody, opts: MutationOptions): Promise<MockBody> {
+  return mutate<MockBody>("/mock/scenarios", opts, body);
+}
+
+export function setMockClock(body: MockBody, opts: MutationOptions): Promise<MockBody> {
+  return mutate<MockBody>("/mock/clock", opts, body);
+}
+
+// POST /webhooks/{esign,marketplace,disbursement} are signed provider-to-server
+// callbacks: the browser never calls them, so there is deliberately no client.

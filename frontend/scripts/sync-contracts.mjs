@@ -5,6 +5,8 @@
 //   ../contracts/types.ts           -> generated/contract-types.ts
 //   ../contracts/fixtures/*.json    -> fixtures/*.json (+ fixtures/index.ts)
 //   ../contracts/fixtures/*.md      -> artifact samples, inlined in fixtures/index.ts
+//   ../contracts/fixtures/v4/*.json -> fixtures/v4/*.json (contract v1.1 offline samples,
+//                                      exported as RAW_V4 keyed by file name)
 //   ../backend/presets/*.json       -> preset titles only (read, never written)
 //   ../backend/extraction/demo/*.txt + cache/*.json
 //                                   -> synthetic upload samples and the results the
@@ -107,9 +109,24 @@ lines.push("export type RawExtractionSample = { name: string; text: string; resp
 lines.push("");
 lines.push(`export const RAW_EXTRACTION_SAMPLES: RawExtractionSample[] = ${JSON.stringify(samples, null, 2)};`);
 
+// 5. Contract v1.1 samples: each file is {_fixture, payload}; keyed by file name without .json
+const v4Src = path.join(fixturesSrc, "v4");
+const v4Files = fs.existsSync(v4Src)
+  ? fs.readdirSync(v4Src).filter((f) => f.endsWith(".json") && f !== "v1-contract-baseline.json").sort()
+  : [];
+fs.mkdirSync(path.join(fixturesOut, "v4"), { recursive: true });
+v4Files.forEach((f, i) => {
+  fs.copyFileSync(path.join(v4Src, f), path.join(fixturesOut, "v4", f));
+  lines.push(`import v4_${i} from "./v4/${f}";`);
+});
+lines.push("");
+lines.push("export const RAW_V4: Record<string, unknown> = {");
+v4Files.forEach((f, i) => lines.push(`  ${JSON.stringify(f.replace(/\.json$/, ""))}: v4_${i} as unknown,`));
+lines.push("};");
+
 fs.writeFileSync(path.join(fixturesOut, "index.ts"), lines.join("\n") + "\n");
 
 console.log(
   `[sync-contracts] types + ${ids.length} fixture case(s): ${ids.join(", ") || "none"}; ` +
-    `${artifacts.length} artifact sample(s); ${samples.length} extraction sample(s)`,
+    `${artifacts.length} artifact sample(s); ${samples.length} extraction sample(s); ${v4Files.length} v1.1 sample(s)`,
 );

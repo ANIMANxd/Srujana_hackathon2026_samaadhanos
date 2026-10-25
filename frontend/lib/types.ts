@@ -1,4 +1,4 @@
-// Contract v1.0 types, re-exported under short names. The source of truth is
+// Contract v1.0/v1.1 types, re-exported under short names. The source of truth is
 // ../contracts/types.ts (copied to generated/ by scripts/sync-contracts.mjs).
 // Never hand-edit a contract shape here; request an additive change instead
 // (see CONTRACT-REQUESTS.md).
@@ -42,6 +42,20 @@ export type MessageTag = S["MessageTag"];
 export type SourceKind = S["SourceKind"];
 export type SettlementSimulationResponse = S["SettlementSimulationResponse"];
 export type SettlementPayment = S["SettlementPayment"];
+
+// Contract v1.1 (persistent cases, tracks, two options).
+export type StoredCase = S["Case"];
+export type CaseDetail = S["CaseDetail"];
+export type Track = S["Track"];
+export type TrackKind = S["TrackKind"];
+export type TrackState = S["TrackState"];
+export type OptionsResponse = S["OptionsResponse"];
+export type OptionCitation = S["OptionCitation"];
+export type Bid = S["Bid"];
+export type ESignSession = S["ESignSession"];
+export type PayoutStatus = S["PayoutStatus"];
+export type AuditEvent = S["Event"];
+export type ChainVerifyResult = S["ChainVerifyResult"];
 
 export type ConfigEntry = {
   value: unknown;

@@ -13,8 +13,7 @@ import { Icon } from "../common/Icon";
 import { Markdown } from "../common/Markdown";
 import { StatusIcon } from "../common/StatusIcon";
 import { Banner } from "../shell/Banners";
-
-const PHONE = /^\d{8,15}$/;
+import { SendButtons, isPhoneValid } from "./SendButtons";
 
 function todayLocal(): string {
   const d = new Date();
@@ -65,7 +64,6 @@ export function SendPanel({
   const [email, setEmail] = useState("");
   const [subjectEdit, setSubject] = useState<string | null>(null);
   const [reviewed, setReviewed] = useState(false);
-  const [copied, setCopied] = useState(false);
   const [printing, setPrinting] = useState(false);
 
   useEffect(() => {
@@ -102,22 +100,9 @@ export function SendPanel({
   const subject = subjectEdit ?? t("send.subject_default", { title: t(`stage.${stage}.title`), supplier: request.supplier.name });
   const text = draft.state === "ready" ? draft.text : "";
   const edited = draft.state === "ready" && draft.text !== draft.artifact.data.markdown;
-  const phoneValid = phone === "" || PHONE.test(phone);
+  const phoneValid = isPhoneValid(phone);
   const canAct = reviewed && text.trim().length > 0 && !locked;
-  const waHref = `https://wa.me/${phoneValid ? phone : ""}?text=${encodeURIComponent(text)}`;
-  const mailHref = `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(text)}`;
   const prepared = () => logPrepared(caseId, stage, todayLocal());
-
-  async function copy() {
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopied(true);
-      prepared();
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      setCopied(false);
-    }
-  }
 
   if (locked) return <Banner tone="block" icon="lock" message="send.blocked" />;
 
@@ -227,34 +212,16 @@ export function SendPanel({
       </label>
 
       <div className="flex flex-wrap gap-2">
-        {!isPack && (
-          <>
-            <a
-              href={canAct && phoneValid ? waHref : undefined}
-              aria-disabled={!canAct || !phoneValid}
-              target="_blank"
-              rel="noreferrer noopener"
-              onClick={(e) => (canAct && phoneValid ? prepared() : e.preventDefault())}
-              className="btn btn-primary"
-            >
-              <Icon name="send" className="h-4 w-4" />
-              {t("send.open_whatsapp")}
-            </a>
-            <a
-              href={canAct ? mailHref : undefined}
-              aria-disabled={!canAct}
-              onClick={(e) => (canAct ? prepared() : e.preventDefault())}
-              className="btn btn-secondary"
-            >
-              <Icon name="doc" className="h-4 w-4" />
-              {t("send.open_email")}
-            </a>
-          </>
-        )}
-        <button type="button" className={`btn ${isPack ? "btn-primary" : "btn-secondary"}`} disabled={!canAct} onClick={copy}>
-          <Icon name="copy" className="h-4 w-4" />
-          {copied ? t("send.copied") : t("send.copy")}
-        </button>
+        <SendButtons
+          text={text}
+          subject={subject}
+          phone={phone}
+          email={email}
+          enabled={canAct}
+          channels={!isPack}
+          copyPrimary={isPack}
+          onPrepared={prepared}
+        />
         {pdf ? (
           <a
             href={`data:application/pdf;base64,${pdf}`}
