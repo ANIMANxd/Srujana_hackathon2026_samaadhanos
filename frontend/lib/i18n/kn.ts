@@ -42,8 +42,8 @@ export const kn: Partial<Record<MessageKey, string>> = {
   "dues.subtitle": "ಹೆಚ್ಚು ತಡವಾದವು ಮೊದಲು.",
 
   // case card (MVP set)
-  "case.view.supplier": "ನಿಮ್ಮ ನೋಟ",
-  "case.view.cfo": "ಖರೀದಿದಾರರ ಹಣಕಾಸು ನೋಟ",
+  "case.view.supplier": "ಪೂರೈಕೆದಾರ (supplier)",
+  "case.view.cfo": "ಖರೀದಿದಾರ CFO",
   "hero.claim": "ಒಟ್ಟು ಕ್ಲೈಮ್ (total claim)",
   "hero.principal": "ಅಸಲು (principal)",
   "hero.interest": "ಇದುವರೆಗಿನ ಬಡ್ಡಿ (interest)",

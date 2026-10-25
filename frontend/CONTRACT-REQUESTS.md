@@ -25,6 +25,21 @@ Status key: **open** = not done yet. **done** = shipped by the backend and used 
 | CR-12 | Makefile: wire the frontend targets now that F0 has landed. Suggested recipes (no sh syntax, per the Makefile header): `frontend:` → `npm --prefix frontend run dev`; `dev:` → start `backend` and `frontend` (two terminals is fine); `demo:` → `npm --prefix frontend run dev` after `fixtures` | F0 acceptance says `make dev` shows the shell; the Makefile is outside the frontend boundary | Run `npm run dev` inside `frontend/` (README) | open |
 | CR-11 | Spec findings F1–F7 in `docs/test-oracles.md` (e.g. F1 rest-day payment dropped, F3 Silpi date never compared) | Judge manipulations 4 and 5 show engine output as-is | Nothing to change in the UI; it shows whatever the engine returns | open (engine) |
 
+## Review 2026-10-25 (`docs/review-2026-10-25.md`), frontend view
+
+The review was written against the frontend before commit `2969ede`. Its three
+frontend items are already fixed on `main`:
+
+- **B1** `BAND_TONE` now has `EVIDENCE_COMPLETE`; typecheck and build pass.
+- **m6** `frontend/demo-cases/` is deleted; the seven backend presets are used.
+- **m7** the `tpl.*` fallback drafts are removed; drafts come from `/generate-artifact` only.
+
+Engine findings that show up in the judge console (nothing to change in the UI, it shows the engine's answer):
+
+- **M2 / F3** rehearsal 5 (Udyam after supply, Silpi test on the supply date) returns `ELIGIBLE`, never `BARRED_SILPI`. The pill and panel already handle `BARRED_SILPI` (lock icon, "Appears barred") and will show it once the engine compares the dates.
+- **B2 / F2** an investment inside the small ceilings with class `MICRO` reads `EXCLUDED_MEDIUM`.
+- **M1, M3, M4** payment on rest day = calculation day, duplicate payments, negative credit days: the console accepts these inputs and shows whatever the engine returns. It already refuses negative credit days (whole numbers only).
+
 ## Notes for running together
 
 - No CORS change is needed. The frontend proxies `/api/v1/*` to `BACKEND_URL`

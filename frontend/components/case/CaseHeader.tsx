@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { date } from "@/lib/format";
 import { useT } from "@/lib/i18n";
-import { useHref, useUrlState } from "@/lib/params";
+import { useHref } from "@/lib/params";
 import type { CaseRequest, CaseResponse } from "@/lib/types";
 import { Icon } from "../common/Icon";
+import { PersonaSwitch } from "../shell/PersonaSwitch";
 import { EligibilityPill } from "./EligibilityPill";
 
 export function CaseHeader({
@@ -13,15 +14,17 @@ export function CaseHeader({
   request,
   response,
   showViewToggle = true,
+  linkEligibility = true,
 }: {
   caseId: string;
   request: CaseRequest | null;
   response: CaseResponse | null;
   showViewToggle?: boolean;
+  /** False on the eligibility panel itself, so the pill does not link to its own page. */
+  linkEligibility?: boolean;
 }) {
   const { t } = useT();
   const href = useHref();
-  const { view } = useUrlState();
 
   return (
     <div className="no-print flex flex-col gap-4">
@@ -43,27 +46,12 @@ export function CaseHeader({
               <>
                 <span aria-hidden="true" className="text-ink-300">·</span>
                 <span className="num">{t("case.as_of", { date: date(response.calculation_date) })}</span>
-                <EligibilityPill status={response.jurisdiction.status} />
+                <EligibilityPill status={response.jurisdiction.status} caseId={linkEligibility ? caseId : undefined} />
               </>
             )}
           </div>
         </div>
-        {showViewToggle && (
-          <div role="group" aria-label={t("case.view.label")} className="inline-flex self-start rounded-lg border border-rule bg-paper-sunk p-0.5 sm:self-auto">
-            {(["supplier", "cfo"] as const).map((v) => (
-              <Link
-                key={v}
-                href={href(`/case/${caseId}`, { view: v })}
-                aria-current={view === v ? "page" : undefined}
-                className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-                  view === v ? "bg-paper-raised text-ink-950 shadow-[0_1px_2px_rgb(13_13_12/0.08)]" : "text-ink-500 hover:text-ink-950"
-                }`}
-              >
-                {t(v === "supplier" ? "case.view.supplier" : "case.view.cfo")}
-              </Link>
-            ))}
-          </div>
-        )}
+        {showViewToggle && <PersonaSwitch path={`/case/${caseId}`} />}
       </div>
     </div>
   );

@@ -1,26 +1,46 @@
 "use client";
 
-import { eligibilityTone, evidenceKinds } from "@/lib/derive";
+import Link from "next/link";
+import { evidenceKinds, isNotCovered } from "@/lib/derive";
 import { useT } from "@/lib/i18n";
+import { useHref } from "@/lib/params";
 import type { CaseRequest, CaseResponse } from "@/lib/types";
+import { Icon } from "../common/Icon";
 import { StatusIcon } from "../common/StatusIcon";
+import { EligibilityPill } from "./EligibilityPill";
 
-/** Full "Not covered" screen: shown instead of the case screen when the gate blocks. */
+/**
+ * The eligibility explanation panel. Shown instead of the case screen when the
+ * gate blocks, and at /eligibility/[id] for any status (the pill links here).
+ */
 export function NotCovered({ request, response }: { request: CaseRequest; response: CaseResponse }) {
   const { t, tCode } = useT();
+  const href = useHref();
   const j = response.jurisdiction;
+  const blocked = isNotCovered(response);
+  const title = blocked
+    ? t("eligibility.screen.title")
+    : j.status === "ELIGIBLE"
+      ? t("eligibility.screen.title_eligible")
+      : t("eligibility.screen.title_unconfirmed");
   const have = evidenceKinds(request, true);
   const missing = evidenceKinds(request, false);
 
   return (
     <section aria-labelledby="nc-title" className="flex flex-col gap-4">
       <div className="panel flex flex-col gap-4 p-6 sm:p-8">
-        <StatusIcon tone={eligibilityTone(j.status)} label={t(`eligibility.${j.status}`)} />
+        <EligibilityPill status={j.status} />
         <h2 id="nc-title" className="max-w-2xl text-2xl font-semibold leading-tight tracking-[-0.02em] text-ink-950 sm:text-[1.75rem]">
-          {t("eligibility.screen.title")}
+          {title}
         </h2>
         <p className="max-w-2xl text-[0.9375rem] leading-relaxed text-ink-700">{t(`eligibility.reason.${j.status}`)}</p>
         <p className="text-xs text-ink-500">{t("eligibility.screen.based_on")}</p>
+        {!blocked && (
+          <Link href={href(`/case/${response.case_id}`)} className="btn btn-secondary self-start">
+            <Icon name="arrow-left" className="h-4 w-4" />
+            {t("eligibility.screen.back")}
+          </Link>
+        )}
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">

@@ -12,7 +12,7 @@ import { Drawer } from "../common/Drawer";
 import { Icon } from "../common/Icon";
 import { CaseSkeleton, ErrorState, NotFoundState } from "../common/States";
 import { DataBanners } from "../shell/Banners";
-import { JudgeConsole } from "../shell/JudgeConsole";
+import { JudgeConsole, judgeCase } from "../shell/JudgeConsole";
 import { CfoCostLines } from "../cfo/CfoCostLines";
 import { SendPanel } from "../send/SendPanel";
 import { AssumptionsDrawer } from "./AssumptionsDrawer";
@@ -34,8 +34,7 @@ export function CaseScreen({ caseId }: { caseId: string }) {
   const cfg = useConfig();
   const log = useSendLog(caseId);
 
-  const judge =
-    ev.request && ev.base ? { request: ev.request, base: ev.base, setRequest: ev.setRequest, reset: ev.reset } : null;
+  const judge = judgeCase(ev);
 
   if (ev.status === "not_found") return <NotFoundState />;
 

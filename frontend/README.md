@@ -47,7 +47,8 @@ samples show the extractor's saved results, and edited or uploaded cases say
 | `/case/[id]/pack` | Am I ready for the MSME ODR portal? (checklist, chronology, interest sheet, certificate **template**) |
 | `/eligibility/[id]` | Does the law cover me? (shown instead of the case when the gate blocks) |
 
-Judge console: **Ctrl+J**, or `?judge=1`. Presets plus a live edit form.
+Judge console: **Ctrl+J**, the top-bar button, or `?judge=1`. Presets (Load always shows the clean preset), a live edit form covering the five rehearsed manipulations (dates, delivery proof, part-payments, Bank Rate override, investment/turnover, Udyam date with the Silpi test date), the engine's live result, a plain-language "changed from the preset" list and Reset. Each edit re-evaluates in about 350 ms locally, most of which is the 300 ms typing debounce.
+The eligibility pill in the case header links every non-eligible state to its explanation panel (`/eligibility/[id]`).
 URL params: `?view=supplier|cfo`, `?lang=en|kn`. The EN / ಕ toggle in the top bar sets `lang`; `kn.ts` covers the shell and the main case card (legal terms kept in English in brackets, native-speaker review still needed) and every missing key falls back to English.
 `?view=` also sets the persona tone: the supplier workspace is warm with a saffron accent, and the buyer CFO view is cooler with a slate-blue accent (`[data-tone]` in `app/globals.css`).
 
