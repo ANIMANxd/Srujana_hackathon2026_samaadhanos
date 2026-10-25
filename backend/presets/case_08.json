@@ -1,0 +1,49 @@
+{
+  "title": "CASE-08 — Not yet due: a small supplier with 9 days left, complete evidence",
+  "note": "INPUT ONLY, synthetic (golden rule 11): no real parties, Udyam or GSTIN numbers. No outputs are stored here; every number comes from the engine. The second Get-paid-early case: a larger small-enterprise invoice, still inside its credit period, with every document held so the evidence pack is also complete.",
+  "why_calculation_date": "Deliberate: delivery 2026-09-20 plus the 45-day statutory cap (agreed 45 days, so not clamped) puts the due date on 2026-11-04, nine days after the 2026-10-26 calculation date. No delay has accrued, so interest is zero and Option 1 is available. Kept inside the configured 5.50% Bank Rate epoch so any later expected-payment date is still priceable (V1 uncaptured before 2026-04-01, CR-8).",
+  "request": {
+    "contract_version": "1.0",
+    "case_id": "case_08",
+    "supplier": {
+      "name": "Sample Small Components (synthetic)",
+      "udyam_number": "UDYAM-SYN-000000007",
+      "enterprise_class": "SMALL",
+      "activity": "MANUFACTURING",
+      "nic_codes": ["25990"],
+      "udyam_registration_date": "2021-11-15",
+      "investment_cr": "2.40",
+      "turnover_cr": "18.00"
+    },
+    "buyer": {
+      "name": "Sample Buyer Eight Ltd (synthetic)",
+      "gstin": "29SYN000000008Z1",
+      "tax_rate_pct": "31.20",
+      "cost_of_capital_pct": "12.50"
+    },
+    "transaction": {
+      "contract_date": "2026-07-20",
+      "supply_date": "2026-09-20",
+      "invoice_date": "2026-09-22",
+      "delivery_date": "2026-09-20",
+      "principal": "750000.00",
+      "written_credit_days": 45,
+      "calculation_date": "2026-10-26",
+      "years_deferred": "1.00"
+    },
+    "objections": [],
+    "part_payments": [],
+    "acknowledgments": [],
+    "evidence": {
+      "items": [
+        { "kind": "PO", "present": true, "ref": "synthetic-PO-008" },
+        { "kind": "INVOICE", "present": true, "ref": "synthetic-INV-008" },
+        { "kind": "DELIVERY_PROOF", "present": true, "ref": "synthetic-LR-008" },
+        { "kind": "WHATSAPP", "present": true, "ref": "synthetic-WA-008" },
+        { "kind": "UDYAM", "present": true, "ref": "synthetic-UDYAM-008" },
+        { "kind": "GST_RETURN", "present": true, "ref": "synthetic-GST-008" }
+      ]
+    },
+    "config_overrides": null
+  }
+}

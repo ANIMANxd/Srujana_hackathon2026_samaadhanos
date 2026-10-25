@@ -117,16 +117,26 @@ def financeability(
             )
         )
 
-    # 6. The due date has passed by more than the configured allowance (OQ-11).
-    overdue_days = (as_of - case_facts.due_date).days
-    if overdue_days > cfg.max_overdue_days:
+    # 6. The due date has passed by more than the configured allowance (OQ-11), or
+    # there is no due date at all - a financier needs one to price a tenor.
+    if case_facts.due_date is None:
         reasons.append(
             _reason(
-                "OVERDUE",
-                f"The due date passed {overdue_days} day(s) ago. This build only finances "
-                f"invoices up to {cfg.max_overdue_days} day(s) past the due date, so interest "
-                "accrued so far would not be covered.",
+                "NO_DUE_DATE",
+                "This invoice has no due date yet, so no tenor can be priced. Resolve the "
+                "acceptance position first.",
             )
         )
+    else:
+        overdue_days = (as_of - case_facts.due_date).days
+        if overdue_days > cfg.max_overdue_days:
+            reasons.append(
+                _reason(
+                    "OVERDUE",
+                    f"The due date passed {overdue_days} day(s) ago. This build only finances "
+                    f"invoices up to {cfg.max_overdue_days} day(s) past the due date, so interest "
+                    "accrued so far would not be covered.",
+                )
+            )
 
     return {"financeable": not reasons, "reasons": reasons, "assumptions": assumptions}

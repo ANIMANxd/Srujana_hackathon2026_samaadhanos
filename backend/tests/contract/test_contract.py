@@ -1,11 +1,11 @@
-"""Contract v1.0 tests (architecture.md section 11, tests/contract).
+﻿"""Contract v1.0 tests (architecture.md section 11, tests/contract).
 
 These prove the frozen contract holds: every fixture validates against the
 models, the committed openapi.json matches the live app, every preset evaluates
 through the real engine, and the blocked presets come back with null money
 blocks plus a BLOCK warning rather than zeros.
 
-They do NOT test legal arithmetic — that is tests/spec's job.
+They do NOT test legal arithmetic â€” that is tests/spec's job.
 """
 
 import json
@@ -29,7 +29,18 @@ PRESETS = ROOT / "backend" / "presets"
 
 # The preset ids this repo ships. case_05's two variants are blocked cases and
 # case_06 is the stretch (no delivery proof); see docs/open-questions.md CQ-32.
-PRESET_IDS = ["case_01", "case_02", "case_03", "case_04", "case_05a", "case_05b", "case_06"]
+PRESET_IDS = [
+    "case_01",
+    "case_02",
+    "case_03",
+    "case_04",
+    "case_05a",
+    "case_05b",
+    "case_06",
+    # Not yet due: these two exist to show Option 1 (get paid early).
+    "case_07",
+    "case_08",
+]
 BLOCKED_IDS = ["case_05a", "case_05b"]
 # Top-level keys a preset file may carry: descriptive text plus the input.
 PRESET_KEYS = {"title", "note", "why_calculation_date", "request"}
