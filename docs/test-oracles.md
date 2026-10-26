@@ -266,3 +266,31 @@ impossible dates, negative `years_deferred` are refused today).
 The statute sheet has captured nothing yet (V1-V11 all `no`), so every
 constant these tests rely on is unverified by construction; the suite asserts
 that the warnings say so rather than trusting the numbers silently.
+
+## 5. v5 Customer book oracles (`backend/tests/spec/insights/`)
+
+Hand-computed from the task's examples only; these tests persist through the
+HTTP API (`POST /cases`, `POST /cases/{id}/payments`, `GET /customers`,
+`GET /customers/{id}`, `GET /insights`) on a throwaway database per test. They
+never read `backend/insights/**` or `backend/engine/**`.
+
+**One pinned input.** Every request carries
+`config_overrides={"bank_rate_pct": "5.50"}`. The statute config holds no Bank
+Rate epoch before 2026-04-01 (CR-8), so a case accepted in January cannot be
+priced at all without one. Day counts, due dates and on-time results do not
+depend on the rate, and the config file is not edited.
+
+| Oracle | Arithmetic | Asserted as |
+|---|---|---|
+| PAN from a GSTIN | `29ABCDE1234F1Z5` -> characters 3-12 | `ABCDE1234F`; 14/12-character and bare-PAN inputs -> `None` |
+| Name keys equal | `Acme Industries Pvt. Ltd.` = `ACME INDUSTRIES PRIVATE LIMITED`; `M/s Ganga & Sons` = `GANGA AND SONS`; `... Co.` = `... Company` | equal normalised keys |
+| Name keys different | `Ganga Precision Works` vs `Ganga Precision Works Private Limited`; `... Private Limited` vs `... Limited` | different keys (similarity is a suggestion, never a merge) |
+| Same PAN, two states | 29 + 33 with PAN `ABCDE1234F` | one customer, two `gstins` |
+| Different PANs | `ABCDE1234F` vs `PQRSX5678K` | two customers, both PAN, no group; `LINK_AS_GROUP` suggested |
+| Days to pay | accepted 1 Jan / 1 Feb / 1 Mar, paid +30 / +60 / +90 (31 Jan, 2 Apr, 30 May) | avg 60.00, median 60.00, worst 90.00 |
+| On time | due = acceptance + 45 (15 Feb, 18 Mar, 15 Apr); paid 31 Jan yes, 2 Apr no, 30 May no | 1 of 3, 33.33% |
+| Not enough history | two paid invoices | `avg_days_to_pay` null, reason says "Not enough history", `based_on` 2 < `min_history` 3 |
+| Partial payment | 40,000 paid on a 100,000 invoice | `paid_count` 0, invoice not PAID, outstanding >= 60,000 |
+| Acceptance anchor | invoice dated 10 days before delivery, paid +30 from delivery (10 Feb, 13 Mar, 10 Apr) | avg 30.00, not 40.00; each point 30 days |
+| Concentration | outstanding 60,000 / 30,000 / 10,000 = 100,000, top share 60% | `top_customer_share_pct` 60.00, `concentration_flag` true at the 40% setting |
+| Before March | one open overdue, one paid before due, one not due (due in 40 days) | exactly one row, the overdue invoice, note quotes 43B(h) |
