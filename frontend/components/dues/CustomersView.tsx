@@ -6,9 +6,7 @@
 
 import Link from "next/link";
 import { useMemo, useState, type ReactNode } from "react";
-import { listSuggestions, type CustomerSort, type SortDir } from "@/lib/api";
-import { useBookRead } from "@/lib/customerBook";
-import { count } from "@/lib/format";
+import type { CustomerSort, SortDir } from "@/lib/api";
 import { useT } from "@/lib/i18n";
 import type { MessageKey } from "@/lib/i18n/en";
 import { useHref } from "@/lib/params";
@@ -19,6 +17,7 @@ import { useInsights } from "@/lib/useInsights";
 import { Icon } from "../common/Icon";
 import { EmptyState, ErrorState, Skeleton } from "../common/States";
 import { Banner, DataBanners } from "../shell/Banners";
+import { SuggestionsDrawer } from "../customers/SuggestionsDrawer";
 import { BOOK_GRID, CustomerLine, GroupLine } from "./CustomerBookRow";
 import { InsightsStrip } from "./InsightsStrip";
 
@@ -29,24 +28,6 @@ const SORTS: { sort: CustomerSort; dir: SortDir; label: MessageKey }[] = [
   { sort: "avg_days_to_pay", dir: "desc", label: "customers.sort.avg_days_to_pay" },
   { sort: "display_name", dir: "asc", label: "customers.sort.display_name" },
 ];
-
-function SuggestionsBanner() {
-  const { t } = useT();
-  const href = useHref();
-  const read = useBookRead("suggestions", true, listSuggestions, "customers.load_failed");
-  const people = useMemo(() => new Set((read.data ?? []).flatMap((s) => [s.a, s.b])).size, [read.data]);
-  if (!read.data || read.data.length === 0) return null;
-  return (
-    <div role="status" className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg border border-info/25 bg-info-wash px-3.5 py-2 text-sm text-info">
-      <Icon name="info" className="h-4 w-4" />
-      <p className="font-medium">{t("customers.suggestions", { n: count(people) })}</p>
-      <Link href={href("/customers/review")} className="inline-flex items-center gap-1 font-medium underline underline-offset-2">
-        {t("customers.suggestions_review")}
-        <Icon name="arrow-right" className="h-3.5 w-3.5" />
-      </Link>
-    </div>
-  );
-}
 
 export function CustomersView({ demoButton }: { demoButton: ReactNode }) {
   const { t } = useT();
@@ -66,7 +47,7 @@ export function CustomersView({ demoButton }: { demoButton: ReactNode }) {
       {book.source === "offline" && <Banner tone="warn" icon="lock" message="book.offline_sample" />}
       <DataBanners placeholder={placeholder} />
       <InsightsStrip insights={insights} />
-      <SuggestionsBanner />
+      <SuggestionsDrawer />
 
       {book.error && !book.rows ? (
         <ErrorState message={book.error.detail ?? t(book.error.key)} onRetry={book.refresh} />

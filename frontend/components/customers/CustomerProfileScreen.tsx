@@ -30,6 +30,7 @@ import { StatusIcon } from "../common/StatusIcon";
 import { Banner, DataBanners } from "../shell/Banners";
 import { PlaceholderBadge } from "../shell/PlaceholderBadge";
 import { PaymentHistoryChart } from "./PaymentHistoryChart";
+import { ReviewedChanges } from "./ReviewedChanges";
 
 type T = ReturnType<typeof useT>["t"];
 
@@ -444,6 +445,7 @@ export function CustomerProfileScreen({ customerId }: { customerId: string }) {
       ) : (
         <>
           <Header p={p} offline={offline} refresh={view.refresh} />
+          <ReviewedChanges customerId={p.customer.id} offline={offline} refresh={view.refresh} />
 
           <section aria-label={t("profile.stats_label")} className="flex flex-col gap-1.5">
             <dl className="panel grid grid-cols-2 gap-px overflow-hidden bg-rule sm:grid-cols-3 xl:grid-cols-6">
