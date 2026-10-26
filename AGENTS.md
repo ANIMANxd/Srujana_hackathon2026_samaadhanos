@@ -4,7 +4,7 @@ Copy this file to the repo root as `AGENTS.md` (and `CLAUDE.md` if your tool rea
 
 ## 1. What this project is
 
-SamadhaanOS helps micro and small suppliers in India enforce their payment rights under the MSMED Act without wrecking the customer relationship. It checks eligibility, fixes statutory dates, computes interest, shows the buyer's cost of delay, tracks limitation, and produces a graduated escalation ladder. Hackathon: Srujana Tech Fest 2026, Legal Services track, problem LS-03.
+SamadhaanOS helps micro and small suppliers in India enforce their payment rights under the MSMED Act without wrecking the customer relationship. It checks eligibility, fixes statutory dates, computes interest, shows the buyer's cost of delay, tracks limitation, and produces a graduated escalation ladder. **v4** adds two options per invoice: *Get paid early* (a TReDS-style flow with simulated eSign, bids and bank webhook) and *Recover with the law* (the ladder). **v5** adds a Customer book: invoices auto-grouped into customers, descriptive payment history and stats, and portfolio insights. Hackathon: Srujana Tech Fest 2026, Legal Services track, problem LS-03.
 
 Team: **Aniruddha** owns backend and legal rules. **Mochi** (Sanay) owns frontend and UX. Two humans, so you are an extension of one of them. Know which one before you start.
 
@@ -33,6 +33,13 @@ Team: **Aniruddha** owns backend and legal rules. **Mochi** (Sanay) owns fronten
 20. **Never recommend Option 1 or Option 2.** Show both with numbers; `recommendation` stays null.
 21. **Never claim the financier can enforce MSMED rights** (s.16 interest, MSEFC). It's an open question (OQ-10).
 
+22. **No buyer scores.** Customer stats are descriptive metrics from the owner's own data: no scores, ratings, ranks, "risky"/"bad payer" labels, or predictions (the only exception is the cash-in estimate, clearly labelled as an estimate). Nothing is compared or shared across users.
+23. **Never merge different PANs automatically.** The same PAN groups automatically. Different PANs are linked into a group only by the owner, and legal calculations and artifacts always stay per legal entity (per invoice).
+24. **Days to pay start at the engine's day of acceptance.** "On time" means paid by the engine's legal due date. Never measure from the invoice date.
+25. **Show the sample size.** Every average carries "based on N". With fewer than `insights.min_history` (default 3) fully paid invoices, show "not enough history" instead of a number.
+26. **Reversible and audited.** Every attach, link, unlink, dismissal and payment can be undone (payments are voided, never deleted) and appends an audit event.
+27. **Product settings are not law.** Thresholds such as name-match similarity, concentration flag and minimum history live in config with `verified=false` and the note "product setting, not law".
+
 ## 3. Agent roles and file boundaries
 
 Only the listed agent edits the listed paths. If you need a change outside your boundary, write a request in `docs/worklog.md` instead of making it.
@@ -46,6 +53,7 @@ Only the listed agent edits the listed paths. If you need a change outside your 
 | **Reviewer (red team)** | Either | `docs/review-*.md` only | all code | Read-only. Tries to break rules: wrong dates, rounding, unverified constants, fake certainty in UI copy. |
 | **Workflow & integrations** | Aniruddha | `backend/workflow/**`, `backend/ports/**`, `backend/adapters/**`, `backend/store/**`, `backend/app/routes/financing.py`, `recovery.py`, `webhooks.py`, `events.py` | `backend/engine/**`, `backend/finance/**` (call, don't change), `frontend/**` | Every mutation is idempotent; every webhook is verified and deduplicated; every transition goes through the transition table. |
 | **Finance maths** | Aniruddha | `backend/finance/**` | everything else | Pure functions, Decimal only, no I/O. Same rules as the legal engine. |
+| **Insights maths** | Aniruddha | `backend/insights/**` | everything else | Pure functions, Decimal only, no I/O, no clock calls (as_of passed in). Uses engine outputs; never recomputes interest or due dates. |
 | **Mock providers** | Either | `mock_providers/**` | `backend/**`, `frontend/**` | Simulation only. Real signed HTTP webhooks. Deterministic, seeded outputs. Fictional names. |
 | **Docs** | Either | `README.md`, `docs/**` except statute sheet | code | Writes the AI-assistance disclosure and known-limitations sections truthfully. |
 
@@ -106,6 +114,13 @@ Only the listed agent edits the listed paths. If you need a change outside your 
 - Parsing a webhook body before verifying its signature over the raw bytes.
 - Using floats or REAL columns for money in the database. Money is TEXT decimal strings.
 - Applying an out-of-order webhook instead of parking it.
+- Measuring days to pay from the invoice date instead of the engine's day of acceptance.
+- Showing an average from one or two invoices, or without "based on N".
+- Merging two customers because their names look alike when their PANs differ. Suggest a group link instead.
+- Words like "score", "rating", "risky", "defaulter", "blacklist" in UI copy or API field names.
+- Deleting a payment instead of voiding it.
+- Computing customer stats in a route handler or in the frontend instead of `backend/insights/`.
+- Accepting CSV cells that start with `=`, `+`, `-` or `@` (CSV injection).
 
 ## 8. Escalation
 
