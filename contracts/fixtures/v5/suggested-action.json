@@ -1,0 +1,21 @@
+{
+  "_fixture": {
+    "schema": "SuggestedAction",
+    "contract_version": "1.2",
+    "synthetic": true,
+    "placeholder": true,
+    "placeholder_fields": [
+      "reason"
+    ],
+    "why": "Hand-shaped next action taken from the workflow transition table.",
+    "regenerate_with": "pending CB6; after CB6 use the seeded-DB v5 fixture exporter (the v4 pattern is backend/app/export_v4_fixtures.py)"
+  },
+  "payload": {
+    "case_id": "01JAV5CASE0000000000000001",
+    "invoice_no": "SYN-1001",
+    "action": "mark_sent",
+    "label": "Record that you sent this stage",
+    "reason": "Taken from this invoice's current workflow state.",
+    "source": "WORKFLOW"
+  }
+}

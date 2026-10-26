@@ -7,10 +7,13 @@
     "placeholder_fields": [
       "stats",
       "payments",
-      "suggestions",
-      "cases"
+      "series",
+      "invoices",
+      "timeline",
+      "buyer_cost_summary",
+      "suggested_next_actions"
     ],
-    "why": "Hand-shaped profile assembling the component shapes; no CB3 profile route yet.",
+    "why": "Hand-shaped profile assembling the component shapes; the route fills every block from the store and backend/insights.",
     "regenerate_with": "pending CB2-CB6; after CB6 use the seeded-DB v5 fixture exporter (the v4 pattern is backend/app/export_v4_fixtures.py)"
   },
   "payload": {
@@ -62,7 +65,36 @@
           "last_payment_on": null,
           "suggestion_count": 1
         }
-      ]
+      ],
+      "gstins": [
+        "27ABCDE1234F1Z5",
+        "29ABCDE1234F1Z9"
+      ],
+      "stats": {
+        "as_of": "2026-10-26",
+        "invoice_count": 5,
+        "paid_invoice_count": 2,
+        "based_on": 2,
+        "min_history": 3,
+        "avg_days_to_pay": null,
+        "avg_days_to_pay_reason": "Totals only: money and counts add up, averages do not. Expand the group to see each member's average and the number of invoices behind it.",
+        "on_time_pct": null,
+        "on_time_pct_reason": "Totals only: money and counts add up, averages do not. Expand the group to see each member's average and the number of invoices behind it.",
+        "outstanding_total": "1430000.00",
+        "overdue_total": "450000.00",
+        "paid_total": "600000.00",
+        "oldest_overdue_days": 62,
+        "last_payment_on": "2026-09-30",
+        "cash_in_estimate": null,
+        "cash_in_estimate_note": "The cash-in estimate is a portfolio figure; see GET /api/v1/insights.",
+        "interest_accrued_now": "62000.00",
+        "median_days_to_pay": null,
+        "worst_days_to_pay": null,
+        "on_time_count": 1,
+        "paid_count": 2,
+        "on_time_text": "1 of 2 on time"
+      },
+      "totals_note": "Totals only: money and counts add up, averages do not. Expand the group to see each member's average and the number of invoices behind it."
     },
     "stats": {
       "as_of": "2026-10-26",
@@ -79,8 +111,14 @@
       "paid_total": "600000.00",
       "oldest_overdue_days": 62,
       "last_payment_on": "2026-09-30",
-      "cash_in_estimate": "1700000.00",
-      "cash_in_estimate_note": "Estimate only: assumes the engine's legal due dates are paid in full; not a promise."
+      "cash_in_estimate": null,
+      "cash_in_estimate_note": "The cash-in estimate is a portfolio figure; see GET /api/v1/insights.",
+      "interest_accrued_now": "62000.00",
+      "median_days_to_pay": null,
+      "worst_days_to_pay": null,
+      "on_time_count": 1,
+      "paid_count": 2,
+      "on_time_text": "1 of 2 on time"
     },
     "payments": [
       {
@@ -117,6 +155,121 @@
         "state": "NEW",
         "stage": null,
         "available_actions": []
+      }
+    ],
+    "gstins": [
+      "27ABCDE1234F1Z5",
+      "29ABCDE1234F1Z9"
+    ],
+    "series": [
+      {
+        "case_id": "01JAV5CASE0000000000000001",
+        "invoice_no": "SYN-1001",
+        "accepted_on": "2026-06-01",
+        "due_date": "2026-07-16",
+        "legal_due_days": 45,
+        "days_to_pay": null,
+        "days_open_so_far": 147,
+        "days_overdue": 102,
+        "status": "OVERDUE",
+        "outstanding": "450000.00",
+        "on_time": null,
+        "based_on": 1
+      }
+    ],
+    "invoices": [
+      {
+        "case_id": "01JAV5CASE0000000000000001",
+        "invoice_no": "SYN-1001",
+        "invoice_date": "2026-05-28",
+        "accepted_amount": "1250000.00",
+        "accepted_on": "2026-06-01",
+        "due_date": "2026-07-16",
+        "days_overdue": 102,
+        "days_to_pay": null,
+        "days_open_so_far": 147,
+        "outstanding": "450000.00",
+        "status": "OVERDUE",
+        "on_time": null,
+        "last_payment_on": "2026-09-30",
+        "active_track": {
+          "case_id": "01JAV5CASE0000000000000001",
+          "kind": "RECOVERY",
+          "state": "STAGE_1_PREPARED",
+          "stage": 1,
+          "version": 2,
+          "created_at": "2026-10-20T09:00:00Z"
+        }
+      }
+    ],
+    "timeline": [
+      {
+        "seq": 2,
+        "case_id": "01JAV5CASE0000000000000001",
+        "track_id": null,
+        "type": "customer.attach",
+        "payload_json": {
+          "from_customer_id": "01JAV5CST0000000000000002",
+          "to_customer_id": "01JAV5CST0000000000000001",
+          "case_ids": [
+            "01JAV5CASE0000000000000001"
+          ],
+          "gstins": [],
+          "source": "api.customers.attach"
+        },
+        "actor": "USER",
+        "created_at": "2026-10-26T09:05:00Z",
+        "prev_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+        "hash": "1111111111111111111111111111111111111111111111111111111111111111"
+      }
+    ],
+    "buyer_cost_summary": {
+      "as_of": "2026-10-26",
+      "lines": [
+        {
+          "id": "PERMANENT_LOSS",
+          "label": "Interest the buyer cannot deduct (permanent loss)",
+          "amount": "62000.00",
+          "case_count": 1,
+          "case_ids": [
+            "01JAV5CASE0000000000000001"
+          ],
+          "items": [],
+          "note": "Interest accrued on the late payment, from the engine's own buyer-cost block."
+        },
+        {
+          "id": "DEFERRAL",
+          "label": "Tax-timing deferral cost",
+          "amount": null,
+          "case_count": 0,
+          "case_ids": [],
+          "items": [],
+          "note": "No invoice reaches a 31 March checkpoint with the engine's current inputs."
+        },
+        {
+          "id": "DISCLOSURE",
+          "label": "Disclosure the buyer has to make",
+          "amount": null,
+          "case_count": 1,
+          "case_ids": [
+            "01JAV5CASE0000000000000001"
+          ],
+          "items": [
+            "s.22 disclosure in the audited accounts"
+          ],
+          "note": "Disclosure flags are not money, so this line carries no amount."
+        }
+      ],
+      "note": "Three separate lines about the buyer's position. They are never added together (AGENTS.md rule 8)."
+    },
+    "suggested_next_actions": [
+      {
+        "case_id": "01JAV5CASE0000000000000001",
+        "invoice_no": "SYN-1001",
+        "action": "mark_sent",
+        "label": "Record that you sent this stage",
+        "reason": "Taken from this invoice's current workflow state.",
+        "source": "WORKFLOW"
       }
     ]
   }

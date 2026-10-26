@@ -1,9 +1,9 @@
-"""Contract v1.2 conformance: v1.0/v1.1 are frozen, v1.2 adds the payment routes.
+"""Contract v1.2 conformance: v1.0/v1.1 are frozen, v1.2 adds the v5 routes.
 
 The v1.1 fingerprint was captured before the v1.2 models and the first v1.2
 routes were added (contracts/fixtures/v5/v1.1-contract-baseline.json); every
-entry in it must still hash identically. The only new paths allowed are the two
-v1.2 payment paths.
+entry in it must still hash identically. The only new paths allowed are the
+payment and customer-book paths v1.2 declares.
 
 The v5 fixtures are hand-shaped placeholders until the CB6 export exists. They
 must say so, and they must still validate against the models they claim to show.
@@ -24,11 +24,14 @@ from backend.app.schemas import CONTRACT_VERSION
 from backend.app.schemas_v4 import CONTRACT_VERSION_V1_1
 from backend.app.schemas_v5 import (
     V1_2_MODELS,
+    BuyerCostSummary,
     ChartSeriesPoint,
     Customer,
     CustomerGroupRow,
+    CustomerListResponse,
     CustomerProfile,
     CustomerRow,
+    CustomerSeriesPoint,
     CustomerStats,
     ImportPreview,
     ImportResult,
@@ -36,7 +39,9 @@ from backend.app.schemas_v5 import (
     PaymentCreateRequest,
     PaymentListResponse,
     PortfolioInsights,
+    SuggestedAction,
     Suggestion,
+    SuggestionListResponse,
 )
 from backend.app.schemas_v5 import CONTRACT_VERSION_V1_2
 
@@ -51,11 +56,16 @@ FIXTURE_MODELS: dict[str, Any] = {
     "customer-group-row.json": CustomerGroupRow,
     "customer-profile.json": CustomerProfile,
     "customer-stats.json": CustomerStats,
+    "customer-list.json": CustomerListResponse,
+    "customer-series-point.json": CustomerSeriesPoint,
     "chart-series-point.json": ChartSeriesPoint,
+    "buyer-cost-summary.json": BuyerCostSummary,
+    "suggested-action.json": SuggestedAction,
     "payment.json": Payment,
     "payment-create-request.json": PaymentCreateRequest,
     "payment-list.json": PaymentListResponse,
     "suggestion.json": Suggestion,
+    "suggestion-list.json": SuggestionListResponse,
     "import-preview.json": ImportPreview,
     "import-result.json": ImportResult,
     "portfolio-insights.json": PortfolioInsights,
@@ -118,14 +128,25 @@ def test_every_v1_1_path_is_byte_identical():
     assert not changed, f"v1.1 paths changed by v1.2: {sorted(changed)}"
 
 
-def test_v1_2_adds_only_the_payment_routes():
-    """v1.2 adds the two payment paths; the v1.1 path set must still be intact."""
+def test_v1_2_adds_the_payment_and_customer_book_routes():
+    """v1.2 adds the payment and customer-book paths; the v1.1 set stays intact."""
     live = set(app.openapi()["paths"])
     baseline = set(_baseline()["paths"])
     added = live - baseline
     assert added == {
         "/api/v1/cases/{case_id}/payments",
         "/api/v1/cases/{case_id}/payments/{payment_id}/void",
+        # CB3-CB5: the customer book, its owner actions and the portfolio view.
+        "/api/v1/customers",
+        "/api/v1/customers/suggestions",
+        "/api/v1/customers/suggestions/dismiss",
+        "/api/v1/customers/{customer_id}",
+        "/api/v1/customers/{customer_id}/attach",
+        "/api/v1/customers/{customer_id}/detach",
+        "/api/v1/customer-groups",
+        "/api/v1/customer-groups/{group_id}/members",
+        "/api/v1/customer-groups/{group_id}/members/{customer_id}",
+        "/api/v1/insights",
     }, f"unexpected v1.2 paths: {sorted(added)}"
     assert baseline <= live, f"a v1.1 path disappeared: {sorted(baseline - live)}"
 
@@ -206,11 +227,16 @@ def test_every_v1_2_model_has_a_placeholder_fixture():
         "customer-group-row.json",
         "customer-profile.json",
         "customer-stats.json",
+        "customer-list.json",
+        "customer-series-point.json",
         "chart-series-point.json",
+        "buyer-cost-summary.json",
+        "suggested-action.json",
         "payment.json",
         "payment-create-request.json",
         "payment-list.json",
         "suggestion.json",
+        "suggestion-list.json",
         "import-preview.json",
         "import-result.json",
         "portfolio-insights.json",
@@ -224,7 +250,8 @@ def test_v5_fixture_is_marked_placeholder_and_validates(filename: str):
     assert meta["contract_version"] == CONTRACT_VERSION_V1_2
     assert meta["synthetic"] is True
     assert meta["placeholder"] is True, (
-        "CB2-CB6 do not exist yet; every v1.2 fixture is hand-shaped"
+        "CB6 has not generated these from the seeded database yet; every v1.2 "
+        "fixture is still hand-shaped"
     )
     assert meta["placeholder_fields"], f"{filename} names no placeholder fields"
     assert meta["schema"] == FIXTURE_MODELS[filename].__name__

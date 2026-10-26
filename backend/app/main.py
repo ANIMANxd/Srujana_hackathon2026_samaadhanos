@@ -65,9 +65,8 @@ app = FastAPI(
     description=(
         "MSME payment-rights evaluation API. Contract v1.0; frozen and "
         "additive-only after the contract-v1 tag (architecture.md section 9). "
-        "The v1.1 v4 routes and the first v1.2 payment routes are live; the "
-        "remaining v1.2 customer-book shapes are published as unreferenced "
-        "components until their routes land."
+        "The v1.1 v4 routes, the v1.2 payment routes and the v1.2 customer-book "
+        "routes are live."
     ),
 )
 
@@ -150,6 +149,7 @@ from backend.app.routes.events import router as events_router  # noqa: E402
 from backend.app.routes.options import router as options_router  # noqa: E402
 from backend.app.routes.mock import router as mock_router  # noqa: E402
 from backend.app.routes.recovery import router as recovery_router  # noqa: E402
+from backend.app.routes.customers import router as customers_router  # noqa: E402
 
 app.include_router(cases_router)
 app.include_router(financing_router)
@@ -158,6 +158,7 @@ app.include_router(events_router)
 app.include_router(options_router)
 app.include_router(mock_router)
 app.include_router(recovery_router)
+app.include_router(customers_router)
 
 
 # ------------------------------------------------------------- errors ----

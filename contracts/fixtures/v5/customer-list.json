@@ -1,0 +1,95 @@
+{
+  "_fixture": {
+    "schema": "CustomerListResponse",
+    "contract_version": "1.2",
+    "synthetic": true,
+    "placeholder": true,
+    "placeholder_fields": [
+      "entries",
+      "count",
+      "min_history"
+    ],
+    "why": "Hand-shaped customer list: one customer entry, sorted by outstanding.",
+    "regenerate_with": "pending CB6; after CB6 use the seeded-DB v5 fixture exporter (the v4 pattern is backend/app/export_v4_fixtures.py)"
+  },
+  "payload": {
+    "as_of": "2026-10-26",
+    "sort": "outstanding",
+    "grouped": false,
+    "entries": [
+      {
+        "kind": "CUSTOMER",
+        "id": "01JAV5CST0000000000000001",
+        "display_name": "Acme Industries Private Limited (synthetic)",
+        "customer": {
+          "id": "01JAV5CST0000000000000001",
+          "display_name": "Acme Industries Private Limited (synthetic)",
+          "kind": "PAN",
+          "pan": "ABCDE1234F",
+          "gstin_count": 2,
+          "group_id": null,
+          "group_label": null,
+          "invoice_count": 4,
+          "outstanding_total": "1250000.00",
+          "overdue_total": "450000.00",
+          "oldest_overdue_days": 62,
+          "last_payment_on": "2026-09-30",
+          "suggestion_count": 1,
+          "customer": {
+            "id": "01JAV5CST0000000000000001",
+            "kind": "PAN",
+            "pan": "ABCDE1234F",
+            "display_name": "Acme Industries Private Limited (synthetic)",
+            "gstins": [
+              "27ABCDE1234F1Z5",
+              "29ABCDE1234F1Z9"
+            ],
+            "created_at": "2026-10-26T09:00:00Z"
+          },
+          "gstins": [
+            "27ABCDE1234F1Z5",
+            "29ABCDE1234F1Z9"
+          ],
+          "stats": {
+            "as_of": "2026-10-26",
+            "invoice_count": 4,
+            "paid_invoice_count": 2,
+            "based_on": 2,
+            "min_history": 3,
+            "avg_days_to_pay": null,
+            "avg_days_to_pay_reason": "Not enough history: 2 fully paid invoices, 3 needed.",
+            "on_time_pct": null,
+            "on_time_pct_reason": "Not enough history: 2 fully paid invoices, 3 needed.",
+            "outstanding_total": "1250000.00",
+            "overdue_total": "450000.00",
+            "paid_total": "600000.00",
+            "oldest_overdue_days": 62,
+            "last_payment_on": "2026-09-30",
+            "cash_in_estimate": null,
+            "cash_in_estimate_note": "The cash-in estimate is a portfolio figure; see GET /api/v1/insights.",
+            "interest_accrued_now": "62000.00",
+            "median_days_to_pay": null,
+            "worst_days_to_pay": null,
+            "on_time_count": 1,
+            "paid_count": 2,
+            "on_time_text": "1 of 2 on time"
+          },
+          "active_tracks": [
+            {
+              "case_id": "01JAV5CASE0000000000000001",
+              "kind": "RECOVERY",
+              "state": "STAGE_1_PREPARED",
+              "stage": 1,
+              "version": 2,
+              "created_at": "2026-10-20T09:00:00Z"
+            }
+          ]
+        },
+        "group": null
+      }
+    ],
+    "count": 1,
+    "min_history": 3,
+    "note": "Descriptive only, from the invoices you entered."
+  }
+}

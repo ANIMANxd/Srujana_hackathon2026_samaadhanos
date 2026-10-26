@@ -1,0 +1,29 @@
+{
+  "_fixture": {
+    "schema": "SuggestionListResponse",
+    "contract_version": "1.2",
+    "synthetic": true,
+    "placeholder": true,
+    "placeholder_fields": [
+      "suggestions",
+      "threshold"
+    ],
+    "why": "Hand-shaped suggestion list; nothing in it is applied automatically.",
+    "regenerate_with": "pending CB6; after CB6 use the seeded-DB v5 fixture exporter (the v4 pattern is backend/app/export_v4_fixtures.py)"
+  },
+  "payload": {
+    "suggestions": [
+      {
+        "a": "01JAV5CST0000000000000002",
+        "b": "01JAV5CST0000000000000001",
+        "kind": "ATTACH",
+        "similarity": "1.00",
+        "reason": "The provisional name matches the PAN customer; attaching it keeps the PAN as the legal identity. Suggestion only."
+      }
+    ],
+    "count": 1,
+    "threshold": "0.90",
+    "min_history": 3,
+    "note": "Suggestions only. Attaching and grouping are your decisions, and both can be undone. The threshold is a product setting, not law."
+  }
+}

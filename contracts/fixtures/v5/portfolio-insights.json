@@ -12,10 +12,11 @@
       "on_time_pct",
       "cash_in_estimate",
       "top_customer_share_pct",
+      "before_march",
       "outstanding_by_customer",
       "collections_by_month"
     ],
-    "why": "Hand-shaped portfolio totals; CB5/CB6 will compute them from the seeded DB.",
+    "why": "Hand-shaped portfolio totals; the route now returns them from backend.insights.portfolio_insights over the seeded book.",
     "regenerate_with": "pending CB2-CB6; after CB6 use the seeded-DB v5 fixture exporter (the v4 pattern is backend/app/export_v4_fixtures.py)"
   },
   "payload": {
@@ -31,18 +32,18 @@
     "avg_days_to_pay_reason": null,
     "on_time_pct": "33.33",
     "on_time_pct_reason": null,
-    "cash_in_estimate": "5250000.00",
-    "cash_in_estimate_note": "Estimate only: assumes the engine's legal due dates are paid in full; not a promise.",
+    "cash_in_estimate": null,
+    "cash_in_estimate_note": "The cash-in estimate is switched off in config (a product setting, not law).",
     "top_customer_share_pct": "34.29",
     "top_customer_id": "01JAV5CST0000000000000001",
     "concentration_note": "Descriptive share of outstanding from the owner's own book; not a risk score.",
     "outstanding_by_customer": [
       {
-        "label": "2026-10",
+        "label": "Acme Industries Private Limited (synthetic)",
         "value": "450000.00",
-        "count": 2,
-        "period_start": "2026-10-01",
-        "period_end": "2026-10-31"
+        "count": 1,
+        "period_start": null,
+        "period_end": null
       }
     ],
     "collections_by_month": [
@@ -53,6 +54,40 @@
         "period_start": "2026-10-01",
         "period_end": "2026-10-31"
       }
-    ]
+    ],
+    "interest_accrued_now": "141500.00",
+    "paid_count": 3,
+    "median_days_to_pay": "46.00",
+    "worst_days_to_pay": "58.00",
+    "on_time_count": 1,
+    "on_time_text": "1 of 3 on time",
+    "history_reason": null,
+    "concentration_flag": false,
+    "concentration_reason": "BELOW_THRESHOLD",
+    "before_march": [
+      {
+        "customer_id": "01JAV5CST0000000000000001",
+        "customer_name": "Acme Industries Private Limited (synthetic)",
+        "case_id": "01JAV5CASE0000000000000001",
+        "invoice_no": "SYN-1001",
+        "outstanding": "450000.00",
+        "next_march": "2027-03-31",
+        "note": "43B(h): their deduction for this amount depends on payment",
+        "based_on": 1
+      }
+    ],
+    "terms_flags": [
+      {
+        "customer_id": "01JAV5CST0000000000000001",
+        "customer_name": "Acme Industries Private Limited (synthetic)",
+        "avg_days_to_pay": "48.67",
+        "credit_cap_days": 45,
+        "text": "This customer averages 48.67 days; the law caps credit at 45 days.",
+        "based_on": 3
+      }
+    ],
+    "cash_in_weeks": [],
+    "cash_in_reason": "DISABLED",
+    "assumptions": []
   }
 }

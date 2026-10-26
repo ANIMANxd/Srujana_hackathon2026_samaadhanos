@@ -154,6 +154,56 @@
         "title": "ArtifactResponse",
         "type": "object"
       },
+      "BeforeMarchHint": {
+        "description": "An open overdue invoice and the next 31 March its buyer's tax timing meets.",
+        "properties": {
+          "based_on": {
+            "default": 1,
+            "title": "Based On",
+            "type": "integer"
+          },
+          "case_id": {
+            "title": "Case Id",
+            "type": "string"
+          },
+          "customer_id": {
+            "title": "Customer Id",
+            "type": "string"
+          },
+          "customer_name": {
+            "title": "Customer Name",
+            "type": "string"
+          },
+          "invoice_no": {
+            "title": "Invoice No",
+            "type": "string"
+          },
+          "next_march": {
+            "format": "date",
+            "title": "Next March",
+            "type": "string"
+          },
+          "note": {
+            "title": "Note",
+            "type": "string"
+          },
+          "outstanding": {
+            "title": "Outstanding",
+            "type": "string"
+          }
+        },
+        "required": [
+          "customer_id",
+          "customer_name",
+          "case_id",
+          "invoice_no",
+          "outstanding",
+          "next_march",
+          "note"
+        ],
+        "title": "BeforeMarchHint",
+        "type": "object"
+      },
       "Bid": {
         "description": "`bids` row. Financier aliases are fictional only (golden rule 17).\n\nDiscount, fee and net_amount are computed by `backend/finance/`, never by the\nmock provider, so a mock cannot introduce maths bugs.",
         "properties": {
@@ -347,6 +397,91 @@
           "other_pressure_points"
         ],
         "title": "BuyerCost",
+        "type": "object"
+      },
+      "BuyerCostLine": {
+        "description": "One of the three buyer-cost lines. It is never added to the others.",
+        "properties": {
+          "amount": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Null for the disclosure line, which is not money.",
+            "title": "Amount"
+          },
+          "case_count": {
+            "default": 0,
+            "title": "Case Count",
+            "type": "integer"
+          },
+          "case_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Case Ids",
+            "type": "array"
+          },
+          "id": {
+            "description": "PERMANENT_LOSS, DEFERRAL or DISCLOSURE",
+            "title": "Id",
+            "type": "string"
+          },
+          "items": {
+            "description": "Disclosure flags from the engine, as text.",
+            "items": {
+              "type": "string"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "note": {
+            "title": "Note",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "label",
+          "note"
+        ],
+        "title": "BuyerCostLine",
+        "type": "object"
+      },
+      "BuyerCostSummary": {
+        "description": "The buyer's side of the delay, as three separate lines.\n\nAGENTS.md rule 8: the permanent loss, the deferral cost and the disclosure\nrequirement are separate facts and are **never** combined into one total.",
+        "properties": {
+          "as_of": {
+            "format": "date",
+            "title": "As Of",
+            "type": "string"
+          },
+          "lines": {
+            "description": "Exactly three lines, in a fixed order.",
+            "items": {
+              "$ref": "#/components/schemas/BuyerCostLine"
+            },
+            "title": "Lines",
+            "type": "array"
+          },
+          "note": {
+            "title": "Note",
+            "type": "string"
+          }
+        },
+        "required": [
+          "as_of",
+          "note"
+        ],
+        "title": "BuyerCostSummary",
         "type": "object"
       },
       "Case": {
@@ -831,6 +966,46 @@
         "title": "CaseSummary",
         "type": "object"
       },
+      "CashInWeekHint": {
+        "description": "One ISO week of the labelled cash-in estimate (a forecast, not a promise).",
+        "properties": {
+          "amount": {
+            "title": "Amount",
+            "type": "string"
+          },
+          "based_on": {
+            "default": 0,
+            "title": "Based On",
+            "type": "integer"
+          },
+          "invoice_count": {
+            "title": "Invoice Count",
+            "type": "integer"
+          },
+          "iso_week": {
+            "title": "Iso Week",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "week_start": {
+            "format": "date",
+            "title": "Week Start",
+            "type": "string"
+          }
+        },
+        "required": [
+          "iso_week",
+          "week_start",
+          "amount",
+          "invoice_count",
+          "label"
+        ],
+        "title": "CashInWeekHint",
+        "type": "object"
+      },
       "ChainVerifyResult": {
         "description": "`GET /api/v1/cases/{id}/events/verify`.",
         "properties": {
@@ -873,7 +1048,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Count"
           },
           "label": {
@@ -890,7 +1064,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Period End"
           },
           "period_start": {
@@ -903,7 +1076,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Period Start"
           },
           "value": {
@@ -1164,7 +1336,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Pan"
           }
         },
@@ -1177,9 +1348,243 @@
         "title": "Customer",
         "type": "object"
       },
-      "CustomerGroupRow": {
-        "description": "An owner-made link between different PANs. It is not a merge.",
+      "CustomerAttachRequest": {
+        "description": "`POST /customers/{provisional_id}/attach`: fold a provisional into a customer.",
         "properties": {
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "target_customer_id": {
+            "title": "Target Customer Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "target_customer_id"
+        ],
+        "title": "CustomerAttachRequest",
+        "type": "object"
+      },
+      "CustomerAttachResponse": {
+        "description": "What moved, and how to undo it (`POST /customers/{id}/detach`).",
+        "properties": {
+          "audited_case_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Audited Case Ids",
+            "type": "array"
+          },
+          "case_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Case Ids",
+            "type": "array"
+          },
+          "detach_with": {
+            "title": "Detach With",
+            "type": "string"
+          },
+          "gstins": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Gstins",
+            "type": "array"
+          },
+          "note": {
+            "title": "Note",
+            "type": "string"
+          },
+          "provisional": {
+            "$ref": "#/components/schemas/Customer"
+          },
+          "target": {
+            "$ref": "#/components/schemas/Customer"
+          }
+        },
+        "required": [
+          "provisional",
+          "target",
+          "detach_with",
+          "note"
+        ],
+        "title": "CustomerAttachResponse",
+        "type": "object"
+      },
+      "CustomerDetachRequest": {
+        "description": "`POST /customers/{id}/detach`: separate invoices or a GSTIN from a customer.\n\nName `case_ids`, a `gstin`, or both. A detach that reverses an attach puts\nthings back where they were; any other detach moves the invoices to their own\nprovisional customer.",
+        "properties": {
+          "case_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Case Ids",
+            "type": "array"
+          },
+          "gstin": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gstin"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          }
+        },
+        "title": "CustomerDetachRequest",
+        "type": "object"
+      },
+      "CustomerDetachResponse": {
+        "description": "What moved away and where it went. Every entry is audited on its case.",
+        "properties": {
+          "audited_case_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Audited Case Ids",
+            "type": "array"
+          },
+          "case_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Case Ids",
+            "type": "array"
+          },
+          "customer": {
+            "$ref": "#/components/schemas/Customer"
+          },
+          "gstins": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Gstins",
+            "type": "array"
+          },
+          "moved_to": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Moved To",
+            "type": "array"
+          },
+          "note": {
+            "title": "Note",
+            "type": "string"
+          }
+        },
+        "required": [
+          "customer",
+          "note"
+        ],
+        "title": "CustomerDetachResponse",
+        "type": "object"
+      },
+      "CustomerEntryKind": {
+        "description": "A list entry is either one customer or one owner-made group.",
+        "enum": [
+          "CUSTOMER",
+          "GROUP"
+        ],
+        "title": "CustomerEntryKind",
+        "type": "string"
+      },
+      "CustomerGroupCreateRequest": {
+        "description": "`POST /customer-groups`: link customers that are not the same PAN.",
+        "properties": {
+          "customer_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Customer Ids",
+            "type": "array"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          }
+        },
+        "required": [
+          "label"
+        ],
+        "title": "CustomerGroupCreateRequest",
+        "type": "object"
+      },
+      "CustomerGroupMemberRequest": {
+        "description": "`POST /customer-groups/{id}/members`: add one customer to a group.",
+        "properties": {
+          "customer_id": {
+            "title": "Customer Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "customer_id"
+        ],
+        "title": "CustomerGroupMemberRequest",
+        "type": "object"
+      },
+      "CustomerGroupMembershipResponse": {
+        "description": "The group after a membership change, plus whether anything changed.",
+        "properties": {
+          "changed": {
+            "title": "Changed",
+            "type": "boolean"
+          },
+          "customer_id": {
+            "title": "Customer Id",
+            "type": "string"
+          },
+          "group": {
+            "$ref": "#/components/schemas/CustomerGroupRow"
+          },
+          "note": {
+            "title": "Note",
+            "type": "string"
+          }
+        },
+        "required": [
+          "group",
+          "customer_id",
+          "changed",
+          "note"
+        ],
+        "title": "CustomerGroupMembershipResponse",
+        "type": "object"
+      },
+      "CustomerGroupRow": {
+        "description": "An owner-made link between different PANs. It is not a merge.\n\n`stats` holds summed totals. Money and counts sum correctly; an average of\nmember averages would not, so `avg_days_to_pay` and `on_time_pct` stay null\nwith `totals_note` saying why and the members carrying their own averages.",
+        "properties": {
+          "active_tracks": {
+            "items": {
+              "$ref": "#/components/schemas/CustomerTrack"
+            },
+            "title": "Active Tracks",
+            "type": "array"
+          },
           "created_at": {
             "format": "date-time",
             "title": "Created At",
@@ -1188,6 +1593,13 @@
           "created_by": {
             "title": "Created By",
             "type": "string"
+          },
+          "gstins": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Gstins",
+            "type": "array"
           },
           "id": {
             "title": "Id",
@@ -1207,6 +1619,27 @@
             },
             "title": "Members",
             "type": "array"
+          },
+          "stats": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CustomerStats"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "totals_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Totals Note"
           }
         },
         "required": [
@@ -1219,6 +1652,136 @@
         "title": "CustomerGroupRow",
         "type": "object"
       },
+      "CustomerInvoice": {
+        "description": "One invoice on the customer page: the store's facts plus the engine's dates.",
+        "properties": {
+          "accepted_amount": {
+            "title": "Accepted Amount",
+            "type": "string"
+          },
+          "accepted_on": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Accepted On"
+          },
+          "active_track": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CustomerTrack"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "case_id": {
+            "title": "Case Id",
+            "type": "string"
+          },
+          "days_open_so_far": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Days Open So Far"
+          },
+          "days_overdue": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Days Overdue"
+          },
+          "days_to_pay": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Days To Pay"
+          },
+          "due_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Due Date"
+          },
+          "invoice_date": {
+            "format": "date",
+            "title": "Invoice Date",
+            "type": "string"
+          },
+          "invoice_no": {
+            "title": "Invoice No",
+            "type": "string"
+          },
+          "last_payment_on": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Payment On"
+          },
+          "on_time": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "On Time"
+          },
+          "outstanding": {
+            "title": "Outstanding",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "case_id",
+          "invoice_no",
+          "invoice_date",
+          "accepted_amount",
+          "outstanding",
+          "status"
+        ],
+        "title": "CustomerInvoice",
+        "type": "object"
+      },
       "CustomerKind": {
         "description": "A customer identified by a PAN, or provisional until a PAN is known.",
         "enum": [
@@ -1228,9 +1791,108 @@
         "title": "CustomerKind",
         "type": "string"
       },
+      "CustomerListEntry": {
+        "description": "One line of `GET /customers`: a customer, or a group that replaces its members.",
+        "properties": {
+          "customer": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CustomerRow"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "group": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CustomerGroupRow"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/CustomerEntryKind"
+          }
+        },
+        "required": [
+          "kind",
+          "id",
+          "display_name"
+        ],
+        "title": "CustomerListEntry",
+        "type": "object"
+      },
+      "CustomerListResponse": {
+        "description": "`GET /api/v1/customers`: the owner's book, sorted the way they asked.\n\nEvery row is descriptive. Nothing here ranks two buyers against each other,\nand nothing is shared with another owner.",
+        "properties": {
+          "as_of": {
+            "format": "date",
+            "title": "As Of",
+            "type": "string"
+          },
+          "count": {
+            "default": 0,
+            "title": "Count",
+            "type": "integer"
+          },
+          "entries": {
+            "items": {
+              "$ref": "#/components/schemas/CustomerListEntry"
+            },
+            "title": "Entries",
+            "type": "array"
+          },
+          "grouped": {
+            "default": false,
+            "title": "Grouped",
+            "type": "boolean"
+          },
+          "min_history": {
+            "default": 3,
+            "title": "Min History",
+            "type": "integer"
+          },
+          "note": {
+            "title": "Note",
+            "type": "string"
+          },
+          "sort": {
+            "$ref": "#/components/schemas/CustomerSort"
+          }
+        },
+        "required": [
+          "as_of",
+          "sort",
+          "note"
+        ],
+        "title": "CustomerListResponse",
+        "type": "object"
+      },
       "CustomerProfile": {
         "description": "The customer page: identity, group, descriptive stats, payments and cases.",
         "properties": {
+          "buyer_cost_summary": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BuyerCostSummary"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "cases": {
             "items": {
               "$ref": "#/components/schemas/CaseSummary"
@@ -1249,8 +1911,21 @@
               {
                 "type": "null"
               }
-            ],
-            "default": null
+            ]
+          },
+          "gstins": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Gstins",
+            "type": "array"
+          },
+          "invoices": {
+            "items": {
+              "$ref": "#/components/schemas/CustomerInvoice"
+            },
+            "title": "Invoices",
+            "type": "array"
           },
           "payments": {
             "items": {
@@ -1259,14 +1934,36 @@
             "title": "Payments",
             "type": "array"
           },
+          "series": {
+            "items": {
+              "$ref": "#/components/schemas/CustomerSeriesPoint"
+            },
+            "title": "Series",
+            "type": "array"
+          },
           "stats": {
             "$ref": "#/components/schemas/CustomerStats"
+          },
+          "suggested_next_actions": {
+            "items": {
+              "$ref": "#/components/schemas/SuggestedAction"
+            },
+            "title": "Suggested Next Actions",
+            "type": "array"
           },
           "suggestions": {
             "items": {
               "$ref": "#/components/schemas/Suggestion"
             },
             "title": "Suggestions",
+            "type": "array"
+          },
+          "timeline": {
+            "description": "Audit events for this customer's cases, newest first.",
+            "items": {
+              "$ref": "#/components/schemas/Event"
+            },
+            "title": "Timeline",
             "type": "array"
           }
         },
@@ -1278,8 +1975,25 @@
         "type": "object"
       },
       "CustomerRow": {
-        "description": "One row of the customer list. Descriptive totals, never a score.",
+        "description": "One row of the customer list. Descriptive totals, never a score.\n\nThe flat fields predate the CB3-CB5 routes and are kept for compatibility;\n`customer`, `gstins`, `stats` and `active_tracks` carry the same facts in\nthe nested shape the list screen reads.",
         "properties": {
+          "active_tracks": {
+            "items": {
+              "$ref": "#/components/schemas/CustomerTrack"
+            },
+            "title": "Active Tracks",
+            "type": "array"
+          },
+          "customer": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Customer"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "display_name": {
             "title": "Display Name",
             "type": "string"
@@ -1293,7 +2007,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Group Id"
           },
           "group_label": {
@@ -1305,13 +2018,19 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Group Label"
           },
           "gstin_count": {
             "default": 0,
             "title": "Gstin Count",
             "type": "integer"
+          },
+          "gstins": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Gstins",
+            "type": "array"
           },
           "id": {
             "title": "Id",
@@ -1335,7 +2054,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Last Payment On"
           },
           "oldest_overdue_days": {
@@ -1347,7 +2065,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Oldest Overdue Days"
           },
           "outstanding_total": {
@@ -1367,8 +2084,17 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Pan"
+          },
+          "stats": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CustomerStats"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "suggestion_count": {
             "default": 0,
@@ -1386,8 +2112,133 @@
         "title": "CustomerRow",
         "type": "object"
       },
+      "CustomerSeriesPoint": {
+        "description": "One invoice of the customer's chart.\n\n`days_to_pay` is set only for a fully paid invoice; an open invoice carries\n`days_open_so_far`. `legal_due_days` is `due_date - acceptance_date` from the\nengine, never a recomputed statutory period.",
+        "properties": {
+          "accepted_on": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Accepted On"
+          },
+          "based_on": {
+            "default": 1,
+            "title": "Based On",
+            "type": "integer"
+          },
+          "case_id": {
+            "title": "Case Id",
+            "type": "string"
+          },
+          "days_open_so_far": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Days Open So Far"
+          },
+          "days_overdue": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Days Overdue"
+          },
+          "days_to_pay": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Days To Pay"
+          },
+          "due_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Due Date"
+          },
+          "invoice_no": {
+            "title": "Invoice No",
+            "type": "string"
+          },
+          "legal_due_days": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Legal Due Days"
+          },
+          "on_time": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "On Time"
+          },
+          "outstanding": {
+            "title": "Outstanding",
+            "type": "string"
+          },
+          "status": {
+            "description": "PAID, OVERDUE, NOT_DUE or NO_DUE_DATE",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "case_id",
+          "invoice_no",
+          "status",
+          "outstanding"
+        ],
+        "title": "CustomerSeriesPoint",
+        "type": "object"
+      },
+      "CustomerSort": {
+        "description": "The `sort` values `GET /api/v1/customers` accepts.\n\nMoney and day sorts are largest-first; `name` is A-Z. A customer or group\nwith no figure (an average held back for too little history) sorts last.",
+        "enum": [
+          "outstanding",
+          "overdue",
+          "avg_days",
+          "name"
+        ],
+        "title": "CustomerSort",
+        "type": "string"
+      },
       "CustomerStats": {
-        "description": "Descriptive payment history for one customer.\n\n`avg_days_to_pay` and `on_time_pct` are null when there is too little\nhistory; `*_reason` then says why, and `based_on` / `min_history` make the\nsample size explicit. Days are measured from the engine's day of acceptance\nto the payment date, never from the invoice date; \"on time\" means paid by\nthe engine's legal due date.",
+        "description": "Descriptive payment history for one customer.\n\n`avg_days_to_pay` and `on_time_pct` are null when there is too little\nhistory; `*_reason` then says why, and `based_on` / `min_history` make the\nsample size explicit. Days are measured from the engine's day of acceptance\nto the payment date, never from the invoice date; \"on time\" means paid by\nthe engine's legal due date.\n\n`paid_total` is the sum of the owner-recorded, non-voided payments for this\ncustomer's invoices. It is a record of money received, not a computed claim.",
         "properties": {
           "as_of": {
             "format": "date",
@@ -1403,7 +2254,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Avg Days To Pay"
           },
           "avg_days_to_pay_reason": {
@@ -1415,7 +2265,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Avg Days To Pay Reason"
           },
           "based_on": {
@@ -1432,7 +2281,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "description": "An estimate, not a promise; see cash_in_estimate_note.",
             "title": "Cash In Estimate"
           },
@@ -1445,8 +2293,13 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Cash In Estimate Note"
+          },
+          "interest_accrued_now": {
+            "default": "0.00",
+            "description": "Sum of the engine's accrued interest across this customer's invoices.",
+            "title": "Interest Accrued Now",
+            "type": "string"
           },
           "invoice_count": {
             "default": 0,
@@ -1463,8 +2316,18 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Last Payment On"
+          },
+          "median_days_to_pay": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Median Days To Pay"
           },
           "min_history": {
             "default": 3,
@@ -1480,8 +2343,12 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Oldest Overdue Days"
+          },
+          "on_time_count": {
+            "default": 0,
+            "title": "On Time Count",
+            "type": "integer"
           },
           "on_time_pct": {
             "anyOf": [
@@ -1492,7 +2359,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "description": "Percentage of fully paid invoices paid by the engine's legal due date.",
             "title": "On Time Pct"
           },
@@ -1505,8 +2371,19 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "On Time Pct Reason"
+          },
+          "on_time_text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Plain count, e.g. '3 of 5 on time'. A count, not an average.",
+            "title": "On Time Text"
           },
           "outstanding_total": {
             "title": "Outstanding Total",
@@ -1516,6 +2393,11 @@
             "title": "Overdue Total",
             "type": "string"
           },
+          "paid_count": {
+            "default": 0,
+            "title": "Paid Count",
+            "type": "integer"
+          },
           "paid_invoice_count": {
             "default": 0,
             "title": "Paid Invoice Count",
@@ -1524,6 +2406,17 @@
           "paid_total": {
             "title": "Paid Total",
             "type": "string"
+          },
+          "worst_days_to_pay": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Worst Days To Pay"
           }
         },
         "required": [
@@ -1533,6 +2426,54 @@
           "paid_total"
         ],
         "title": "CustomerStats",
+        "type": "object"
+      },
+      "CustomerTrack": {
+        "description": "One open v4 track on one of the customer's invoices.\n\nDescriptive state only: the state machine's own names, with no legal\nconclusion drawn from them.",
+        "properties": {
+          "case_id": {
+            "title": "Case Id",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "kind": {
+            "description": "FINANCING or RECOVERY",
+            "title": "Kind",
+            "type": "string"
+          },
+          "stage": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Recovery stage 1-4 when the state names one.",
+            "title": "Stage"
+          },
+          "state": {
+            "title": "State",
+            "type": "string"
+          },
+          "version": {
+            "default": 1,
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "case_id",
+          "kind",
+          "state",
+          "created_at"
+        ],
+        "title": "CustomerTrack",
         "type": "object"
       },
       "Defense": {
@@ -3311,6 +4252,13 @@
             "title": "As Of",
             "type": "string"
           },
+          "assumptions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Assumptions",
+            "type": "array"
+          },
           "avg_days_to_pay": {
             "anyOf": [
               {
@@ -3320,7 +4268,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Avg Days To Pay"
           },
           "avg_days_to_pay_reason": {
@@ -3332,13 +4279,19 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Avg Days To Pay Reason"
           },
           "based_on": {
             "default": 0,
             "title": "Based On",
             "type": "integer"
+          },
+          "before_march": {
+            "items": {
+              "$ref": "#/components/schemas/BeforeMarchHint"
+            },
+            "title": "Before March",
+            "type": "array"
           },
           "cash_in_estimate": {
             "anyOf": [
@@ -3349,7 +4302,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Cash In Estimate"
           },
           "cash_in_estimate_note": {
@@ -3361,8 +4313,25 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Cash In Estimate Note"
+          },
+          "cash_in_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cash In Reason"
+          },
+          "cash_in_weeks": {
+            "items": {
+              "$ref": "#/components/schemas/CashInWeekHint"
+            },
+            "title": "Cash In Weeks",
+            "type": "array"
           },
           "collections_by_month": {
             "items": {
@@ -3370,6 +4339,11 @@
             },
             "title": "Collections By Month",
             "type": "array"
+          },
+          "concentration_flag": {
+            "default": false,
+            "title": "Concentration Flag",
+            "type": "boolean"
           },
           "concentration_note": {
             "anyOf": [
@@ -3380,22 +4354,64 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Concentration Note"
+          },
+          "concentration_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Concentration Reason"
           },
           "customer_count": {
             "default": 0,
             "title": "Customer Count",
             "type": "integer"
           },
+          "history_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "History Reason"
+          },
+          "interest_accrued_now": {
+            "default": "0.00",
+            "title": "Interest Accrued Now",
+            "type": "string"
+          },
           "invoice_count": {
             "default": 0,
             "title": "Invoice Count",
             "type": "integer"
           },
+          "median_days_to_pay": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Median Days To Pay"
+          },
           "min_history": {
             "default": 3,
             "title": "Min History",
+            "type": "integer"
+          },
+          "on_time_count": {
+            "default": 0,
+            "title": "On Time Count",
             "type": "integer"
           },
           "on_time_pct": {
@@ -3407,7 +4423,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "On Time Pct"
           },
           "on_time_pct_reason": {
@@ -3419,8 +4434,18 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "On Time Pct Reason"
+          },
+          "on_time_text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "On Time Text"
           },
           "outstanding_by_customer": {
             "items": {
@@ -3437,9 +4462,21 @@
             "title": "Overdue Total",
             "type": "string"
           },
+          "paid_count": {
+            "default": 0,
+            "title": "Paid Count",
+            "type": "integer"
+          },
           "paid_total": {
             "title": "Paid Total",
             "type": "string"
+          },
+          "terms_flags": {
+            "items": {
+              "$ref": "#/components/schemas/TermsFlagHint"
+            },
+            "title": "Terms Flags",
+            "type": "array"
           },
           "top_customer_id": {
             "anyOf": [
@@ -3450,7 +4487,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Top Customer Id"
           },
           "top_customer_share_pct": {
@@ -3462,8 +4498,18 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Top Customer Share Pct"
+          },
+          "worst_days_to_pay": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Worst Days To Pay"
           }
         },
         "required": [
@@ -3992,6 +5038,47 @@
         "title": "SourceKind",
         "type": "string"
       },
+      "SuggestedAction": {
+        "description": "A next step for one open invoice, taken from the existing workflow guidance.",
+        "properties": {
+          "action": {
+            "description": "An action code from the workflow transition table.",
+            "title": "Action",
+            "type": "string"
+          },
+          "case_id": {
+            "title": "Case Id",
+            "type": "string"
+          },
+          "invoice_no": {
+            "title": "Invoice No",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "source": {
+            "description": "WORKFLOW: the action comes from the case's workflow transition table.",
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "case_id",
+          "invoice_no",
+          "action",
+          "label",
+          "reason",
+          "source"
+        ],
+        "title": "SuggestedAction",
+        "type": "object"
+      },
       "Suggestion": {
         "description": "A name-match suggestion. It is never applied automatically.\n\n`ATTACH`: `a` is a PROVISIONAL customer that could be attached to the PAN\ncustomer `b`. `LINK_AS_GROUP`: `a` and `b` are different PANs that the owner\nmay link as a group; they are never merged.",
         "properties": {
@@ -4026,6 +5113,77 @@
         "title": "Suggestion",
         "type": "object"
       },
+      "SuggestionDismissRequest": {
+        "description": "`POST /customers/suggestions/dismiss`: the owner says \"not the same buyer\".",
+        "properties": {
+          "a": {
+            "title": "A",
+            "type": "string"
+          },
+          "b": {
+            "title": "B",
+            "type": "string"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          }
+        },
+        "required": [
+          "a",
+          "b"
+        ],
+        "title": "SuggestionDismissRequest",
+        "type": "object"
+      },
+      "SuggestionDismissResponse": {
+        "description": "A dismissed pair is excluded from later suggestions and stays dismissible.",
+        "properties": {
+          "a": {
+            "title": "A",
+            "type": "string"
+          },
+          "b": {
+            "title": "B",
+            "type": "string"
+          },
+          "dismissed": {
+            "title": "Dismissed",
+            "type": "boolean"
+          },
+          "dismissed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dismissed At"
+          },
+          "note": {
+            "title": "Note",
+            "type": "string"
+          }
+        },
+        "required": [
+          "a",
+          "b",
+          "dismissed",
+          "note"
+        ],
+        "title": "SuggestionDismissResponse",
+        "type": "object"
+      },
       "SuggestionKind": {
         "description": "Owner actions only. Nothing here merges automatically.",
         "enum": [
@@ -4034,6 +5192,42 @@
         ],
         "title": "SuggestionKind",
         "type": "string"
+      },
+      "SuggestionListResponse": {
+        "description": "`GET /api/v1/customers/suggestions`: owner actions the book could use.\n\nNothing is applied. The threshold is the configured product setting (not\nlaw), shown so the owner can see why a pair was suggested.",
+        "properties": {
+          "count": {
+            "default": 0,
+            "title": "Count",
+            "type": "integer"
+          },
+          "min_history": {
+            "default": 3,
+            "title": "Min History",
+            "type": "integer"
+          },
+          "note": {
+            "title": "Note",
+            "type": "string"
+          },
+          "suggestions": {
+            "items": {
+              "$ref": "#/components/schemas/Suggestion"
+            },
+            "title": "Suggestions",
+            "type": "array"
+          },
+          "threshold": {
+            "title": "Threshold",
+            "type": "string"
+          }
+        },
+        "required": [
+          "threshold",
+          "note"
+        ],
+        "title": "SuggestionListResponse",
+        "type": "object"
       },
       "Supplier": {
         "properties": {
@@ -4107,6 +5301,45 @@
           "nic_codes"
         ],
         "title": "Supplier",
+        "type": "object"
+      },
+      "TermsFlagHint": {
+        "description": "A customer whose observed payment timing exceeds the engine's credit cap.",
+        "properties": {
+          "avg_days_to_pay": {
+            "title": "Avg Days To Pay",
+            "type": "string"
+          },
+          "based_on": {
+            "default": 0,
+            "title": "Based On",
+            "type": "integer"
+          },
+          "credit_cap_days": {
+            "title": "Credit Cap Days",
+            "type": "integer"
+          },
+          "customer_id": {
+            "title": "Customer Id",
+            "type": "string"
+          },
+          "customer_name": {
+            "title": "Customer Name",
+            "type": "string"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "customer_id",
+          "customer_name",
+          "avg_days_to_pay",
+          "credit_cap_days",
+          "text"
+        ],
+        "title": "TermsFlagHint",
         "type": "object"
       },
       "Timeline": {
@@ -4540,7 +5773,7 @@
     }
   },
   "info": {
-    "description": "MSME payment-rights evaluation API. Contract v1.0; frozen and additive-only after the contract-v1 tag (architecture.md section 9). The v1.1 v4 routes and the first v1.2 payment routes are live; the remaining v1.2 customer-book shapes are published as unreferenced components until their routes land.",
+    "description": "MSME payment-rights evaluation API. Contract v1.0; frozen and additive-only after the contract-v1 tag (architecture.md section 9). The v1.1 v4 routes, the v1.2 payment routes and the v1.2 customer-book routes are live.",
     "title": "SamadhaanOS API",
     "version": "1.0"
   },
@@ -5666,6 +6899,523 @@
         "summary": "Get Config"
       }
     },
+    "/api/v1/customer-groups": {
+      "post": {
+        "description": "Link customers that are not the same PAN. It is a label, not a merge.\n\nThe group is descriptive: every invoice keeps its own customer and its own\nlegal entity. Membership is one group per customer, and a member can be\nremoved at any time.",
+        "operationId": "create_customer_group_api_v1_customer_groups_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CustomerGroupCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerGroupRow"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Customer Group",
+        "tags": [
+          "customers"
+        ]
+      }
+    },
+    "/api/v1/customer-groups/{group_id}/members": {
+      "post": {
+        "description": "Add one customer to an existing owner-made group.",
+        "operationId": "add_group_member_api_v1_customer_groups__group_id__members_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "group_id",
+            "required": true,
+            "schema": {
+              "title": "Group Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CustomerGroupMemberRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerGroupMembershipResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Add Group Member",
+        "tags": [
+          "customers"
+        ]
+      }
+    },
+    "/api/v1/customer-groups/{group_id}/members/{customer_id}": {
+      "delete": {
+        "description": "Remove one customer from a group. Audited, and repeatable without effect.",
+        "operationId": "remove_group_member_api_v1_customer_groups__group_id__members__customer_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "group_id",
+            "required": true,
+            "schema": {
+              "title": "Group Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "customer_id",
+            "required": true,
+            "schema": {
+              "title": "Customer Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerGroupMembershipResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Remove Group Member",
+        "tags": [
+          "customers"
+        ]
+      }
+    },
+    "/api/v1/customers": {
+      "get": {
+        "description": "The owner's book, sorted, with the sample size beside every average.\n\nA row is descriptive: outstanding, overdue, accrued interest, payment timing\nand how many invoices stand behind it. There is no score and no comparison\nbetween buyers. With `group=true`, an owner-made group appears once, with\nsummed totals and its members nested for expansion.",
+        "operationId": "list_customers_api_v1_customers_get",
+        "parameters": [
+          {
+            "description": "outstanding | overdue | avg_days | name. Money and days sort largest first.",
+            "in": "query",
+            "name": "sort",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/CustomerSort",
+              "default": "outstanding",
+              "description": "outstanding | overdue | avg_days | name. Money and days sort largest first."
+            }
+          },
+          {
+            "description": "Collapse customers linked by the owner into one row with totals.",
+            "in": "query",
+            "name": "group",
+            "required": false,
+            "schema": {
+              "default": false,
+              "description": "Collapse customers linked by the owner into one row with totals.",
+              "title": "Group",
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Customers",
+        "tags": [
+          "customers"
+        ]
+      }
+    },
+    "/api/v1/customers/suggestions": {
+      "get": {
+        "description": "Name-match suggestions for the book. Nothing is applied automatically.\n\n`ATTACH` suggests folding a provisional record into a PAN customer;\n`LINK_AS_GROUP` suggests linking two different PANs as a group. Different\nPANs are never merged, and a pair the owner dismissed is not suggested again.",
+        "operationId": "list_customer_suggestions_api_v1_customers_suggestions_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuggestionListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Customer Suggestions",
+        "tags": [
+          "customers"
+        ]
+      }
+    },
+    "/api/v1/customers/suggestions/dismiss": {
+      "post": {
+        "description": "Record that two customers are not the same buyer, so it is not suggested again.\n\nThe pair stays dismissed until it is undone; nothing is merged and no invoice\nmoves. The dismissal is written to both customers' case chains.",
+        "operationId": "dismiss_customer_suggestion_api_v1_customers_suggestions_dismiss_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SuggestionDismissRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuggestionDismissResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Dismiss Customer Suggestion",
+        "tags": [
+          "customers"
+        ]
+      }
+    },
+    "/api/v1/customers/{customer_id}": {
+      "get": {
+        "description": "One customer: identity, group, full stats, invoices, payments and audit trail.\n\nDays to pay are measured from the engine's day of acceptance and \"on time\"\nmeans paid by the engine's legal due date, never the invoice date. The\nbuyer-cost block keeps its three lines separate.",
+        "operationId": "get_customer_api_v1_customers__customer_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "customer_id",
+            "required": true,
+            "schema": {
+              "title": "Customer Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerProfile"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Customer",
+        "tags": [
+          "customers"
+        ]
+      }
+    },
+    "/api/v1/customers/{customer_id}/attach": {
+      "post": {
+        "description": "Fold a PROVISIONAL customer's invoices into another customer.\n\nSame-PAN registrations already group automatically. This is the owner\nconfirming that a name-only or unformatted record is the same buyer. A\ncustomer that already has its own PAN is refused: different PANs are never\nmerged, and the two can be linked as a group instead. The provisional row is\nkept with no invoices, which is what makes `detach` an exact undo.",
+        "operationId": "attach_customer_api_v1_customers__customer_id__attach_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "customer_id",
+            "required": true,
+            "schema": {
+              "title": "Customer Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CustomerAttachRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerAttachResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Attach Customer",
+        "tags": [
+          "customers"
+        ]
+      }
+    },
+    "/api/v1/customers/{customer_id}/detach": {
+      "post": {
+        "description": "Separate invoices or a GSTIN from a customer. The undo for `attach`.\n\nWhen the invoice was moved by an `attach`, the detach restores the exact\ncustomer it came from. Otherwise the invoice gets its own provisional record,\nresolved from its own buyer details. Either way the move is audited on the\ninvoice's chain and can be reversed by attaching again.",
+        "operationId": "detach_customer_api_v1_customers__customer_id__detach_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "customer_id",
+            "required": true,
+            "schema": {
+              "title": "Customer Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CustomerDetachRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerDetachResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Detach Customer",
+        "tags": [
+          "customers"
+        ]
+      }
+    },
     "/api/v1/evaluate-case": {
       "post": {
         "description": "Evaluate a case with the real engine (sections 6.1-6.6).",
@@ -5804,6 +7554,28 @@
           }
         },
         "summary": "Health"
+      }
+    },
+    "/api/v1/insights": {
+      "get": {
+        "description": "Descriptive portfolio insights from `backend/insights/`.\n\nTotals, concentration, the next 31 March for open overdue invoices, customers\nwhose observed timing exceeds the engine's credit cap, and the labelled\ncash-in estimate when it is switched on. No buyer is scored, ranked or\npredicted, and nothing is compared with another owner's book.",
+        "operationId": "get_insights_api_v1_insights_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PortfolioInsights"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Insights",
+        "tags": [
+          "customers"
+        ]
       }
     },
     "/api/v1/mock/clock": {

@@ -10,10 +10,10 @@
       "outstanding_total",
       "overdue_total",
       "paid_total",
-      "cash_in_estimate"
+      "interest_accrued_now"
     ],
-    "why": "Hand-shaped descriptive stats. The averages are deliberately null with a reason to prove the 'not enough history' shape; CB5/CB6 will compute them.",
-    "regenerate_with": "pending CB2-CB6; after CB6 use the seeded-DB v5 fixture exporter (the v4 pattern is backend/app/export_v4_fixtures.py)"
+    "why": "Hand-shaped descriptive stats. The averages are deliberately null with a reason to prove the 'not enough history' shape; the route now fills the same fields from backend/insights.",
+    "regenerate_with": "pending CB6; after CB6 use the seeded-DB v5 fixture exporter (the v4 pattern is backend/app/export_v4_fixtures.py)"
   },
   "payload": {
     "as_of": "2026-10-26",
@@ -30,7 +30,13 @@
     "paid_total": "600000.00",
     "oldest_overdue_days": 62,
     "last_payment_on": "2026-09-30",
-    "cash_in_estimate": "1700000.00",
-    "cash_in_estimate_note": "Estimate only: assumes the engine's legal due dates are paid in full; not a promise."
+    "cash_in_estimate": null,
+    "cash_in_estimate_note": "The cash-in estimate is a portfolio figure; see GET /api/v1/insights.",
+    "interest_accrued_now": "62000.00",
+    "median_days_to_pay": null,
+    "worst_days_to_pay": null,
+    "on_time_count": 1,
+    "paid_count": 2,
+    "on_time_text": "1 of 2 on time"
   }
 }

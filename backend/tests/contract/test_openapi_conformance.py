@@ -52,6 +52,11 @@ READ_PATHS = {
     "/api/v1/cases/{case_id}/financing/bids",
     "/api/v1/cases/{case_id}/options",
     "/api/v1/cases/{case_id}/payments",
+    # v1.2 customer book (CB3-CB5).
+    "/api/v1/customers",
+    "/api/v1/customers/suggestions",
+    "/api/v1/customers/{customer_id}",
+    "/api/v1/insights",
 }
 WRITE_PATHS = {
     "/api/v1/evaluate-case",
@@ -72,6 +77,13 @@ WRITE_PATHS = {
     "/api/v1/cases/{case_id}/recovery/odr-filed",
     "/api/v1/cases/{case_id}/payments",
     "/api/v1/cases/{case_id}/payments/{payment_id}/void",
+    # v1.2 customer book owner actions (CB3-CB5).
+    "/api/v1/customers/suggestions/dismiss",
+    "/api/v1/customers/{customer_id}/attach",
+    "/api/v1/customers/{customer_id}/detach",
+    "/api/v1/customer-groups",
+    "/api/v1/customer-groups/{group_id}/members",
+    "/api/v1/customer-groups/{group_id}/members/{customer_id}",
 }
 UPLOAD_PATHS = {"/api/v1/extract-evidence"}
 # `GET /cases/{id}/stream` is an infinite `text/event-stream`. A synchronous client
@@ -283,6 +295,142 @@ def test_payment_routes_match_the_contract():
     assert client.get(f"/api/v1/cases/{case_id}/payments").json()["payments"][0][
         "voided_at"
     ] is not None
+
+
+def test_customer_book_routes_match_the_contract():
+    """Every v1.2 customer-book path is called for real, in one round trip."""
+    preset = _preset_request()
+
+    def create(gstin: str | None, name: str) -> str:
+        payload = {
+            **preset,
+            "buyer": {**preset["buyer"], "gstin": gstin, "name": name},
+        }
+        created = client.post("/api/v1/cases", json=payload)
+        assert created.status_code == 201, created.text[:400]
+        return created.json()["case"]["id"]
+
+    provisional_case = create(None, "Conformance Book Provisional Ltd")
+    create("29ABCDE1234F1Z5", "Conformance Book Private Limited")
+
+    listed = client.get("/api/v1/customers", params={"sort": "outstanding"})
+    assert listed.status_code == 200, listed.text[:400]
+    _assert_matches(
+        _response_pointer("/api/v1/customers", "GET"), listed.json(), "GET /customers"
+    )
+    by_name = {entry["display_name"]: entry["id"] for entry in listed.json()["entries"]}
+    provisional_id = by_name["Conformance Book Provisional Ltd"]
+    pan_id = by_name["Conformance Book Private Limited"]
+
+    grouped = client.get("/api/v1/customers", params={"group": "true", "sort": "name"})
+    assert grouped.status_code == 200, grouped.text[:400]
+    _assert_matches(
+        _response_pointer("/api/v1/customers", "GET"), grouped.json(), "GET /customers?group=true"
+    )
+
+    profile = client.get(f"/api/v1/customers/{pan_id}")
+    assert profile.status_code == 200, profile.text[:400]
+    _assert_matches(
+        _response_pointer("/api/v1/customers/{customer_id}", "GET"),
+        profile.json(),
+        "GET /customers/{customer_id}",
+    )
+    assert profile.json()["stats"]["based_on"] < profile.json()["stats"]["min_history"]
+    assert len(profile.json()["buyer_cost_summary"]["lines"]) == 3
+
+    suggestions = client.get("/api/v1/customers/suggestions")
+    assert suggestions.status_code == 200, suggestions.text[:400]
+    _assert_matches(
+        _response_pointer("/api/v1/customers/suggestions", "GET"),
+        suggestions.json(),
+        "GET /customers/suggestions",
+    )
+
+    dismissed = client.post(
+        "/api/v1/customers/suggestions/dismiss",
+        json={"a": provisional_id, "b": pan_id},
+        headers={"Idempotency-Key": "conformance-dismiss-1"},
+    )
+    assert dismissed.status_code == 200, dismissed.text[:400]
+    _assert_matches(
+        _response_pointer("/api/v1/customers/suggestions/dismiss", "POST"),
+        dismissed.json(),
+        "POST /customers/suggestions/dismiss",
+    )
+
+    attached = client.post(
+        f"/api/v1/customers/{provisional_id}/attach",
+        json={"target_customer_id": pan_id},
+        headers={"Idempotency-Key": "conformance-attach-1"},
+    )
+    assert attached.status_code == 200, attached.text[:400]
+    _assert_matches(
+        _response_pointer("/api/v1/customers/{customer_id}/attach", "POST"),
+        attached.json(),
+        "POST /customers/{customer_id}/attach",
+    )
+
+    detached = client.post(
+        f"/api/v1/customers/{pan_id}/detach",
+        json={"case_ids": [provisional_case]},
+        headers={"Idempotency-Key": "conformance-detach-1"},
+    )
+    assert detached.status_code == 200, detached.text[:400]
+    _assert_matches(
+        _response_pointer("/api/v1/customers/{customer_id}/detach", "POST"),
+        detached.json(),
+        "POST /customers/{customer_id}/detach",
+    )
+    assert detached.json()["moved_to"] == [provisional_id]
+
+    group = client.post(
+        "/api/v1/customer-groups",
+        json={"label": "Conformance group (synthetic)", "customer_ids": [pan_id]},
+        headers={"Idempotency-Key": "conformance-group-1"},
+    )
+    assert group.status_code == 201, group.text[:400]
+    _assert_matches(
+        _response_pointer("/api/v1/customer-groups", "POST", 201),
+        group.json(),
+        "POST /customer-groups",
+    )
+    group_id = group.json()["id"]
+
+    added = client.post(
+        f"/api/v1/customer-groups/{group_id}/members",
+        json={"customer_id": provisional_id},
+        headers={"Idempotency-Key": "conformance-group-2"},
+    )
+    assert added.status_code == 200, added.text[:400]
+    _assert_matches(
+        _response_pointer("/api/v1/customer-groups/{group_id}/members", "POST"),
+        added.json(),
+        "POST /customer-groups/{group_id}/members",
+    )
+
+    removed = client.request(
+        "DELETE",
+        f"/api/v1/customer-groups/{group_id}/members/{provisional_id}",
+        headers={"Idempotency-Key": "conformance-group-3"},
+    )
+    assert removed.status_code == 200, removed.text[:400]
+    _assert_matches(
+        _response_pointer(
+            "/api/v1/customer-groups/{group_id}/members/{customer_id}", "DELETE"
+        ),
+        removed.json(),
+        "DELETE /customer-groups/{group_id}/members/{customer_id}",
+    )
+
+    insights = client.get("/api/v1/insights")
+    assert insights.status_code == 200, insights.text[:400]
+    _assert_matches(
+        _response_pointer("/api/v1/insights", "GET"),
+        insights.json(),
+        "GET /insights",
+    )
+    for point in insights.json()["outstanding_by_customer"]:
+        assert isinstance(point["value"], str), "chart money must be a decimal string"
 
 
 def test_webhook_routes_match_the_contract(monkeypatch):
