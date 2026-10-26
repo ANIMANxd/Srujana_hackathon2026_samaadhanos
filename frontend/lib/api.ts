@@ -1,4 +1,4 @@
-// API client for contract v1.0 and v1.1. Same-origin /api/v1/* is proxied to FastAPI by
+// API client for contract v1.0, v1.1 and v1.2. Same-origin /api/v1/* is proxied to FastAPI by
 // next.config.ts. When the backend is unreachable, preset cases fall back to
 // the synced fixtures and the caller is told the data is offline (F1).
 // No legal math here: requests and responses pass through untouched.
@@ -15,7 +15,26 @@ import {
   offlineOptions,
   offlinePayout,
 } from "./fixturesV4";
+import {
+  offlineCustomerGroups,
+  offlineCustomerProfile,
+  offlineCustomerRows,
+  offlinePayments,
+  offlinePortfolioInsights,
+  offlineSuggestions,
+  sortSampleRows,
+} from "./fixturesV5";
 import type {
+  CustomerGroupRow,
+  CustomerProfile,
+  CustomerRow,
+  ImportPreview,
+  ImportResult,
+  Payment,
+  PaymentCreateRequest,
+  PaymentListResponse,
+  PortfolioInsights,
+  Suggestion,
   ArtifactKind,
   ArtifactResponse,
   AuditEvent,
@@ -396,3 +415,203 @@ export function getDeliveries(): Promise<Sourced<WebhookDelivery[]>> {
 
 // POST /webhooks/{esign,marketplace,disbursement} are signed provider-to-server
 // callbacks: the browser never calls them, so there is deliberately no client.
+
+// ------------------------------------------ contract v1.2: customer book ----
+//
+// v1.2 publishes the shapes (backend/app/schemas_v5.py) before the routes, so
+// every path below is ASSUMED and listed in CONTRACT-REQUESTS.md (CR-15) for
+// the API agent to confirm or correct. Lists accept either a bare array or the
+// `{<name>: [...]}` wrapper GET /cases uses. Mutations whose answer has no
+// contract shape return nothing: the screen re-reads instead of guessing.
+// Every figure here is the server's; the browser sorts nothing by money.
+
+/** A list body: a bare array, or `{[key]: array}`. Anything else is a contract mismatch. */
+function listOf<T>(body: unknown, key: string): T[] {
+  if (Array.isArray(body)) return body as T[];
+  if (typeof body === "object" && body !== null && Array.isArray((body as Record<string, unknown>)[key])) {
+    return (body as Record<string, unknown>)[key] as T[];
+  }
+  throw new ApiError(500, "BAD_RESPONSE", "The list did not match the contract.");
+}
+
+async function mutateVoid(path: string, opts: MutationOptions, payload?: unknown): Promise<void> {
+  await mutate<unknown>(path, opts, payload);
+}
+
+/**
+ * The framework's own 404 for a path it has no route for ("Not Found"), as
+ * opposed to a route saying a record does not exist (which names the record).
+ */
+function routeMissing(e: unknown): boolean {
+  return e instanceof ApiError && e.status === 404 && (e.code === "NOT_FOUND" || e.code === "HTTP_404") && e.message === "Not Found";
+}
+
+/**
+ * Like `readOrSample`, and a missing route also falls back: until the v1.2
+ * routes ship (CR-15) a running backend answers 404 for every one of them.
+ */
+async function v12OrSample<T>(live: () => Promise<T>, sample: () => T | null): Promise<Sourced<T>> {
+  try {
+    return await readOrSample(live, sample);
+  } catch (e) {
+    if (!routeMissing(e)) throw e;
+    const data = sample();
+    if (data === null) throw e;
+    return { data, source: "offline" };
+  }
+}
+
+const customerUrl = (id: string) => `/customers/${encodeURIComponent(id)}`;
+const groupUrl = (id: string) => `/customer-groups/${encodeURIComponent(id)}`;
+
+/** Server-side sort keys: CustomerRow field names, plus the profile's average days to pay. */
+export type CustomerSort =
+  | "overdue_total"
+  | "outstanding_total"
+  | "oldest_overdue_days"
+  | "last_payment_on"
+  | "avg_days_to_pay"
+  | "display_name";
+export type SortDir = "asc" | "desc";
+export type CustomerListQuery = { sort: CustomerSort; dir: SortDir };
+export type CustomerBook = { customers: CustomerRow[]; groups: CustomerGroupRow[] };
+
+/**
+ * GET /customers?sort=&dir=: every customer row, sorted by the server, plus the
+ * owner's groups. Offline: the saved sample rows, ordered by `sortSampleRows`.
+ */
+export function listCustomers(q: CustomerListQuery): Promise<Sourced<CustomerBook>> {
+  const qs = `?sort=${encodeURIComponent(q.sort)}&dir=${encodeURIComponent(q.dir)}`;
+  return v12OrSample(
+    async () => {
+      const body = await call<unknown>(`/customers${qs}`);
+      const customers = listOf<CustomerRow>(body, "customers");
+      const raw = typeof body === "object" && body !== null && !Array.isArray(body) ? (body as Record<string, unknown>).groups : undefined;
+      const groups = Array.isArray(raw) ? (raw as CustomerGroupRow[]) : [];
+      return { customers, groups };
+    },
+    () => {
+      const customers = offlineCustomerRows();
+      return customers ? { customers: sortSampleRows(customers, q.sort, q.dir), groups: offlineCustomerGroups() ?? [] } : null;
+    },
+  );
+}
+
+/** GET /customers/{id}: identity, group, stats, payments, suggestions and cases. */
+export function getCustomer(id: string): Promise<Sourced<CustomerProfile>> {
+  return v12OrSample(
+    async () => {
+      const body = await call<CustomerProfile>(customerUrl(id));
+      if (typeof body?.customer?.id !== "string" || typeof body?.stats !== "object") {
+        throw new ApiError(500, "BAD_RESPONSE", "The customer did not match the contract.");
+      }
+      return body;
+    },
+    // The one sample profile stands in only for its own sample customer.
+    () => {
+      const sample = offlineCustomerProfile();
+      return sample?.customer.id === id ? sample : null;
+    },
+  );
+}
+
+/** GET /customers/suggestions: possible same-buyer pairs. A suggestion never merges anything by itself. */
+export function listSuggestions(): Promise<Sourced<Suggestion[]>> {
+  return v12OrSample(async () => listOf<Suggestion>(await call<unknown>("/customers/suggestions"), "suggestions"), offlineSuggestions);
+}
+
+/** GET /insights: portfolio totals and charts, as the server computed them. */
+export function getInsights(): Promise<Sourced<PortfolioInsights>> {
+  return v12OrSample(
+    async () => {
+      const body = await call<PortfolioInsights>("/insights");
+      if (typeof body?.as_of !== "string") throw new ApiError(500, "BAD_RESPONSE", "The insights did not match the contract.");
+      return body;
+    },
+    offlinePortfolioInsights,
+  );
+}
+
+/** GET /cases/{id}/payments (PaymentListResponse), voided ones included (they carry `voided_at`). */
+export function listPayments(caseId: string): Promise<Sourced<Payment[]>> {
+  return v12OrSample(async () => (await call<PaymentListResponse>(`${caseUrl(caseId)}/payments`)).payments ?? [], offlinePayments);
+}
+
+// Identity: every change below is audited by the server and has an undo.
+
+/** Add a GSTIN to a customer. Undo: `detachGstin`. */
+export function attachGstin(customerId: string, gstin: string, opts: MutationOptions): Promise<void> {
+  return mutateVoid(`${customerUrl(customerId)}/gstins`, opts, { gstin });
+}
+
+export function detachGstin(customerId: string, gstin: string, opts: MutationOptions): Promise<void> {
+  return mutateVoid(`${customerUrl(customerId)}/gstins/${encodeURIComponent(gstin)}/detach`, opts);
+}
+
+/**
+ * Accept an ATTACH suggestion: the provisional customer `sourceId` joins the
+ * PAN customer `targetId`, whose PAN stays the legal identity. Different PANs
+ * are never merged; the server refuses that. Undo: `detachCustomer`.
+ */
+export function attachCustomer(targetId: string, sourceId: string, opts: MutationOptions): Promise<void> {
+  return mutateVoid(`${customerUrl(targetId)}/attach`, opts, { customer_id: sourceId });
+}
+
+export function detachCustomer(targetId: string, sourceId: string, opts: MutationOptions): Promise<void> {
+  return mutateVoid(`${customerUrl(targetId)}/detach`, opts, { customer_id: sourceId });
+}
+
+/** A group links customers for viewing together; each keeps its own legal identity and cases. */
+export function createGroup(label: string, customerIds: string[], opts: MutationOptions): Promise<CustomerGroupRow> {
+  return mutate<CustomerGroupRow>("/customer-groups", opts, { label, customer_ids: customerIds });
+}
+
+export function linkToGroup(groupId: string, customerId: string, opts: MutationOptions): Promise<void> {
+  return mutateVoid(`${groupUrl(groupId)}/members`, opts, { customer_id: customerId });
+}
+
+export function unlinkFromGroup(groupId: string, customerId: string, opts: MutationOptions): Promise<void> {
+  return mutateVoid(`${groupUrl(groupId)}/members/${encodeURIComponent(customerId)}/unlink`, opts);
+}
+
+/** "Not the same buyer": hide this suggestion. Undo: `undoDismissSuggestion`. */
+export function dismissSuggestion(a: string, b: string, opts: MutationOptions): Promise<void> {
+  return mutateVoid("/customers/suggestions/dismiss", opts, { a, b });
+}
+
+export function undoDismissSuggestion(a: string, b: string, opts: MutationOptions): Promise<void> {
+  return mutateVoid("/customers/suggestions/undo-dismiss", opts, { a, b });
+}
+
+// Payments (shipped routes): what the owner says they received. `amount` is the
+// decimal string the owner typed, passed through untouched; the server
+// validates it and re-evaluates the case, answering with the refreshed CaseDetail.
+
+export type PaymentInput = PaymentCreateRequest;
+
+export function recordPayment(caseId: string, input: PaymentInput, opts: MutationOptions): Promise<CaseDetail> {
+  return mutate<CaseDetail>(`${caseUrl(caseId)}/payments`, opts, input);
+}
+
+/** Voiding keeps the row (with `voided_at`) so the record stays auditable. The route takes no body. */
+export function voidPayment(caseId: string, paymentId: string, opts: MutationOptions): Promise<CaseDetail> {
+  return mutate<CaseDetail>(`${caseUrl(caseId)}/payments/${encodeURIComponent(paymentId)}/void`, opts);
+}
+
+// CSV import: preview first, nothing is stored until the owner confirms.
+
+export async function previewImport(file: Blob, filename: string, opts: MutationOptions): Promise<ImportPreview> {
+  const form = new FormData();
+  form.append("file", file, filename);
+  const body = await call<ImportPreview>("/imports/preview", {
+    method: "POST",
+    headers: { "Idempotency-Key": opts.idempotencyKey },
+    body: form,
+  });
+  if (typeof body?.preview_id !== "string") throw new ApiError(500, "BAD_RESPONSE", "The import preview did not match the contract.");
+  return body;
+}
+
+export function confirmImport(previewId: string, opts: MutationOptions): Promise<ImportResult> {
+  return mutate<ImportResult>(`/imports/${encodeURIComponent(previewId)}/confirm`, opts);
+}

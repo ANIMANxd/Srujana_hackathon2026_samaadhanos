@@ -60,6 +60,13 @@ export function date(value: string | null | undefined): string {
   return `${Number(m[3])} ${MONTHS[Number(m[2]) - 1] ?? m[2]} ${m[1]}`;
 }
 
+/** A server day count such as "48.67" shown as "49" next to a "~". Days, never money. */
+export function approxDays(value: string | null | undefined): string {
+  if (value === null || value === undefined) return "—";
+  const n = Number(value);
+  return Number.isFinite(n) ? count(Math.round(n)) : value;
+}
+
 /** Plain integer with Indian grouping (counts, days). */
 export function count(n: number | null | undefined): string {
   if (n === null || n === undefined) return "—";
