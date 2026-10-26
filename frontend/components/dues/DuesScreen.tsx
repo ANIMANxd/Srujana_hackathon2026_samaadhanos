@@ -13,7 +13,7 @@ import { useCases } from "@/lib/useCases";
 import { useSimulatedCases } from "@/lib/sim";
 import { demoInvoiceRequest } from "@/lib/demoInvoice";
 import { createCase } from "@/lib/api";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { IdempotentButton } from "../common/IdempotentButton";
 import type { CaseRequest, CaseResponse } from "@/lib/types";
 import { Icon } from "../common/Icon";
@@ -24,6 +24,40 @@ import { DataBanners } from "../shell/Banners";
 import { JudgeConsole } from "../shell/JudgeConsole";
 import { EligibilityPill } from "../case/EligibilityPill";
 import { CaseRow, GRID } from "./CaseRow";
+import { CustomersView } from "./CustomersView";
+
+type DuesTab = "customers" | "invoices";
+const TABS: DuesTab[] = ["customers", "invoices"];
+
+/** "Customers | Invoices". The choice lives in `?dues=invoices` so a demo state can be linked. */
+function DuesTabs({ value, onChange }: { value: DuesTab; onChange: (v: DuesTab) => void }) {
+  const { t } = useT();
+  return (
+    <div role="radiogroup" aria-label={t("dues.tabs_label")} className="inline-flex self-start rounded-lg border border-rule bg-paper-sunk p-0.5">
+      {TABS.map((tab) => (
+        <button
+          key={tab}
+          type="button"
+          role="radio"
+          aria-checked={value === tab}
+          onClick={() => onChange(tab)}
+          onKeyDown={(e) => {
+            if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
+              e.preventDefault();
+              onChange(tab === "customers" ? "invoices" : "customers");
+            }
+          }}
+          tabIndex={value === tab ? 0 : -1}
+          className={`min-h-8 rounded-md px-3.5 text-sm font-medium transition-colors ${
+            value === tab ? "bg-white text-ink-950 shadow-sm" : "text-ink-600 hover:text-ink-950"
+          }`}
+        >
+          {t(`dues.tab.${tab}`)}
+        </button>
+      ))}
+    </div>
+  );
+}
 
 type Row = {
   id: string;
@@ -147,6 +181,16 @@ export function DuesScreen() {
   const [rows, setRows] = useState<Row[] | null>(null);
   const stored = useCases();
   const router = useRouter();
+  const pathname = usePathname();
+  const search = useSearchParams();
+  const tab: DuesTab = search.get("dues") === "invoices" ? "invoices" : "customers";
+  const setTab = (next: DuesTab) => {
+    const q = new URLSearchParams(search.toString());
+    if (next === "invoices") q.set("dues", "invoices");
+    else q.delete("dues");
+    const qs = q.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+  };
   const simCases = useSimulatedCases(stored.cases ?? []);
   // The case list carries no buyer name, so match the buyer's GSTIN against the bundled sample inputs.
   const buyerNames = useMemo(() => new Map((rows ?? []).flatMap((r) => (r.request.buyer.gstin ? [[r.request.buyer.gstin, r.request.buyer.name] as const] : []))), [rows]);
@@ -184,25 +228,30 @@ export function DuesScreen() {
     { label: t("dues.summary.paid_early"), value: ready ? paiseToMoney(paidEarlyPaise) : null },
   ];
 
+  // One demo action, offered in the header and in the empty Customers state.
+  const demoButton = (label: "dues.demo_invoice" | "customers.empty.demo") => (
+    <IdempotentButton
+      actionId={`demo.invoice:${new Date().toDateString()}`}
+      run={async (opts) => {
+        const d = await createCase(await demoInvoiceRequest(), opts);
+        router.push(href(`/case/${d.case.id}`));
+      }}
+      onConflict={() => undefined}
+      className="btn btn-secondary"
+    >
+      {t(label)}
+    </IdempotentButton>
+  );
+
   return (
     <div className="flex flex-col gap-8">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div className="flex flex-col gap-1">
           <h1 className="text-[2rem] font-semibold leading-tight tracking-[-0.025em] text-ink-950">{t("dues.title")}</h1>
-          <p className="text-sm text-ink-500">{t("dues.subtitle")}</p>
+          <p className="text-sm text-ink-500">{t(tab === "customers" ? "dues.customers_subtitle" : "dues.subtitle")}</p>
         </div>
         <div className="flex flex-wrap items-start gap-2 self-start sm:self-auto">
-          <IdempotentButton
-            actionId={`demo.invoice:${new Date().toDateString()}`}
-            run={async (opts) => {
-              const d = await createCase(await demoInvoiceRequest(), opts);
-              router.push(href(`/case/${d.case.id}`));
-            }}
-            onConflict={() => undefined}
-            className="btn btn-secondary"
-          >
-            {t("dues.demo_invoice")}
-          </IdempotentButton>
+          {demoButton("dues.demo_invoice")}
           <Link href={href("/upload")} className="btn btn-primary">
             <Icon name="upload" className="h-4 w-4" />
             {t("nav.upload")}
@@ -210,6 +259,12 @@ export function DuesScreen() {
         </div>
       </header>
 
+      <DuesTabs value={tab} onChange={setTab} />
+
+      {tab === "customers" ? (
+        <CustomersView demoButton={demoButton("customers.empty.demo")} />
+      ) : (
+      <>
       <DataBanners placeholder={placeholder} />
 
       <div className="flex flex-col gap-2">
@@ -254,6 +309,8 @@ export function DuesScreen() {
             ))}
           </ul>
         </div>
+      )}
+      </>
       )}
 
       <JudgeConsole current={null} />

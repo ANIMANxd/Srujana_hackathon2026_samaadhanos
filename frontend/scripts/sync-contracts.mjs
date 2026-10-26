@@ -124,9 +124,25 @@ lines.push("export const RAW_V4: Record<string, unknown> = {");
 v4Files.forEach((f, i) => lines.push(`  ${JSON.stringify(f.replace(/\.json$/, ""))}: v4_${i} as unknown,`));
 lines.push("};");
 
+// 6. Contract v1.2 samples (customer book): same {_fixture, payload} shape, exported as RAW_V5
+const v5Src = path.join(fixturesSrc, "v5");
+const v5Files = fs.existsSync(v5Src)
+  ? fs.readdirSync(v5Src).filter((f) => f.endsWith(".json") && !f.includes("contract-baseline")).sort()
+  : [];
+fs.mkdirSync(path.join(fixturesOut, "v5"), { recursive: true });
+v5Files.forEach((f, i) => {
+  fs.copyFileSync(path.join(v5Src, f), path.join(fixturesOut, "v5", f));
+  lines.push(`import v5_${i} from "./v5/${f}";`);
+});
+lines.push("");
+lines.push("export const RAW_V5: Record<string, unknown> = {");
+v5Files.forEach((f, i) => lines.push(`  ${JSON.stringify(f.replace(/\.json$/, ""))}: v5_${i} as unknown,`));
+lines.push("};");
+
 fs.writeFileSync(path.join(fixturesOut, "index.ts"), lines.join("\n") + "\n");
 
 console.log(
   `[sync-contracts] types + ${ids.length} fixture case(s): ${ids.join(", ") || "none"}; ` +
-    `${artifacts.length} artifact sample(s); ${samples.length} extraction sample(s); ${v4Files.length} v1.1 sample(s)`,
+    `${artifacts.length} artifact sample(s); ${samples.length} extraction sample(s); ${v4Files.length} v1.1 sample(s); ` +
+    `${v5Files.length} v1.2 sample(s)`,
 );

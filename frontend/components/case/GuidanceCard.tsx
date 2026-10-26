@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { useState } from "react";
 import { currentStage, isStageBlocked, showDeemedAcceptance, topDefense } from "@/lib/derive";
-import { count, money, moneyParts } from "@/lib/format";
+import { count, date, money, moneyParts } from "@/lib/format";
 import { useT } from "@/lib/i18n";
 import { useHref } from "@/lib/params";
+import type { PaidSummary } from "@/lib/payments";
 import type { CaseResponse, StatuteConfig } from "@/lib/types";
 import { Icon } from "../common/Icon";
 import { StatusIcon } from "../common/StatusIcon";
@@ -13,6 +14,15 @@ import { PlaceholderBadge } from "../shell/PlaceholderBadge";
 import { DEFENSE_TONE, DefensesDrawer } from "./DefensesDrawer";
 import { LiveInterestTicker } from "./LiveInterestTicker";
 import { SectionChip } from "./SectionChip";
+
+type T = ReturnType<typeof useT>["t"];
+
+/** "Paid ✓ on 12 Mar 2026 — 31 days after acceptance (legal due: 45 days)"; the day counts only when the engine's dates allow. */
+function paidLine(p: PaidSummary, t: T): string {
+  if (p.daysAfterAcceptance === null) return t("pay.paid_no_days", { date: date(p.paidOn) });
+  if (p.legalDueDays === null) return t("pay.paid_no_legal", { date: date(p.paidOn), n: count(p.daysAfterAcceptance) });
+  return t("pay.paid", { date: date(p.paidOn), n: count(p.daysAfterAcceptance), m: count(p.legalDueDays) });
+}
 
 /**
  * The hero (spec C1 / F10): one monumental figure, the rules behind it as
@@ -23,11 +33,14 @@ export function GuidanceCard({
   response,
   config,
   placeholder,
+  paid = null,
 }: {
   caseId: string;
   response: CaseResponse;
   config: StatuteConfig | null;
   placeholder: boolean;
+  /** Set when the engine shows nothing left to pay: replaces the next step. */
+  paid?: PaidSummary | null;
 }) {
   const { t } = useT();
   const href = useHref();
@@ -117,7 +130,12 @@ export function GuidanceCard({
           <span className="num text-xs text-ink-500">{t("stage.of", { n: stage })}</span>
         </div>
 
-        {status === "NO_DELIVERY_PROOF" ? (
+        {paid ? (
+          <div className="flex flex-col gap-1.5">
+            <StatusIcon tone="ok" icon="ok" label={paidLine(paid, t)} wrap />
+            <p className="text-sm text-ink-600">{t("pay.paid_note")}</p>
+          </div>
+        ) : status === "NO_DELIVERY_PROOF" ? (
           <p className="text-lg font-semibold leading-snug tracking-[-0.01em] text-ink-950">{t("hero.no_money_action")}</p>
         ) : (
           <div className="flex flex-col gap-1.5">
@@ -126,7 +144,8 @@ export function GuidanceCard({
           </div>
         )}
 
-        {status !== "NO_DELIVERY_PROOF" &&
+        {!paid &&
+          status !== "NO_DELIVERY_PROOF" &&
           (blocked ? (
             <StatusIcon tone="block" icon="lock" label={t("ladder.blocked")} />
           ) : (
