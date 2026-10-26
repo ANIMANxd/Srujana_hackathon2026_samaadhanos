@@ -19,7 +19,8 @@ import { Icon } from "../common/Icon";
 import { StatusIcon } from "../common/StatusIcon";
 import { PreviewTable } from "./PreviewTable";
 
-const MAX_BYTES = 5 * 1024 * 1024;
+const MAX_MB = 5;
+const MAX_BYTES = MAX_MB * 1024 * 1024;
 const LIST_LIMIT = 50;
 
 type Stage =
@@ -94,7 +95,7 @@ export function ImportScreen() {
     setError(null);
     if (!file || working.current) return;
     if (!isCsv(file)) return setError(t("import.not_csv"));
-    if (file.size > MAX_BYTES) return setError(t("import.too_big"));
+    if (file.size > MAX_BYTES) return setError(t("import.too_big", { mb: count(MAX_MB) }));
     if (file.size === 0) return setError(t("import.empty_file"));
     working.current = true;
     setBusy(true);
@@ -175,7 +176,7 @@ export function ImportScreen() {
             </span>
             <div className="flex flex-col gap-1">
               <p className="text-base font-medium text-ink-950">{busy ? t("import.reading") : t("import.drop")}</p>
-              <p className="text-sm text-ink-500">{t("import.drop_hint")}</p>
+              <p className="text-sm text-ink-500">{t("import.drop_hint", { mb: count(MAX_MB) })}</p>
             </div>
             <input
               ref={input}

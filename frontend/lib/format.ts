@@ -52,6 +52,12 @@ export function pct(value: string | null | undefined): string {
   return `${value}%`;
 }
 
+/** A 0-1 ratio string as a whole percent: "0.94" -> "94". Display only. */
+export function ratioPct(value: string | null | undefined): string {
+  const n = Number(value);
+  return value === null || value === undefined || !Number.isFinite(n) ? "—" : count(Math.round(n * 100));
+}
+
 /** "2026-01-10" -> "10 Jan 2026". Parsed as text, so no timezone shifts. */
 export function date(value: string | null | undefined): string {
   if (!value) return "—";

@@ -21,7 +21,9 @@ import { Skeleton } from "../common/States";
 type T = ReturnType<typeof useT>["t"];
 
 const SHOWN_SHARES = 5;
-const SEGMENT = ["bg-ink-950", "bg-ink-950/75", "bg-ink-950/55", "bg-ink-950/40", "bg-ink-950/25"];
+// Each fill is at least 3:1 against white (non-text contrast); the legend carries the names and shares.
+const SEGMENT = ["bg-ink-950", "bg-ink-950/85", "bg-ink-950/70", "bg-ink-950/60", "bg-ink-950/50"];
+const OTHERS = "bg-[repeating-linear-gradient(45deg,var(--color-ink-600)_0_2px,transparent_2px_5px)] border border-ink-600";
 
 export function usePortfolioViews(insights: InsightsView, rows: CustomerRow[] | null): PortfolioViews {
   const names = useMemo(() => new Map((rows ?? []).map((r) => [r.id, r.display_name])), [rows]);
@@ -60,7 +62,8 @@ export function InsightsCompact({ insights, views }: { insights: InsightsView; v
   const cards: { key: string; title: string; text: string }[] = [];
   if (views.concentration) cards.push({ key: "conc", title: t("insight.conc.title"), text: concentrationHeadline(views.concentration, t) });
   if (views.beforeMarch.length > 0) cards.push({ key: "march", title: t("insight.march.title", { date: dayMonth(views.beforeMarch[0].nextMarch) }), text: marchHeadline(views.beforeMarch, t) });
-  if (views.terms.length > 0) cards.push({ key: "terms", title: t("insight.terms.title"), text: termsHeadline(views.terms[0], t) });
+  // An average without its sample size is not shown (it would break "based on N").
+  if (views.terms.length > 0 && views.terms[0].basedOn !== null) cards.push({ key: "terms", title: t("insight.terms.title"), text: `${termsHeadline(views.terms[0], t)} ${t("stats.based_on", { n: count(views.terms[0].basedOn) })}` });
   if (views.cashIn) cards.push({ key: "cash", title: t("insight.cash.title"), text: t("insight.cash.label") });
   if (insights.loading || cards.length === 0) return insights.loading ? <Skeleton className="h-16" /> : null;
   return (
@@ -106,7 +109,7 @@ function Concentration({ c }: { c: ConcentrationView }) {
             {top.map((s, i) => (
               <span key={s.customerId} className={SEGMENT[i] ?? SEGMENT[4]} style={{ flexGrow: Number(s.sharePct), flexBasis: 0 }} />
             ))}
-            {rest > 0 && <span className="bg-rule-strong" style={{ flexGrow: c.shares.slice(SHOWN_SHARES).reduce((n, s) => n + Number(s.sharePct), 0), flexBasis: 0 }} />}
+            {rest > 0 && <span className={OTHERS} style={{ flexGrow: c.shares.slice(SHOWN_SHARES).reduce((n, s) => n + Number(s.sharePct), 0), flexBasis: 0 }} />}
           </div>
           <p className="sr-only">{t("insight.conc.sr", { list: summary, rest: rest > 0 ? t("insight.conc.others", { n: count(rest) }) : "" })}</p>
           <ul className="flex flex-col gap-1 text-sm">
@@ -123,7 +126,7 @@ function Concentration({ c }: { c: ConcentrationView }) {
             ))}
             {rest > 0 && (
               <li className="flex items-center gap-2 text-ink-600">
-                <span aria-hidden="true" className="h-2.5 w-2.5 shrink-0 rounded-sm bg-rule-strong" />
+                <span aria-hidden="true" className={`h-2.5 w-2.5 shrink-0 rounded-sm ${OTHERS}`} />
                 {t("insight.conc.others", { n: count(rest) })}
               </li>
             )}
@@ -139,7 +142,7 @@ function BeforeMarch({ items, sent }: { items: MarchItem[]; sent: boolean }) {
   const { t } = useT();
   const href = useHref();
   return (
-    <Card id="ins-march" title={t("insight.march.title", { date: items[0] ? dayMonth(items[0].nextMarch) : "31 March" })}>
+    <Card id="ins-march" title={items[0] ? t("insight.march.title", { date: dayMonth(items[0].nextMarch) }) : t("insight.march.title_plain")}>
       {items.length === 0 ? (
         <p className="text-sm text-ink-600">{t(sent ? "insight.nothing" : "insight.pending")}</p>
       ) : (
@@ -181,7 +184,7 @@ function Terms({ items, sent }: { items: TermsItem[]; sent: boolean }) {
             <li key={f.customerId} className="flex flex-col gap-1 py-2 first:pt-0">
               <p className="text-sm text-ink-900">{termsHeadline(f, t)}</p>
               <p className="flex flex-wrap items-center justify-between gap-2 text-xs text-ink-500">
-                <span>{f.basedOn !== null ? t("stats.based_on", { n: count(f.basedOn) }) : ""}</span>
+                <span>{f.basedOn !== null ? t("stats.based_on", { n: count(f.basedOn) }) : t("insight.terms.no_n")}</span>
                 <Link href={href(`/customers/${encodeURIComponent(f.customerId)}`)} className="link inline-flex items-center gap-1">
                   {f.planStep1Day !== null ? t("insight.terms.plan_day", { day: count(f.planStep1Day) }) : t("insight.terms.plan")}
                   <Icon name="arrow-right" className="h-3 w-3" />
@@ -202,12 +205,13 @@ function CashIn({ weeks }: { weeks: CashWeek[] }) {
   return (
     <Card id="ins-cash" title={t("insight.cash.title")}>
       <p className="text-sm font-medium text-ink-900">{weeks[0].label ?? t("insight.cash.label")}</p>
+      <p className="text-xs text-ink-600">{t("insight.cash.summary", { n: count(weeks.length), from: date(weeks[0].weekStart), to: date(weeks[weeks.length - 1].weekStart) })}</p>
       <div aria-hidden="true" className="flex h-28 items-end gap-1.5 border-b border-rule">
         {weeks.map((w) => (
           <span
             key={w.isoWeek}
             title={`${date(w.weekStart)}: ${money(w.amount)}`}
-            className="flex-1 rounded-t bg-ink-950/40"
+            className="flex-1 rounded-t bg-ink-950/60"
             style={{ height: `${max > 0 ? Math.max(4, (Number(w.amount) / max) * 100) : 4}%` }}
           />
         ))}

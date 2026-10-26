@@ -8,7 +8,7 @@
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { attachCustomer, createGroup, dismissSuggestion, getCustomer, linkToGroup, listSuggestions } from "@/lib/api";
 import { announceBookChange, bookAction, useBookRead } from "@/lib/customerBook";
-import { count } from "@/lib/format";
+import { count, ratioPct } from "@/lib/format";
 import { offlineCustomerProfile } from "@/lib/fixturesV5";
 import { useT } from "@/lib/i18n";
 import { newChangeId, recordChange, type ReviewChange } from "@/lib/reviewLog";
@@ -21,12 +21,6 @@ import { Banner } from "../shell/Banners";
 import type { UndoToastState } from "./UndoToast";
 
 type T = ReturnType<typeof useT>["t"];
-
-/** "0.94" -> 94. A display rounding of a ratio the server sent, not a legal figure. */
-function alikePct(similarity: string): string {
-  const n = Number(similarity);
-  return count(Number.isFinite(n) ? Math.round(n * 100) : 0);
-}
 
 /** GSTINs per customer id, read from each profile; `null` while unknown. */
 function useGstins(ids: string[], live: boolean): Map<string, string[]> {
@@ -130,7 +124,7 @@ function Card({
     <li className="flex flex-col gap-3 px-5 py-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <StatusIcon size="sm" tone="info" icon="info" label={t(`review.kind.${s.kind}`)} />
-        <p className="num text-xs text-ink-600">{t("review.similarity", { pct: alikePct(s.similarity) })}</p>
+        <p className="num text-xs text-ink-600">{t("review.similarity", { pct: ratioPct(s.similarity) })}</p>
       </div>
       <div className="grid gap-3 sm:grid-cols-2">
         <Party row={a} id={s.a} gstins={gstins.get(s.a)} t={t} />

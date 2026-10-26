@@ -76,7 +76,7 @@ export function PaymentHistoryChart({ series, cap }: { series: SeriesPoint[]; ca
       </div>
 
       {asTable ? (
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto" tabIndex={0} role="region" aria-label={t("chart.title")}>
           <table className="w-full min-w-[34rem] text-left text-sm">
             <caption className="sr-only">{t("chart.title")}</caption>
             <thead className="text-xs text-ink-500">

@@ -20,7 +20,7 @@ function Card({ label, children, note, placeholder }: { label: string; children:
         {label}
         {placeholder && <PlaceholderBadge />}
       </dt>
-      <dd className="figure truncate text-lg text-ink-950">{children}</dd>
+      <dd className="figure break-words text-lg text-ink-950">{children}</dd>
       {note && (
         <dd className="line-clamp-2 text-xs leading-snug text-ink-500" title={note}>
           {note}
@@ -65,7 +65,7 @@ export function InsightsStrip({ insights }: { insights: InsightsView }) {
         <Card placeholder={ph} label={t("insights.cash_in")} note={d?.cash_in_estimate ? (d.cash_in_estimate_note ?? t("stats.estimate_note")) : undefined}>
           {d ? d.cash_in_estimate ? <Money value={d.cash_in_estimate} /> : "—" : <Skeleton className="h-6 w-24" />}
         </Card>
-        <Card placeholder={ph} label={t("insights.top_share")} note={d?.concentration_note ?? undefined}>
+        <Card placeholder={ph} label={t("insights.top_share")} note={d ? t("insights.top_share_note") : undefined}>
           {d ? pct(d.top_customer_share_pct) : <Skeleton className="h-6 w-12" />}
         </Card>
       </dl>

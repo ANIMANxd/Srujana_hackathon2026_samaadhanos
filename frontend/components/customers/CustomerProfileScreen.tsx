@@ -143,7 +143,7 @@ function Tile({ label, children, note }: { label: string; children: React.ReactN
 
 function historyNote(f: HistoryFigure | null, t: T): string | undefined {
   if (!f) return undefined;
-  return f.kind === "value" ? t("stats.based_on", { n: count(f.basedOn) }) : (f.reason ?? t("stats.not_enough_history", { n: count(f.basedOn), min: count(f.min) }));
+  return f.kind === "value" ? t("stats.based_on", { n: count(f.basedOn) }) : t("stats.not_enough_history", { n: count(f.basedOn), min: count(f.min) });
 }
 
 function InterestTile({ interestNow, overdue, extras }: { interestNow: string | null; overdue: CaseSummary[]; extras: Map<string, CaseExtra> | null }) {
@@ -187,7 +187,7 @@ function InvoicesTable({ cases, series, extras, payments, offline, refresh }: {
       {cases.length === 0 ? (
         <p className="text-sm text-ink-500">{t("customers.no_cases")}</p>
       ) : (
-        <div className="panel overflow-x-auto">
+        <div className="panel overflow-x-auto" tabIndex={0} role="region" aria-label={t("profile.invoices")}>
           <table className="w-full min-w-[60rem] text-left text-sm">
             <thead className="border-b border-rule bg-paper text-xs text-ink-500">
               <tr>
