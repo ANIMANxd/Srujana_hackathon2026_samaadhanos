@@ -29,6 +29,7 @@ import { ErrorState, Skeleton } from "../common/States";
 import { StatusIcon } from "../common/StatusIcon";
 import { Banner, DataBanners } from "../shell/Banners";
 import { PlaceholderBadge } from "../shell/PlaceholderBadge";
+import { RecordPaymentDrawer } from "../payments/RecordPaymentDrawer";
 import { PaymentHistoryChart } from "./PaymentHistoryChart";
 import { ReviewedChanges } from "./ReviewedChanges";
 
@@ -161,14 +162,17 @@ function InterestTile({ interestNow, overdue, extras }: { interestNow: string | 
 
 // ---------------------------------------------------------------- invoices --
 
-function InvoicesTable({ cases, series, extras, payments }: {
+function InvoicesTable({ cases, series, extras, payments, offline, refresh }: {
   cases: CaseSummary[];
   series: Map<string, SeriesPoint>;
   extras: Map<string, CaseExtra> | null;
   payments: CustomerProfile["payments"];
+  offline: boolean;
+  refresh: () => void;
 }) {
   const { t } = useT();
   const href = useHref();
+  const [recordFor, setRecordFor] = useState<string | null>(null);
   // The last recorded (not voided) payment date per invoice, picked from the profile, not computed.
   const lastPaid = new Map<string, string>();
   for (const pay of payments ?? []) {
@@ -187,7 +191,7 @@ function InvoicesTable({ cases, series, extras, payments }: {
           <table className="w-full min-w-[60rem] text-left text-sm">
             <thead className="border-b border-rule bg-paper text-xs text-ink-500">
               <tr>
-                {(["invoice", "status", "amount", "accepted", "due", "paid", "days", "track"] as const).map((c) => (
+                {(["invoice", "status", "amount", "accepted", "due", "paid", "days", "track", "action"] as const).map((c) => (
                   <th key={c} scope="col" className={`px-4 py-2.5 font-medium ${c === "amount" || c === "days" ? "text-right" : ""}`}>
                     {t(`profile.col.${c}`)}
                   </th>
@@ -233,6 +237,14 @@ function InvoicesTable({ cases, series, extras, payments }: {
                         label={chip.prefix ? `${t(chip.prefix)} · ${t(chip.status as MessageKey, chip.vars)}` : t(chip.status as MessageKey)}
                       />
                     </td>
+                    <td className="px-4 py-3">
+                      {s?.days_to_pay == null && (
+                        <button type="button" className="btn btn-secondary min-h-8 px-3 text-xs" disabled={offline} aria-haspopup="dialog" onClick={() => setRecordFor(c.id)}>
+                          {t("pay.record")}
+                          <span className="sr-only"> {c.invoice_no}</span>
+                        </button>
+                      )}
+                    </td>
                   </tr>
                 );
               })}
@@ -240,6 +252,7 @@ function InvoicesTable({ cases, series, extras, payments }: {
           </table>
         </div>
       )}
+      {recordFor && <RecordPaymentDrawer caseId={recordFor} open onClose={() => setRecordFor(null)} onRecorded={refresh} />}
     </section>
   );
 }
@@ -489,7 +502,7 @@ export function CustomerProfileScreen({ customerId }: { customerId: string }) {
             </section>
           )}
 
-          <InvoicesTable cases={cases} series={series} extras={extras} payments={p.payments} />
+          <InvoicesTable cases={cases} series={series} extras={extras} payments={p.payments} offline={offline} refresh={view.refresh} />
           <Timeline p={p} extras={extras} />
           <DelayCosts cases={cases} extras={extras} placeholder={ph} />
         </>
