@@ -11,6 +11,7 @@ const ROUTES = [
   "/",
   "/?dues=invoices",
   "/customers/review",
+  "/import",
   "/customers/01JAV5CST0000000000000001",
   "/?view=cfo",
   "/upload",

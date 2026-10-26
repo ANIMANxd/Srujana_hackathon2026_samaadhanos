@@ -60,7 +60,7 @@ export function CustomersView({ demoButton }: { demoButton: ReactNode }) {
         </div>
       ) : book.rows.length === 0 ? (
         <EmptyState title={t("customers.empty.title")} body={t("customers.empty.body")}>
-          <Link href={href("/upload")} className="btn btn-primary">
+          <Link href={href("/import")} className="btn btn-primary">
             <Icon name="upload" className="h-4 w-4" />
             {t("customers.empty.import")}
           </Link>

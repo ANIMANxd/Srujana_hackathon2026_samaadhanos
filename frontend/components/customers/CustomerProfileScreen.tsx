@@ -81,7 +81,7 @@ function Header({ p, offline, refresh }: { p: CustomerProfile; offline: boolean;
             <Icon name="upload" className="h-4 w-4" />
             {t("profile.upload")}
           </Link>
-          <Link href={href("/upload")} className="btn btn-secondary">
+          <Link href={href("/import")} className="btn btn-secondary">
             {t("profile.import")}
           </Link>
           {p.group && (
