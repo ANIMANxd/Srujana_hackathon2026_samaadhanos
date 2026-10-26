@@ -12,6 +12,9 @@ Status: **working prototype.** The engine, API, contract, frontend and document
 drafts run end to end. Eight independent spec tests are red by design and are
 listed under [Known limitations](#known-limitations).
 
+📄 **Final project report:** [`REPORT.md`](REPORT.md) — problem, architecture,
+implementation, testing, limitations, AI disclosure, setup and team contributions.
+
 ---
 
 ## What it actually does
