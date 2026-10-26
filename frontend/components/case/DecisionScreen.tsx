@@ -77,7 +77,7 @@ export function DecisionScreen({
         <h2 id="choose" className="text-base font-semibold text-ink-950">
           {t("decision.choose")}
         </h2>
-        <ChoiceCard caseId={caseId} tracking={tracking} stage={currentStage(response)} />
+        <ChoiceCard caseId={caseId} tracking={tracking} stage={currentStage(response)} request={request} response={response} />
       </section>
 
       <div>
