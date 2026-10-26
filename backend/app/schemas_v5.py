@@ -464,12 +464,24 @@ class CustomerDetachRequest(ContractModel):
 
     Name `case_ids`, a `gstin`, or both. A detach that reverses an attach puts
     things back where they were; any other detach moves the invoices to their own
-    provisional customer.
+    provisional customer. `restore_customer_id` is the one-call undo of an
+    attach: it moves back everything the latest attach moved *from* that
+    customer, including the GSTINs it carried.
     """
 
     case_ids: list[str] = Field(default_factory=list)
     gstin: str | None = None
+    restore_customer_id: str | None = Field(
+        default=None,
+        description="Undo the attach that came from this customer, without naming each case.",
+    )
     reason: str | None = None
+
+
+class CustomerGstinRequest(ContractModel):
+    """`POST /customers/{id}/gstins`: add one registration to a customer."""
+
+    gstin: str = Field(min_length=1)
 
 
 class CustomerDetachResponse(ContractModel):
@@ -752,6 +764,7 @@ V1_2_MODELS: tuple[type[ContractModel], ...] = (
     CustomerAttachResponse,
     CustomerDetachRequest,
     CustomerDetachResponse,
+    CustomerGstinRequest,
     CustomerGroupCreateRequest,
     CustomerGroupMemberRequest,
     CustomerGroupMembershipResponse,

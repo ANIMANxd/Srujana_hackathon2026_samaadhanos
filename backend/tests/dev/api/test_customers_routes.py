@@ -528,6 +528,120 @@ def test_a_dismissed_suggestion_stays_dismissed(client):
     assert "customer.merge_dismissed" in types
 
 
+def test_undo_dismiss_brings_the_suggestion_back(client):
+    pan_case = _create(client, gstin=PAN_GSTIN_A, name="Undo Buyer Private Limited")
+    provisional_case = _create(client, gstin=INVALID_GSTIN, name="Undo Buyer Pvt Ltd")
+    pan_id = _customer_id(pan_case)
+    provisional_id = _customer_id(provisional_case)
+
+    dismissed = client.post(
+        "/api/v1/customers/suggestions/dismiss",
+        json={"a": provisional_id, "b": pan_id},
+        headers={"Idempotency-Key": "undo-dismiss-1"},
+    )
+    assert dismissed.status_code == 200, dismissed.text[:600]
+
+    undone = client.post(
+        "/api/v1/customers/suggestions/undo-dismiss",
+        json={"a": pan_id, "b": provisional_id},
+        headers={"Idempotency-Key": "undo-dismiss-2"},
+    )
+    assert undone.status_code == 200, undone.text[:600]
+    body = undone.json()
+    assert body["dismissed"] is False
+    assert sorted((body["a"], body["b"])) == sorted((pan_id, provisional_id))
+
+    offered = client.get("/api/v1/customers/suggestions").json()["suggestions"]
+    assert any({item["a"], item["b"]} == {provisional_id, pan_id} for item in offered)
+
+    types = [event.type for event in _events(provisional_case)]
+    assert "customer.merge_dismissed" in types
+    assert "customer.merge_dismissal_undone" in types
+
+    # Undoing again is a no-op, not an error.
+    again = client.post(
+        "/api/v1/customers/suggestions/undo-dismiss",
+        json={"a": provisional_id, "b": pan_id},
+        headers={"Idempotency-Key": "undo-dismiss-3"},
+    )
+    assert again.status_code == 200
+    assert "not dismissed" in again.json()["note"]
+
+
+def test_gstin_attach_and_remove_are_audited(client):
+    case = _create(client, gstin=PAN_GSTIN_A, name="Two States Private Limited")
+    customer_id = _customer_id(case)
+    second_state = "27" + PAN_GSTIN_A[2:]  # same PAN, different state code
+
+    added = client.post(
+        f"/api/v1/customers/{customer_id}/gstins",
+        json={"gstin": second_state},
+        headers={"Idempotency-Key": "gstin-add-1"},
+    )
+    assert added.status_code == 200, added.text[:600]
+    assert added.json()["gstins"] == sorted([PAN_GSTIN_A, second_state])
+    assert "customer.gstin_attached" in [event.type for event in _events(case)]
+
+    removed = client.request(
+        "DELETE",
+        f"/api/v1/customers/{customer_id}/gstins/{second_state}",
+        headers={"Idempotency-Key": "gstin-remove-1"},
+    )
+    assert removed.status_code == 200, removed.text[:600]
+    assert removed.json()["gstins"] == [PAN_GSTIN_A]
+    assert "customer.gstin_detached" in [event.type for event in _events(case)]
+
+    # A GSTIN that carries another PAN is refused: never merged, group instead.
+    refused = client.post(
+        f"/api/v1/customers/{customer_id}/gstins",
+        json={"gstin": PAN_GSTIN_B},
+        headers={"Idempotency-Key": "gstin-add-2"},
+    )
+    assert refused.status_code == 409
+    assert "different PAN" in refused.json()["error"]["message"]
+
+    missing_key = client.post(
+        f"/api/v1/customers/{customer_id}/gstins", json={"gstin": second_state}
+    )
+    assert missing_key.status_code == 400
+
+
+def test_detach_can_undo_an_attach_by_naming_the_customer(client):
+    provisional_case = _create(
+        client, gstin=INVALID_GSTIN, name="Restore Buyer Pvt Ltd"
+    )
+    pan_case = _create(
+        client, gstin=PAN_GSTIN_A, name="Restore Buyer Private Limited"
+    )
+    provisional_id = _customer_id(provisional_case)
+    pan_id = _customer_id(pan_case)
+
+    attached = client.post(
+        f"/api/v1/customers/{provisional_id}/attach",
+        json={"target_customer_id": pan_id},
+        headers={"Idempotency-Key": "restore-attach-1"},
+    )
+    assert attached.status_code == 200, attached.text[:600]
+
+    undone = client.post(
+        f"/api/v1/customers/{pan_id}/detach",
+        json={"restore_customer_id": provisional_id},
+        headers={"Idempotency-Key": "restore-detach-1"},
+    )
+    assert undone.status_code == 200, undone.text[:600]
+    assert undone.json()["moved_to"] == [provisional_id]
+    assert undone.json()["case_ids"] == [provisional_case]
+    assert _customer_id(provisional_case) == provisional_id
+
+    nothing = client.post(
+        f"/api/v1/customers/{pan_id}/detach",
+        json={"restore_customer_id": provisional_id},
+        headers={"Idempotency-Key": "restore-detach-2"},
+    )
+    assert nothing.status_code == 422
+    assert "nothing was moved back" in nothing.json()["error"]["message"]
+
+
 def test_linking_two_pans_as_a_group_removes_the_group_suggestion(client):
     first = _customer_id(
         _create(client, gstin=PAN_GSTIN_A, name="Groupable Traders Private Limited")

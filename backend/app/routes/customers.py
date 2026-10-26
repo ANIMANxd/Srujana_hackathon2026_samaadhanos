@@ -64,6 +64,7 @@ from backend.app.schemas_v5 import (
     CustomerGroupMemberRequest,
     CustomerGroupMembershipResponse,
     CustomerGroupRow,
+    CustomerGstinRequest,
     CustomerInvoice,
     CustomerKind,
     CustomerListEntry,
@@ -125,6 +126,9 @@ ROUTE_GROUP_CREATE = "POST /api/v1/customer-groups"
 ROUTE_GROUP_ADD = "POST /api/v1/customer-groups/{id}/members"
 ROUTE_GROUP_REMOVE = "DELETE /api/v1/customer-groups/{id}/members/{customer_id}"
 ROUTE_DISMISS = "POST /api/v1/customers/suggestions/dismiss"
+ROUTE_UNDISMISS = "POST /api/v1/customers/suggestions/undo-dismiss"
+ROUTE_GSTIN_ADD = "POST /api/v1/customers/{id}/gstins"
+ROUTE_GSTIN_REMOVE = "DELETE /api/v1/customers/{id}/gstins/{gstin}"
 
 # Event types this module writes. The store owns its own (`customer.created`,
 # `customer.group_created`, `customer.merge_dismissed`, ...).
@@ -1363,18 +1367,37 @@ def attach_customer(
 
         audited = _audit_cases(
             session,
-            moved_cases + target_case_ids,
+            moved_cases,
             event_type=CUSTOMER_ATTACH,
             payload={
                 "from_customer_id": source.id,
                 "to_customer_id": target.id,
                 "case_ids": sorted(moved_cases),
                 "gstins": sorted(moved_gstins),
+                "moved": True,
                 "source": "api.customers.attach",
             },
             actor="USER",
             at=now,
         )
+        if target_case_ids:
+            # The target's own invoices get the same story as a note, marked as
+            # not moved, so an undo can tell which invoices actually changed hands.
+            _audit_cases(
+                session,
+                target_case_ids,
+                event_type=CUSTOMER_ATTACH,
+                payload={
+                    "from_customer_id": source.id,
+                    "to_customer_id": target.id,
+                    "case_ids": sorted(moved_cases),
+                    "gstins": sorted(moved_gstins),
+                    "moved": False,
+                    "source": "api.customers.attach",
+                },
+                actor="USER",
+                at=now,
+            )
 
         after = _load_book(session)
         body = _attach_response(
@@ -1418,10 +1441,11 @@ def detach_customer(
     invoice's chain and can be reversed by attaching again.
     """
     key = _require_key(idempotency_key)
-    if not payload.case_ids and not payload.gstin:
+    restore_id = (payload.restore_customer_id or "").strip() or None
+    if not payload.case_ids and not payload.gstin and not restore_id:
         raise HTTPException(
             status_code=422,
-            detail="Name at least one case_id or a GSTIN to detach.",
+            detail="Name at least one case_id, a GSTIN, or the customer to restore to.",
         )
     case_ids = _dedup(payload.case_ids)
     digest = idempotency.hash_request(
@@ -1429,6 +1453,7 @@ def detach_customer(
             "customer_id": customer_id,
             "case_ids": sorted(case_ids),
             "gstin": (payload.gstin or "").strip().upper() or None,
+            "restore_customer_id": restore_id,
         }
     )
 
@@ -1454,6 +1479,37 @@ def detach_customer(
         audited: list[str] = []
         moved_cases: list[str] = []
         moved_gstins: list[str] = []
+        restore_gstins: list[str] = []
+
+        if restore_id is not None:
+            # The one-call undo of an attach: find every invoice this customer
+            # took from `restore_id` and give it back, with the GSTINs it carried.
+            if session.get(CustomerRowModel, restore_id) is None:
+                raise _not_found("customer", restore_id)
+            for row in session.exec(
+                select(CaseRow).where(CaseRow.customer_id == customer.id)
+            ).all():
+                event = _latest_attach_event(session, row.id, customer.id)
+                if event is None:
+                    continue
+                payload_json = event.payload_json or {}
+                if payload_json.get("from_customer_id") != restore_id:
+                    continue
+                if payload_json.get("moved") is not True:
+                    # The target's own invoices carry the event as a note only.
+                    continue
+                case_ids = _dedup([*case_ids, row.id])
+                restore_gstins = _dedup(
+                    [*restore_gstins, *(payload_json.get("gstins") or [])]
+                )
+            if not case_ids and not restore_gstins and not payload.gstin:
+                raise HTTPException(
+                    status_code=422,
+                    detail=(
+                        "There is no attach to undo from that customer, so nothing was "
+                        "moved back."
+                    ),
+                )
 
         for case_id in case_ids:
             case = session.get(CaseRow, case_id)
@@ -1552,6 +1608,35 @@ def detach_customer(
                 )
             )
 
+        if restore_gstins:
+            # Give back the registrations the attach carried, when they are still
+            # on this customer. A GSTIN already moved elsewhere is left alone.
+            for value in restore_gstins:
+                link = session.get(CustomerGstin, value)
+                if link is None or link.customer_id != customer.id:
+                    continue
+                link.customer_id = restore_id  # type: ignore[assignment]
+                session.add(link)
+                session.flush()
+                moved_gstins.append(value)
+                if restore_id not in moved_to:
+                    moved_to.append(restore_id)  # type: ignore[arg-type]
+                audited.extend(
+                    _audit_cases(
+                        session,
+                        book_case_ids(session, restore_id or customer.id),  # type: ignore[arg-type]
+                        event_type=CUSTOMER_DETACH,
+                        payload={
+                            "from_customer_id": customer.id,
+                            "gstin": value,
+                            "restored": True,
+                            "source": "api.customers.detach",
+                        },
+                        actor="USER",
+                        at=now,
+                    )
+                )
+
         after = _load_book(session)
         body = CustomerDetachResponse(
             customer=_customer_contract(after, customer.id),
@@ -1577,6 +1662,108 @@ def detach_customer(
 def book_case_ids(session, customer_id: str) -> list[str]:
     """Case ids attached to a customer, oldest first."""
     return customer_book.case_ids_for_customer(session, customer_id)
+
+
+# ------------------------------------------------------------- GSTINs ----
+
+
+@router.post("/customers/{customer_id}/gstins", response_model=Customer)
+def add_customer_gstin(
+    customer_id: str,
+    payload: CustomerGstinRequest,
+    idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
+) -> Customer:
+    """Attach one registration to a customer, audited on every affected invoice.
+
+    A GSTIN that carries a PAN promotes a provisional customer to that PAN. A
+    GSTIN belonging to a different PAN is refused: different PANs are never
+    merged, and the two customers can be linked as a group instead.
+    """
+    key = _require_key(idempotency_key)
+    value = customer_book.normalize_gstin(payload.gstin) or ""
+    digest = idempotency.hash_request({"customer_id": customer_id, "gstin": value})
+
+    with session_scope() as session:
+        if session.get(CustomerRowModel, customer_id) is None:
+            raise _not_found("customer", customer_id)
+        existing = idempotency.lookup(session, key=key, route=ROUTE_GSTIN_ADD)
+        if existing is not None:
+            if existing.request_hash != digest:
+                raise HTTPException(
+                    status_code=409,
+                    detail=(
+                        "This Idempotency-Key was already used for a different GSTIN. "
+                        "Use a new key for a different action."
+                    ),
+                )
+            return Customer.model_validate(existing.response_json)
+
+        try:
+            customer_book.attach_gstin(
+                session, customer_id=customer_id, gstin=value, actor="USER", at=_now()
+            )
+        except LookupError as exc:
+            raise _not_found("customer", customer_id) from exc
+        except ValueError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+        body = _customer_contract(_load_book(session), customer_id)
+        idempotency.store(
+            session,
+            key=key,
+            route=ROUTE_GSTIN_ADD,
+            request_hash=digest,
+            response=body.model_dump(mode="json"),
+        )
+        return body
+
+
+@router.delete("/customers/{customer_id}/gstins/{gstin}", response_model=Customer)
+def remove_customer_gstin(
+    customer_id: str,
+    gstin: str,
+    idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
+) -> Customer:
+    """Remove one registration from a customer. Idempotent, and always audited."""
+    key = _require_key(idempotency_key)
+    value = customer_book.normalize_gstin(gstin) or ""
+    digest = idempotency.hash_request({"customer_id": customer_id, "gstin": value})
+
+    with session_scope() as session:
+        if session.get(CustomerRowModel, customer_id) is None:
+            raise _not_found("customer", customer_id)
+        existing = idempotency.lookup(session, key=key, route=ROUTE_GSTIN_REMOVE)
+        if existing is not None:
+            if existing.request_hash != digest:
+                raise HTTPException(
+                    status_code=409,
+                    detail=(
+                        "This Idempotency-Key was already used for a different GSTIN. "
+                        "Use a new key for a different action."
+                    ),
+                )
+            return Customer.model_validate(existing.response_json)
+
+        link = session.get(CustomerGstin, value) if value else None
+        if link is not None and link.customer_id != customer_id:
+            raise HTTPException(
+                status_code=409,
+                detail=(
+                    f"The GSTIN {value} belongs to another customer; nothing to remove "
+                    "here."
+                ),
+            )
+        customer_book.detach_gstin(session, gstin=value, actor="USER", at=_now())
+
+        body = _customer_contract(_load_book(session), customer_id)
+        idempotency.store(
+            session,
+            key=key,
+            route=ROUTE_GSTIN_REMOVE,
+            request_hash=digest,
+            response=body.model_dump(mode="json"),
+        )
+        return body
 
 
 # --------------------------------------------------------------- groups ----
@@ -1838,6 +2025,68 @@ def dismiss_customer_suggestion(
             session,
             key=key,
             route=ROUTE_DISMISS,
+            request_hash=digest,
+            response=response.model_dump(mode="json"),
+        )
+        return response
+
+
+@router.post(
+    "/customers/suggestions/undo-dismiss", response_model=SuggestionDismissResponse
+)
+def undo_dismiss_customer_suggestion(
+    payload: SuggestionDismissRequest,
+    idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
+) -> SuggestionDismissResponse:
+    """Undo a dismissal so the pair can be suggested again. Audited on both customers.
+
+    Every dismissal is reversible (AGENTS.md rule 26); nothing is merged either
+    way, and no invoice moves.
+    """
+    key = _require_key(idempotency_key)
+    first, second = sorted((payload.a, payload.b))
+    digest = idempotency.hash_request({"a": first, "b": second, "action": "undo"})
+
+    with session_scope() as session:
+        for customer_id in (first, second):
+            if session.get(CustomerRowModel, customer_id) is None:
+                raise _not_found("customer", customer_id)
+
+        existing = idempotency.lookup(session, key=key, route=ROUTE_UNDISMISS)
+        if existing is not None:
+            if existing.request_hash != digest:
+                raise HTTPException(
+                    status_code=409,
+                    detail=(
+                        "This Idempotency-Key was already used for a different pair. "
+                        "Use a new key for a different action."
+                    ),
+                )
+            return SuggestionDismissResponse.model_validate(existing.response_json)
+
+        try:
+            changed = customer_book.undo_merge_dismissal(
+                session, customer_a=first, customer_b=second, actor="USER", at=_now()
+            )
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+        response = SuggestionDismissResponse(
+            a=first,
+            b=second,
+            dismissed=False,
+            dismissed_at=None,
+            note=(
+                "Undone: the pair can be suggested again. Nothing was merged, and the "
+                "undo is recorded on both customers' cases."
+                if changed
+                else "Nothing to undo: this pair was not dismissed."
+            ),
+        )
+        idempotency.store(
+            session,
+            key=key,
+            route=ROUTE_UNDISMISS,
             request_hash=digest,
             response=response.model_dump(mode="json"),
         )

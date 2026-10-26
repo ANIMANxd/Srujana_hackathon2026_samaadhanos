@@ -543,6 +543,29 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/customers/suggestions/undo-dismiss": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Undo Dismiss Customer Suggestion
+         * @description Undo a dismissal so the pair can be suggested again. Audited on both customers.
+         *
+         *     Every dismissal is reversible (AGENTS.md rule 26); nothing is merged either
+         *     way, and no invoice moves.
+         */
+        post: operations["undo_dismiss_customer_suggestion_api_v1_customers_suggestions_undo_dismiss_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/customers/{customer_id}": {
         parameters: {
             query?: never;
@@ -613,6 +636,50 @@ export interface paths {
          */
         post: operations["detach_customer_api_v1_customers__customer_id__detach_post"];
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/customers/{customer_id}/gstins": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Add Customer Gstin
+         * @description Attach one registration to a customer, audited on every affected invoice.
+         *
+         *     A GSTIN that carries a PAN promotes a provisional customer to that PAN. A
+         *     GSTIN belonging to a different PAN is refused: different PANs are never
+         *     merged, and the two customers can be linked as a group instead.
+         */
+        post: operations["add_customer_gstin_api_v1_customers__customer_id__gstins_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/customers/{customer_id}/gstins/{gstin}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Remove Customer Gstin
+         * @description Remove one registration from a customer. Idempotent, and always audited.
+         */
+        delete: operations["remove_customer_gstin_api_v1_customers__customer_id__gstins__gstin__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1538,7 +1605,9 @@ export interface components {
          *
          *     Name `case_ids`, a `gstin`, or both. A detach that reverses an attach puts
          *     things back where they were; any other detach moves the invoices to their own
-         *     provisional customer.
+         *     provisional customer. `restore_customer_id` is the one-call undo of an
+         *     attach: it moves back everything the latest attach moved *from* that
+         *     customer, including the GSTINs it carried.
          */
         CustomerDetachRequest: {
             /** Case Ids */
@@ -1547,6 +1616,11 @@ export interface components {
             gstin?: string | null;
             /** Reason */
             reason?: string | null;
+            /**
+             * Restore Customer Id
+             * @description Undo the attach that came from this customer, without naming each case.
+             */
+            restore_customer_id?: string | null;
         };
         /**
          * CustomerDetachResponse
@@ -1633,6 +1707,14 @@ export interface components {
             stats?: components["schemas"]["CustomerStats"] | null;
             /** Totals Note */
             totals_note?: string | null;
+        };
+        /**
+         * CustomerGstinRequest
+         * @description `POST /customers/{id}/gstins`: add one registration to a customer.
+         */
+        CustomerGstinRequest: {
+            /** Gstin */
+            gstin: string;
         };
         /**
          * CustomerInvoice
@@ -4339,6 +4421,41 @@ export interface operations {
             };
         };
     };
+    undo_dismiss_customer_suggestion_api_v1_customers_suggestions_undo_dismiss_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SuggestionDismissRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuggestionDismissResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_customer_api_v1_customers__customer_id__get: {
         parameters: {
             query?: never;
@@ -4431,6 +4548,77 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CustomerDetachResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_customer_gstin_api_v1_customers__customer_id__gstins_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+            };
+            path: {
+                customer_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CustomerGstinRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Customer"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    remove_customer_gstin_api_v1_customers__customer_id__gstins__gstin__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+            };
+            path: {
+                customer_id: string;
+                gstin: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Customer"];
                 };
             };
             /** @description Validation Error */

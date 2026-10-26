@@ -79,8 +79,11 @@ WRITE_PATHS = {
     "/api/v1/cases/{case_id}/payments/{payment_id}/void",
     # v1.2 customer book owner actions (CB3-CB5).
     "/api/v1/customers/suggestions/dismiss",
+    "/api/v1/customers/suggestions/undo-dismiss",
     "/api/v1/customers/{customer_id}/attach",
     "/api/v1/customers/{customer_id}/detach",
+    "/api/v1/customers/{customer_id}/gstins",
+    "/api/v1/customers/{customer_id}/gstins/{gstin}",
     "/api/v1/customer-groups",
     "/api/v1/customer-groups/{group_id}/members",
     "/api/v1/customer-groups/{group_id}/members/{customer_id}",
@@ -357,6 +360,45 @@ def test_customer_book_routes_match_the_contract():
         _response_pointer("/api/v1/customers/suggestions/dismiss", "POST"),
         dismissed.json(),
         "POST /customers/suggestions/dismiss",
+    )
+
+    undismissed = client.post(
+        "/api/v1/customers/suggestions/undo-dismiss",
+        json={"a": provisional_id, "b": pan_id},
+        headers={"Idempotency-Key": "conformance-dismiss-2"},
+    )
+    assert undismissed.status_code == 200, undismissed.text[:400]
+    _assert_matches(
+        _response_pointer("/api/v1/customers/suggestions/undo-dismiss", "POST"),
+        undismissed.json(),
+        "POST /customers/suggestions/undo-dismiss",
+    )
+    assert undismissed.json()["dismissed"] is False
+
+    second_gstin = "27" + "29ABCDE1234F1Z5"[2:]
+    gstin_added = client.post(
+        f"/api/v1/customers/{pan_id}/gstins",
+        json={"gstin": second_gstin},
+        headers={"Idempotency-Key": "conformance-gstin-1"},
+    )
+    assert gstin_added.status_code == 200, gstin_added.text[:400]
+    _assert_matches(
+        _response_pointer("/api/v1/customers/{customer_id}/gstins", "POST"),
+        gstin_added.json(),
+        "POST /customers/{customer_id}/gstins",
+    )
+    gstin_removed = client.request(
+        "DELETE",
+        f"/api/v1/customers/{pan_id}/gstins/{second_gstin}",
+        headers={"Idempotency-Key": "conformance-gstin-2"},
+    )
+    assert gstin_removed.status_code == 200, gstin_removed.text[:400]
+    _assert_matches(
+        _response_pointer(
+            "/api/v1/customers/{customer_id}/gstins/{gstin}", "DELETE"
+        ),
+        gstin_removed.json(),
+        "DELETE /customers/{customer_id}/gstins/{gstin}",
     )
 
     attached = client.post(

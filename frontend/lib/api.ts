@@ -128,11 +128,11 @@ function postJson<T>(path: string, payload: unknown): Promise<T> {
  */
 export type MutationOptions = { idempotencyKey: string; ifMatch?: number };
 
-function mutate<T>(path: string, opts: MutationOptions, payload?: unknown): Promise<T> {
+function mutate<T>(path: string, opts: MutationOptions, payload?: unknown, method: "POST" | "DELETE" = "POST"): Promise<T> {
   const headers: Record<string, string> = { "Idempotency-Key": opts.idempotencyKey };
   if (payload !== undefined) headers["Content-Type"] = "application/json";
   if (opts.ifMatch !== undefined) headers["If-Match"] = String(opts.ifMatch);
-  return call<T>(path, { method: "POST", headers, body: payload === undefined ? undefined : JSON.stringify(payload) });
+  return call<T>(path, { method, headers, body: payload === undefined ? undefined : JSON.stringify(payload) });
 }
 
 const caseUrl = (id: string) => `/cases/${encodeURIComponent(id)}`;
@@ -434,8 +434,8 @@ function listOf<T>(body: unknown, key: string): T[] {
   throw new ApiError(500, "BAD_RESPONSE", "The list did not match the contract.");
 }
 
-async function mutateVoid(path: string, opts: MutationOptions, payload?: unknown): Promise<void> {
-  await mutate<unknown>(path, opts, payload);
+async function mutateVoid(path: string, opts: MutationOptions, payload?: unknown, method: "POST" | "DELETE" = "POST"): Promise<void> {
+  await mutate<unknown>(path, opts, payload, method);
 }
 
 /**
@@ -477,22 +477,71 @@ export type CustomerListQuery = { sort: CustomerSort; dir: SortDir };
 export type CustomerBook = { customers: CustomerRow[]; groups: CustomerGroupRow[] };
 
 /**
- * GET /customers?sort=&dir=: every customer row, sorted by the server, plus the
- * owner's groups. Offline: the saved sample rows, ordered by `sortSampleRows`.
+ * The UI's sort names are row field names; GET /customers takes its own four
+ * keys and fixes the direction that reads naturally for each (money largest
+ * first, names A-Z). Anything the server does not offer is served by the closest
+ * key and the requested direction is applied to the rows it returns -- an
+ * ordering of figures the server sent, never a sum.
+ */
+const SERVER_SORT: Record<CustomerSort, { sort: "outstanding" | "overdue" | "avg_days" | "name"; dir: SortDir }> = {
+  outstanding_total: { sort: "outstanding", dir: "desc" },
+  overdue_total: { sort: "overdue", dir: "desc" },
+  avg_days_to_pay: { sort: "avg_days", dir: "desc" },
+  display_name: { sort: "name", dir: "asc" },
+  oldest_overdue_days: { sort: "overdue", dir: "desc" },
+  last_payment_on: { sort: "name", dir: "asc" },
+};
+
+/**
+ * GET /customers?sort=&group=true: every customer row, sorted by the server,
+ * with the owner's groups. A grouped entry carries its members nested, so they
+ * are flattened back into `customers` (each keeps its own `group_id`), which is
+ * what `sectionRows` expects. Offline: the saved sample rows, ordered by
+ * `sortSampleRows`.
  */
 export function listCustomers(q: CustomerListQuery): Promise<Sourced<CustomerBook>> {
-  const qs = `?sort=${encodeURIComponent(q.sort)}&dir=${encodeURIComponent(q.dir)}`;
+  const server = SERVER_SORT[q.sort] ?? SERVER_SORT.outstanding_total;
   return v12OrSample(
     async () => {
-      const body = await call<unknown>(`/customers${qs}`);
-      const customers = listOf<CustomerRow>(body, "customers");
-      const raw = typeof body === "object" && body !== null && !Array.isArray(body) ? (body as Record<string, unknown>).groups : undefined;
-      const groups = Array.isArray(raw) ? (raw as CustomerGroupRow[]) : [];
-      return { customers, groups };
+      const body = await call<{
+        entries?: {
+          kind: string;
+          customer?: CustomerRow | null;
+          group?: CustomerGroupRow | null;
+        }[];
+      }>(`/customers?sort=${server.sort}&group=true`);
+      const entries = body.entries ?? [];
+      const customers: CustomerRow[] = [];
+      const groups: CustomerGroupRow[] = [];
+      for (const entry of entries) {
+        if (entry.kind === "GROUP" && entry.group) {
+          groups.push(entry.group);
+          for (const member of entry.group.members ?? []) {
+            customers.push({ ...member, group_id: member.group_id ?? entry.group.id, group_label: member.group_label ?? entry.group.label });
+          }
+          continue;
+        }
+        if (entry.customer) {
+          const row = entry.customer;
+          customers.push(row);
+          if (row.group_id && !groups.some((g) => g.id === row.group_id)) {
+            // A row can name a group the list did not send; keep the label it carries.
+            groups.push({
+              id: row.group_id,
+              label: row.group_label ?? row.group_id,
+              created_at: "",
+              created_by: "",
+              member_count: 0,
+            });
+          }
+        }
+      }
+      const rows = q.dir === server.dir ? customers : [...customers].reverse();
+      return { customers: rows, groups };
     },
     () => {
-      const customers = offlineCustomerRows();
-      return customers ? { customers: sortSampleRows(customers, q.sort, q.dir), groups: offlineCustomerGroups() ?? [] } : null;
+      const sample = offlineCustomerRows();
+      return sample ? { customers: sortSampleRows(sample, q.sort, q.dir), groups: offlineCustomerGroups() ?? [] } : null;
     },
   );
 }
@@ -545,20 +594,23 @@ export function attachGstin(customerId: string, gstin: string, opts: MutationOpt
 }
 
 export function detachGstin(customerId: string, gstin: string, opts: MutationOptions): Promise<void> {
-  return mutateVoid(`${customerUrl(customerId)}/gstins/${encodeURIComponent(gstin)}/detach`, opts);
+  return mutateVoid(`${customerUrl(customerId)}/gstins/${encodeURIComponent(gstin)}`, opts, undefined, "DELETE");
 }
 
 /**
  * Accept an ATTACH suggestion: the provisional customer `sourceId` joins the
- * PAN customer `targetId`, whose PAN stays the legal identity. Different PANs
- * are never merged; the server refuses that. Undo: `detachCustomer`.
+ * PAN customer `targetId`, whose PAN stays the legal identity. The provisional
+ * record keeps existing with no invoices, so the move can be undone. Different
+ * PANs are never merged; the server refuses that. Undo: `detachCustomer`.
  */
 export function attachCustomer(targetId: string, sourceId: string, opts: MutationOptions): Promise<void> {
-  return mutateVoid(`${customerUrl(targetId)}/attach`, opts, { customer_id: sourceId });
+  // The route hangs off the provisional side: POST /customers/{provisional}/attach
+  return mutateVoid(`${customerUrl(sourceId)}/attach`, opts, { target_customer_id: targetId });
 }
 
+/** Undo an attach: the server moves back everything that attach took from `sourceId`. */
 export function detachCustomer(targetId: string, sourceId: string, opts: MutationOptions): Promise<void> {
-  return mutateVoid(`${customerUrl(targetId)}/detach`, opts, { customer_id: sourceId });
+  return mutateVoid(`${customerUrl(targetId)}/detach`, opts, { restore_customer_id: sourceId });
 }
 
 /** A group links customers for viewing together; each keeps its own legal identity and cases. */
@@ -571,7 +623,7 @@ export function linkToGroup(groupId: string, customerId: string, opts: MutationO
 }
 
 export function unlinkFromGroup(groupId: string, customerId: string, opts: MutationOptions): Promise<void> {
-  return mutateVoid(`${groupUrl(groupId)}/members/${encodeURIComponent(customerId)}/unlink`, opts);
+  return mutateVoid(`${groupUrl(groupId)}/members/${encodeURIComponent(customerId)}`, opts, undefined, "DELETE");
 }
 
 /** "Not the same buyer": hide this suggestion. Undo: `undoDismissSuggestion`. */
@@ -599,19 +651,188 @@ export function voidPayment(caseId: string, paymentId: string, opts: MutationOpt
 }
 
 // CSV import: preview first, nothing is stored until the owner confirms.
+//
+// The server is stateless on purpose: the preview returns an `import_token` that
+// signs the exact bytes it read, and the commit must send the same file back
+// with that token. The browser keeps the chosen file in memory under the token,
+// so the owner confirms what they just saw and no staging copy exists anywhere.
+
+type RawImportRow = {
+  row_no: number;
+  status: string;
+  parsed: {
+    invoice_no: string;
+    invoice_date: string;
+    delivery_date: string;
+    amount: string;
+    buyer_name: string;
+    buyer_gstin?: string | null;
+    agreed_credit_days?: number | null;
+    paid_on?: string | null;
+    paid_amount?: string | null;
+    notes?: string | null;
+  } | null;
+  customer_match: {
+    customer_id?: string | null;
+    display_name?: string | null;
+    matched_on: string;
+    would_create: boolean;
+    warnings?: string[];
+  } | null;
+  errors: string[];
+  warnings: string[];
+  case_id?: string | null;
+  payment_id?: string | null;
+};
+
+type RawImportSummary = {
+  total_rows: number;
+  valid_rows: number;
+  invalid_rows: number;
+  duplicate_rows: number;
+  created_rows: number;
+  skipped_rows: number;
+  failed_rows: number;
+  payments_created: number;
+  date_format: string;
+  errors?: string[];
+  warnings?: string[];
+};
+
+type RawImportResponse = {
+  filename: string;
+  import_token: string;
+  rows: RawImportRow[];
+  summary: RawImportSummary;
+  created_case_ids?: string[];
+  skipped?: string[];
+};
+
+export const IMPORT_COLUMNS = [
+  "invoice_no",
+  "invoice_date",
+  "delivery_date",
+  "amount",
+  "buyer_name",
+  "buyer_gstin",
+  "agreed_credit_days",
+  "paid_on",
+  "paid_amount",
+  "notes",
+] as const;
+
+const pendingImports = new Map<string, { file: Blob; filename: string }>();
+
+function rowCells(row: RawImportRow): Record<string, string> {
+  const p = row.parsed;
+  if (!p) return {};
+  return {
+    invoice_no: p.invoice_no,
+    invoice_date: p.invoice_date,
+    delivery_date: p.delivery_date,
+    amount: p.amount,
+    buyer_name: p.buyer_name,
+    buyer_gstin: p.buyer_gstin ?? "",
+    agreed_credit_days: p.agreed_credit_days == null ? "" : String(p.agreed_credit_days),
+    paid_on: p.paid_on ?? "",
+    paid_amount: p.paid_amount ?? "",
+    notes: p.notes ?? "",
+  };
+}
+
+/** The server's per-row verdicts, in the additive shape `importRows.ts` reads (CR-20). */
+function rowViews(rows: RawImportRow[]) {
+  return rows.map((row) => {
+    const match = row.customer_match;
+    const kind = !match ? "unknown" : match.customer_id ? "existing" : match.matched_on === "NEW" ? "new" : "provisional";
+    return {
+      row: row.row_no,
+      status: row.errors.length ? "error" : row.warnings.length ? "warning" : "ready",
+      message: row.errors[0] ?? row.warnings[0] ?? null,
+      match: {
+        kind,
+        customer_name: match?.display_name ?? null,
+        customer_id: match?.customer_id ?? null,
+      },
+      cells: rowCells(row),
+    };
+  });
+}
+
+function toImportPreview(body: RawImportResponse): ImportPreview {
+  const views = rowViews(body.rows);
+  return {
+    preview_id: body.import_token,
+    filename: body.filename,
+    total_rows: body.summary.total_rows,
+    valid_rows: body.summary.valid_rows,
+    invalid_rows: body.summary.invalid_rows,
+    requires_confirmation: true,
+    columns: [...IMPORT_COLUMNS],
+    sample_rows: views
+      .filter((v) => v.status !== "error")
+      .slice(0, 20)
+      .map((v) => v.cells),
+    errors: [
+      ...(body.summary.errors ?? []),
+      ...views.filter((v) => v.status === "error").map((v) => `Row ${v.row}: ${v.message ?? "check this row"}`),
+    ],
+    warnings: body.summary.warnings ?? [],
+    // Additive: the per-row table, which the preview screen prefers when present.
+    rows: views,
+  } as ImportPreview;
+}
+
+function toImportResult(body: RawImportResponse, previewId: string): ImportResult {
+  const created = body.rows.filter((r) => r.status === "CREATED");
+  const customerIds = [...new Set(created.map((r) => r.customer_match?.customer_id).filter((id): id is string => Boolean(id)))];
+  return {
+    preview_id: previewId,
+    imported: body.summary.created_rows,
+    skipped: body.summary.skipped_rows,
+    failed: body.summary.failed_rows,
+    customers_created: created.filter((r) => r.customer_match?.would_create).length,
+    customers_matched: created.filter((r) => r.customer_match?.customer_id).length,
+    gstins_attached: 0,
+    case_ids: body.created_case_ids ?? [],
+    errors: [
+      ...(body.summary.errors ?? []),
+      ...created.flatMap((r) => r.errors.map((e) => `Row ${r.row_no}: ${e}`)),
+    ],
+    warnings: body.summary.warnings ?? [],
+    // Additive: the customer ids of rows that landed on an existing customer.
+    customer_ids: customerIds,
+  } as ImportResult;
+}
 
 export async function previewImport(file: Blob, filename: string, opts: MutationOptions): Promise<ImportPreview> {
   const form = new FormData();
   form.append("file", file, filename);
-  const body = await call<ImportPreview>("/imports/preview", {
+  const body = await call<RawImportResponse>("/import/invoices?mode=preview", {
     method: "POST",
     headers: { "Idempotency-Key": opts.idempotencyKey },
     body: form,
   });
-  if (typeof body?.preview_id !== "string") throw new ApiError(500, "BAD_RESPONSE", "The import preview did not match the contract.");
-  return body;
+  if (typeof body?.import_token !== "string") throw new ApiError(500, "BAD_RESPONSE", "The import preview did not match the contract.");
+  pendingImports.set(body.import_token, { file, filename });
+  return toImportPreview(body);
 }
 
-export function confirmImport(previewId: string, opts: MutationOptions): Promise<ImportResult> {
-  return mutate<ImportResult>(`/imports/${encodeURIComponent(previewId)}/confirm`, opts);
+export async function confirmImport(previewId: string, opts: MutationOptions): Promise<ImportResult> {
+  const pending = pendingImports.get(previewId);
+  if (!pending) {
+    throw new ApiError(
+      409,
+      "PREVIEW_EXPIRED",
+      "This preview is no longer in this browser. Preview the file again, then confirm.",
+    );
+  }
+  const form = new FormData();
+  form.append("file", pending.file, pending.filename);
+  const body = await call<RawImportResponse>(
+    `/import/invoices?mode=commit&import_token=${encodeURIComponent(previewId)}`,
+    { method: "POST", headers: { "Idempotency-Key": opts.idempotencyKey }, body: form },
+  );
+  pendingImports.delete(previewId);
+  return toImportResult(body, previewId);
 }

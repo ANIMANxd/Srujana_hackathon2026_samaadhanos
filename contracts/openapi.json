@@ -1437,7 +1437,7 @@
         "type": "object"
       },
       "CustomerDetachRequest": {
-        "description": "`POST /customers/{id}/detach`: separate invoices or a GSTIN from a customer.\n\nName `case_ids`, a `gstin`, or both. A detach that reverses an attach puts\nthings back where they were; any other detach moves the invoices to their own\nprovisional customer.",
+        "description": "`POST /customers/{id}/detach`: separate invoices or a GSTIN from a customer.\n\nName `case_ids`, a `gstin`, or both. A detach that reverses an attach puts\nthings back where they were; any other detach moves the invoices to their own\nprovisional customer. `restore_customer_id` is the one-call undo of an\nattach: it moves back everything the latest attach moved *from* that\ncustomer, including the GSTINs it carried.",
         "properties": {
           "case_ids": {
             "items": {
@@ -1467,6 +1467,18 @@
               }
             ],
             "title": "Reason"
+          },
+          "restore_customer_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Undo the attach that came from this customer, without naming each case.",
+            "title": "Restore Customer Id"
           }
         },
         "title": "CustomerDetachRequest",
@@ -1665,6 +1677,21 @@
           "member_count"
         ],
         "title": "CustomerGroupRow",
+        "type": "object"
+      },
+      "CustomerGstinRequest": {
+        "description": "`POST /customers/{id}/gstins`: add one registration to a customer.",
+        "properties": {
+          "gstin": {
+            "minLength": 1,
+            "title": "Gstin",
+            "type": "string"
+          }
+        },
+        "required": [
+          "gstin"
+        ],
+        "title": "CustomerGstinRequest",
         "type": "object"
       },
       "CustomerInvoice": {
@@ -7656,6 +7683,66 @@
         ]
       }
     },
+    "/api/v1/customers/suggestions/undo-dismiss": {
+      "post": {
+        "description": "Undo a dismissal so the pair can be suggested again. Audited on both customers.\n\nEvery dismissal is reversible (AGENTS.md rule 26); nothing is merged either\nway, and no invoice moves.",
+        "operationId": "undo_dismiss_customer_suggestion_api_v1_customers_suggestions_undo_dismiss_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SuggestionDismissRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuggestionDismissResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Undo Dismiss Customer Suggestion",
+        "tags": [
+          "customers"
+        ]
+      }
+    },
     "/api/v1/customers/{customer_id}": {
       "get": {
         "description": "One customer: identity, group, full stats, invoices, payments and audit trail.\n\nDays to pay are measured from the engine's day of acceptance and \"on time\"\nmeans paid by the engine's legal due date, never the invoice date. The\nbuyer-cost block keeps its three lines separate.",
@@ -7832,6 +7919,143 @@
           }
         },
         "summary": "Detach Customer",
+        "tags": [
+          "customers"
+        ]
+      }
+    },
+    "/api/v1/customers/{customer_id}/gstins": {
+      "post": {
+        "description": "Attach one registration to a customer, audited on every affected invoice.\n\nA GSTIN that carries a PAN promotes a provisional customer to that PAN. A\nGSTIN belonging to a different PAN is refused: different PANs are never\nmerged, and the two customers can be linked as a group instead.",
+        "operationId": "add_customer_gstin_api_v1_customers__customer_id__gstins_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "customer_id",
+            "required": true,
+            "schema": {
+              "title": "Customer Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CustomerGstinRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Customer"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Add Customer Gstin",
+        "tags": [
+          "customers"
+        ]
+      }
+    },
+    "/api/v1/customers/{customer_id}/gstins/{gstin}": {
+      "delete": {
+        "description": "Remove one registration from a customer. Idempotent, and always audited.",
+        "operationId": "remove_customer_gstin_api_v1_customers__customer_id__gstins__gstin__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "customer_id",
+            "required": true,
+            "schema": {
+              "title": "Customer Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "gstin",
+            "required": true,
+            "schema": {
+              "title": "Gstin",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Customer"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Remove Customer Gstin",
         "tags": [
           "customers"
         ]
