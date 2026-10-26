@@ -1,0 +1,35 @@
+{
+  "_fixture": {
+    "schema": "ImportResult",
+    "contract_version": "1.2",
+    "synthetic": true,
+    "placeholder": true,
+    "placeholder_fields": [
+      "imported",
+      "skipped",
+      "failed",
+      "customers_created",
+      "customers_matched"
+    ],
+    "why": "Hand-shaped CSV result; no CSV import route exists yet.",
+    "regenerate_with": "pending CB2-CB6; after CB6 use the seeded-DB v5 fixture exporter (the v4 pattern is backend/app/export_v4_fixtures.py)"
+  },
+  "payload": {
+    "preview_id": "01JAV5IMP0000000000000001",
+    "imported": 10,
+    "skipped": 0,
+    "failed": 2,
+    "customers_created": 3,
+    "customers_matched": 7,
+    "gstins_attached": 8,
+    "case_ids": [
+      "01JAV5CASE0000000000000001"
+    ],
+    "errors": [
+      "Row 4: amount is not a number."
+    ],
+    "warnings": [
+      "2 rows were not imported."
+    ]
+  }
+}

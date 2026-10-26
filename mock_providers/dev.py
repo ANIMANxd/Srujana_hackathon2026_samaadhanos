@@ -11,6 +11,7 @@ running, so a crashed frontend does not kill the API mid-demo.
 from __future__ import annotations
 
 import os
+import shutil
 import signal
 import subprocess
 import sys
@@ -24,7 +25,10 @@ COMMANDS: list[tuple[str, list[str]]] = [
     ("mock", [sys.executable, "-m", "uvicorn", "mock_providers.app:app", "--port", "8100", "--app-dir", str(ROOT)]),
 ]
 
-FRONTEND = ("frontend", ["npm", "--prefix", str(ROOT / "frontend"), "run", "dev"])
+FRONTEND = (
+    "frontend",
+    [shutil.which("npm") or shutil.which("npm.cmd") or "npm", "--prefix", str(ROOT / "frontend"), "run", "dev"],
+)
 
 
 def _spawn(name: str, command: list[str], env: dict[str, str]):

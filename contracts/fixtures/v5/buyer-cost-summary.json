@@ -1,0 +1,52 @@
+{
+  "_fixture": {
+    "schema": "BuyerCostSummary",
+    "contract_version": "1.2",
+    "synthetic": true,
+    "placeholder": true,
+    "placeholder_fields": [
+      "lines"
+    ],
+    "why": "Hand-shaped buyer-cost summary: three separate lines and no combined total.",
+    "regenerate_with": "pending CB6; after CB6 use the seeded-DB v5 fixture exporter (the v4 pattern is backend/app/export_v4_fixtures.py)"
+  },
+  "payload": {
+    "as_of": "2026-10-26",
+    "lines": [
+      {
+        "id": "PERMANENT_LOSS",
+        "label": "Interest the buyer cannot deduct (permanent loss)",
+        "amount": "62000.00",
+        "case_count": 1,
+        "case_ids": [
+          "01JAV5CASE0000000000000001"
+        ],
+        "items": [],
+        "note": "Interest accrued on the late payment, from the engine's own buyer-cost block."
+      },
+      {
+        "id": "DEFERRAL",
+        "label": "Tax-timing deferral cost",
+        "amount": null,
+        "case_count": 0,
+        "case_ids": [],
+        "items": [],
+        "note": "No invoice reaches a 31 March checkpoint with the engine's current inputs."
+      },
+      {
+        "id": "DISCLOSURE",
+        "label": "Disclosure the buyer has to make",
+        "amount": null,
+        "case_count": 1,
+        "case_ids": [
+          "01JAV5CASE0000000000000001"
+        ],
+        "items": [
+          "s.22 disclosure in the audited accounts"
+        ],
+        "note": "Disclosure flags are not money, so this line carries no amount."
+      }
+    ],
+    "note": "Three separate lines about the buyer's position. They are never added together (AGENTS.md rule 8)."
+  }
+}

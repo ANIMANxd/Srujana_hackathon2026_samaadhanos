@@ -4,7 +4,7 @@
 # make may fall back to cmd.exe, so no sh syntax ($$, [], backslash
 # continuations) and no cmd-only syntax. Logic lives in one-line python.
 
-.PHONY: dev backend frontend mock test fixtures demo openapi types contract-fixtures contract db-reset
+.PHONY: dev backend frontend mock test test-v4 fixtures demo openapi types contract-fixtures contract db-reset seed-history
 
 PYTHON ?= python
 
@@ -12,7 +12,7 @@ PYTHON ?= python
 # `mock_providers/dev.py` is the launcher, because a Makefile recipe cannot start
 # concurrent processes portably (its own header forbids `&`, `$$` and continuations).
 dev:
-	@echo --- api :8000 | mock providers :8100 | frontend :3000 ---
+	@echo --- api :8000 - mock providers :8100 - frontend :3000 ---
 	$(PYTHON) mock_providers/dev.py
 
 backend:
@@ -34,6 +34,12 @@ frontend:
 # so its suite lives beside it rather than under backend/tests.
 test:
 	$(PYTHON) -c "import subprocess, sys; rc = subprocess.call([sys.executable, '-m', 'pytest', 'backend/tests', 'mock_providers/tests', '-q']); sys.exit(0 if rc in (0, 5) else rc)"
+
+# v4/v5 infrastructure suites: store, API routes, workflow, webhooks, finance.
+# The legal engine's spec and contract suites stay in `make test`; this target
+# is the fast green gate for the stateful half of the app.
+test-v4:
+	$(PYTHON) -c "import subprocess, sys; rc = subprocess.call([sys.executable, '-m', 'pytest', 'backend/tests/dev/store', 'backend/tests/dev/api', 'backend/tests/dev/workflow', 'backend/tests/dev/webhooks', 'backend/tests/dev/finance', '-q']); sys.exit(0 if rc in (0, 5) else rc)"
 
 # Regenerate contracts/fixtures from the real engine: every preset's request +
 # response, plus the CASE-01 artifact samples, then copy to frontend/fixtures.
@@ -69,3 +75,11 @@ contract: openapi types contract-fixtures
 # as cases (backend/store/seed.py). Destructive by design: demo data only.
 db-reset:
 	$(PYTHON) -m backend.store
+
+# Rebuild the store with the deterministic 12-month customer history only
+# (backend/store/history.py): six fictional customers generated as a CSV and
+# imported through POST /api/v1/import/invoices, so the real code runs.
+# Destructive by design: demo data only. `make db-reset` keeps the v4 presets and
+# runs the same history seed after them.
+seed-history:
+	$(PYTHON) -m backend.store.history --reset

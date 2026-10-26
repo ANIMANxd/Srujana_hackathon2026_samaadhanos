@@ -236,6 +236,64 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/cases/{case_id}/payments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Case Payments
+         * @description The case's payment history, including voided rows (never deleted).
+         */
+        get: operations["list_case_payments_api_v1_cases__case_id__payments_get"];
+        put?: never;
+        /**
+         * Create Case Payment
+         * @description Record a payment, re-evaluate through the engine, and audit it.
+         *
+         *     The engine already has a payment input (`transaction.part_payments`), so a
+         *     payment is appended there with a `v5:<payment_id>` reference and the case is
+         *     re-evaluated. The v5 `payments` row remains the source of truth; voiding
+         *     removes only the matching engine-input entry and keeps the row.
+         *
+         *     A payment cannot be future-dated, cannot precede the invoice, and cannot take
+         *     the total above the engine's remaining claim (invoice amount plus interest
+         *     accrued so far). A financed invoice's receivable belongs to the financier,
+         *     so payments to the supplier are refused with 409.
+         */
+        post: operations["create_case_payment_api_v1_cases__case_id__payments_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cases/{case_id}/payments/{payment_id}/void": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Void Case Payment
+         * @description Void a payment without deleting it, then re-evaluate through the engine.
+         *
+         *     The row keeps its amount and gains `voided_at`; the engine input loses only
+         *     the matching `v5:<payment_id>` entry. Repeating the call is a no-op and
+         *     writes no second event.
+         */
+        post: operations["void_case_payment_api_v1_cases__case_id__payments__payment_id__void_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/cases/{case_id}/recovery": {
         parameters: {
             query?: never;
@@ -349,6 +407,284 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/customer-groups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create Customer Group
+         * @description Link customers that are not the same PAN. It is a label, not a merge.
+         *
+         *     The group is descriptive: every invoice keeps its own customer and its own
+         *     legal entity. Membership is one group per customer, and a member can be
+         *     removed at any time.
+         */
+        post: operations["create_customer_group_api_v1_customer_groups_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/customer-groups/{group_id}/members": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Add Group Member
+         * @description Add one customer to an existing owner-made group.
+         */
+        post: operations["add_group_member_api_v1_customer_groups__group_id__members_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/customer-groups/{group_id}/members/{customer_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Remove Group Member
+         * @description Remove one customer from a group. Audited, and repeatable without effect.
+         */
+        delete: operations["remove_group_member_api_v1_customer_groups__group_id__members__customer_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/customers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Customers
+         * @description The owner's book, sorted, with the sample size beside every average.
+         *
+         *     A row is descriptive: outstanding, overdue, accrued interest, payment timing
+         *     and how many invoices stand behind it. There is no score and no comparison
+         *     between buyers. With `group=true`, an owner-made group appears once, with
+         *     summed totals and its members nested for expansion.
+         */
+        get: operations["list_customers_api_v1_customers_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/customers/suggestions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Customer Suggestions
+         * @description Name-match suggestions for the book. Nothing is applied automatically.
+         *
+         *     `ATTACH` suggests folding a provisional record into a PAN customer;
+         *     `LINK_AS_GROUP` suggests linking two different PANs as a group. Different
+         *     PANs are never merged, and a pair the owner dismissed is not suggested again.
+         */
+        get: operations["list_customer_suggestions_api_v1_customers_suggestions_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/customers/suggestions/dismiss": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Dismiss Customer Suggestion
+         * @description Record that two customers are not the same buyer, so it is not suggested again.
+         *
+         *     The pair stays dismissed until it is undone; nothing is merged and no invoice
+         *     moves. The dismissal is written to both customers' case chains.
+         */
+        post: operations["dismiss_customer_suggestion_api_v1_customers_suggestions_dismiss_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/customers/suggestions/undo-dismiss": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Undo Dismiss Customer Suggestion
+         * @description Undo a dismissal so the pair can be suggested again. Audited on both customers.
+         *
+         *     Every dismissal is reversible (AGENTS.md rule 26); nothing is merged either
+         *     way, and no invoice moves.
+         */
+        post: operations["undo_dismiss_customer_suggestion_api_v1_customers_suggestions_undo_dismiss_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/customers/{customer_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Customer
+         * @description One customer: identity, group, full stats, invoices, payments and audit trail.
+         *
+         *     Days to pay are measured from the engine's day of acceptance and "on time"
+         *     means paid by the engine's legal due date, never the invoice date. The
+         *     buyer-cost block keeps its three lines separate.
+         */
+        get: operations["get_customer_api_v1_customers__customer_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/customers/{customer_id}/attach": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Attach Customer
+         * @description Fold a PROVISIONAL customer's invoices into another customer.
+         *
+         *     Same-PAN registrations already group automatically. This is the owner
+         *     confirming that a name-only or unformatted record is the same buyer. A
+         *     customer that already has its own PAN is refused: different PANs are never
+         *     merged, and the two can be linked as a group instead. The provisional row is
+         *     kept with no invoices, which is what makes `detach` an exact undo.
+         */
+        post: operations["attach_customer_api_v1_customers__customer_id__attach_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/customers/{customer_id}/detach": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Detach Customer
+         * @description Separate invoices or a GSTIN from a customer. The undo for `attach`.
+         *
+         *     When the invoice was moved by an `attach`, the detach restores the exact
+         *     customer it came from. Otherwise the invoice gets its own provisional record,
+         *     resolved from its own buyer details. Either way the move is audited on the
+         *     invoice's chain and can be reversed by attaching again.
+         */
+        post: operations["detach_customer_api_v1_customers__customer_id__detach_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/customers/{customer_id}/gstins": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Add Customer Gstin
+         * @description Attach one registration to a customer, audited on every affected invoice.
+         *
+         *     A GSTIN that carries a PAN promotes a provisional customer to that PAN. A
+         *     GSTIN belonging to a different PAN is refused: different PANs are never
+         *     merged, and the two customers can be linked as a group instead.
+         */
+        post: operations["add_customer_gstin_api_v1_customers__customer_id__gstins_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/customers/{customer_id}/gstins/{gstin}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Remove Customer Gstin
+         * @description Remove one registration from a customer. Idempotent, and always audited.
+         */
+        delete: operations["remove_customer_gstin_api_v1_customers__customer_id__gstins__gstin__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/evaluate-case": {
         parameters: {
             query?: never;
@@ -447,6 +783,64 @@ export interface paths {
          * @description Liveness plus config load status (section 8.1).
          */
         get: operations["health_api_v1_health_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/import/invoices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Import Invoices
+         * @description Preview an invoice-history CSV, or commit the file you previewed.
+         *
+         *     Columns: `invoice_no*, invoice_date*, delivery_date*, amount*, buyer_name*,
+         *     buyer_gstin, agreed_credit_days, paid_on, paid_amount, notes`. Dates are
+         *     `YYYY-MM-DD` or `DD-MM-YYYY` for the whole file; amounts may use Indian
+         *     grouping (`1,25,000.00`). A cell starting with `=`, `+`, `-` or `@` is
+         *     refused (CSV injection guard). Every error says which row and which column,
+         *     in plain English.
+         *
+         *     `preview` stores nothing at all. `commit` requires the token it returned plus
+         *     the same bytes, creates each case through the same function `POST /cases`
+         *     uses (so the engine runs per row and the customer is attached), records a
+         *     payment when `paid_on` and `paid_amount` are present, and skips an invoice
+         *     that is already in the book.
+         */
+        post: operations["import_invoices_api_v1_import_invoices_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/insights": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Insights
+         * @description Descriptive portfolio insights from `backend/insights/`.
+         *
+         *     Totals, concentration, the next 31 March for open overdue invoices, customers
+         *     whose observed timing exceeds the engine's credit cap, and the labelled
+         *     cash-in estimate when it is switched on. No buyer is scored, ranked or
+         *     predicted, and nothing is compared with another owner's book.
+         */
+        get: operations["get_insights_api_v1_insights_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -673,6 +1067,34 @@ export interface components {
             warnings?: components["schemas"]["Warning"][];
         };
         /**
+         * BeforeMarchHint
+         * @description An open overdue invoice and the next 31 March its buyer's tax timing meets.
+         */
+        BeforeMarchHint: {
+            /**
+             * Based On
+             * @default 1
+             */
+            based_on: number;
+            /** Case Id */
+            case_id: string;
+            /** Customer Id */
+            customer_id: string;
+            /** Customer Name */
+            customer_name: string;
+            /** Invoice No */
+            invoice_no: string;
+            /**
+             * Next March
+             * Format: date
+             */
+            next_march: string;
+            /** Note */
+            note: string;
+            /** Outstanding */
+            outstanding: string;
+        };
+        /**
          * Bid
          * @description `bids` row. Financier aliases are fictional only (golden rule 17).
          *
@@ -710,6 +1132,14 @@ export interface components {
         /** Body_extract_evidence_api_v1_extract_evidence_post */
         Body_extract_evidence_api_v1_extract_evidence_post: {
             /** File */
+            file: string;
+        };
+        /** Body_import_invoices_api_v1_import_invoices_post */
+        Body_import_invoices_api_v1_import_invoices_post: {
+            /**
+             * File
+             * @description UTF-8 CSV, header row required, max 2 MB / 2,000 rows.
+             */
             file: string;
         };
         /** Buyer */
@@ -753,6 +1183,59 @@ export interface components {
             /** Other Pressure Points */
             other_pressure_points: components["schemas"]["OtherPressurePoint"][];
             permanent_loss: components["schemas"]["PermanentLoss"];
+        };
+        /**
+         * BuyerCostLine
+         * @description One of the three buyer-cost lines. It is never added to the others.
+         */
+        BuyerCostLine: {
+            /**
+             * Amount
+             * @description Null for the disclosure line, which is not money.
+             */
+            amount?: string | null;
+            /**
+             * Case Count
+             * @default 0
+             */
+            case_count: number;
+            /** Case Ids */
+            case_ids?: string[];
+            /**
+             * Id
+             * @description PERMANENT_LOSS, DEFERRAL or DISCLOSURE
+             */
+            id: string;
+            /**
+             * Items
+             * @description Disclosure flags from the engine, as text.
+             */
+            items?: string[];
+            /** Label */
+            label: string;
+            /** Note */
+            note: string;
+        };
+        /**
+         * BuyerCostSummary
+         * @description The buyer's side of the delay, as three separate lines.
+         *
+         *     AGENTS.md rule 8: the permanent loss, the deferral cost and the disclosure
+         *     requirement are separate facts and are **never** combined into one total.
+         */
+        BuyerCostSummary: {
+            /**
+             * As Of
+             * Format: date
+             */
+            as_of: string;
+            /**
+             * Lines
+             * @description Exactly three lines, in a fixed order.
+             */
+            lines?: components["schemas"]["BuyerCostLine"][];
+            /** Note */
+            note: string;
         };
         /**
          * Case
@@ -933,6 +1416,30 @@ export interface components {
             supplier_ref: string;
         };
         /**
+         * CashInWeekHint
+         * @description One ISO week of the labelled cash-in estimate (a forecast, not a promise).
+         */
+        CashInWeekHint: {
+            /** Amount */
+            amount: string;
+            /**
+             * Based On
+             * @default 0
+             */
+            based_on: number;
+            /** Invoice Count */
+            invoice_count: number;
+            /** Iso Week */
+            iso_week: string;
+            /** Label */
+            label: string;
+            /**
+             * Week Start
+             * Format: date
+             */
+            week_start: string;
+        };
+        /**
          * ChainVerifyResult
          * @description `GET /api/v1/cases/{id}/events/verify`.
          */
@@ -943,6 +1450,22 @@ export interface components {
             first_bad_seq?: number | null;
             /** Valid */
             valid: boolean;
+        };
+        /**
+         * ChartSeriesPoint
+         * @description One point in a chart series. `value` is a decimal string, never a float.
+         */
+        ChartSeriesPoint: {
+            /** Count */
+            count?: number | null;
+            /** Label */
+            label: string;
+            /** Period End */
+            period_end?: string | null;
+            /** Period Start */
+            period_start?: string | null;
+            /** Value */
+            value: string;
         };
         /** Citation */
         Citation: {
@@ -1020,6 +1543,521 @@ export interface components {
              * @default TEMPLATE
              */
             watermark: string;
+        };
+        /**
+         * Customer
+         * @description A buyer in the owner's book, as stored in `customers`.
+         *
+         *     `kind="PAN"` means the legal identity is known. `kind="PROVISIONAL"` means
+         *     the owner has not confirmed a PAN yet; the record is grouped by GSTIN or by
+         *     normalised name, and any match is a suggestion, never an automatic merge.
+         */
+        Customer: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Display Name */
+            display_name: string;
+            /**
+             * Gstins
+             * @description GSTINs seen for this customer, including invalid demo values.
+             */
+            gstins?: string[];
+            /** Id */
+            id: string;
+            kind: components["schemas"]["CustomerKind"];
+            /** Pan */
+            pan?: string | null;
+        };
+        /**
+         * CustomerAttachRequest
+         * @description `POST /customers/{provisional_id}/attach`: fold a provisional into a customer.
+         */
+        CustomerAttachRequest: {
+            /** Note */
+            note?: string | null;
+            /** Target Customer Id */
+            target_customer_id: string;
+        };
+        /**
+         * CustomerAttachResponse
+         * @description What moved, and how to undo it (`POST /customers/{id}/detach`).
+         */
+        CustomerAttachResponse: {
+            /** Audited Case Ids */
+            audited_case_ids?: string[];
+            /** Case Ids */
+            case_ids?: string[];
+            /** Detach With */
+            detach_with: string;
+            /** Gstins */
+            gstins?: string[];
+            /** Note */
+            note: string;
+            provisional: components["schemas"]["Customer"];
+            target: components["schemas"]["Customer"];
+        };
+        /**
+         * CustomerDetachRequest
+         * @description `POST /customers/{id}/detach`: separate invoices or a GSTIN from a customer.
+         *
+         *     Name `case_ids`, a `gstin`, or both. A detach that reverses an attach puts
+         *     things back where they were; any other detach moves the invoices to their own
+         *     provisional customer. `restore_customer_id` is the one-call undo of an
+         *     attach: it moves back everything the latest attach moved *from* that
+         *     customer, including the GSTINs it carried.
+         */
+        CustomerDetachRequest: {
+            /** Case Ids */
+            case_ids?: string[];
+            /** Gstin */
+            gstin?: string | null;
+            /** Reason */
+            reason?: string | null;
+            /**
+             * Restore Customer Id
+             * @description Undo the attach that came from this customer, without naming each case.
+             */
+            restore_customer_id?: string | null;
+        };
+        /**
+         * CustomerDetachResponse
+         * @description What moved away and where it went. Every entry is audited on its case.
+         */
+        CustomerDetachResponse: {
+            /** Audited Case Ids */
+            audited_case_ids?: string[];
+            /** Case Ids */
+            case_ids?: string[];
+            customer: components["schemas"]["Customer"];
+            /** Gstins */
+            gstins?: string[];
+            /** Moved To */
+            moved_to?: string[];
+            /** Note */
+            note: string;
+        };
+        /**
+         * CustomerEntryKind
+         * @description A list entry is either one customer or one owner-made group.
+         * @enum {string}
+         */
+        CustomerEntryKind: "CUSTOMER" | "GROUP";
+        /**
+         * CustomerGroupCreateRequest
+         * @description `POST /customer-groups`: link customers that are not the same PAN.
+         */
+        CustomerGroupCreateRequest: {
+            /** Customer Ids */
+            customer_ids?: string[];
+            /** Label */
+            label: string;
+        };
+        /**
+         * CustomerGroupMemberRequest
+         * @description `POST /customer-groups/{id}/members`: add one customer to a group.
+         */
+        CustomerGroupMemberRequest: {
+            /** Customer Id */
+            customer_id: string;
+        };
+        /**
+         * CustomerGroupMembershipResponse
+         * @description The group after a membership change, plus whether anything changed.
+         */
+        CustomerGroupMembershipResponse: {
+            /** Changed */
+            changed: boolean;
+            /** Customer Id */
+            customer_id: string;
+            group: components["schemas"]["CustomerGroupRow"];
+            /** Note */
+            note: string;
+        };
+        /**
+         * CustomerGroupRow
+         * @description An owner-made link between different PANs. It is not a merge.
+         *
+         *     `stats` holds summed totals. Money and counts sum correctly; an average of
+         *     member averages would not, so `avg_days_to_pay` and `on_time_pct` stay null
+         *     with `totals_note` saying why and the members carrying their own averages.
+         */
+        CustomerGroupRow: {
+            /** Active Tracks */
+            active_tracks?: components["schemas"]["CustomerTrack"][];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Created By */
+            created_by: string;
+            /** Gstins */
+            gstins?: string[];
+            /** Id */
+            id: string;
+            /** Label */
+            label: string;
+            /** Member Count */
+            member_count: number;
+            /** Members */
+            members?: components["schemas"]["CustomerRow"][];
+            stats?: components["schemas"]["CustomerStats"] | null;
+            /** Totals Note */
+            totals_note?: string | null;
+        };
+        /**
+         * CustomerGstinRequest
+         * @description `POST /customers/{id}/gstins`: add one registration to a customer.
+         */
+        CustomerGstinRequest: {
+            /** Gstin */
+            gstin: string;
+        };
+        /**
+         * CustomerInvoice
+         * @description One invoice on the customer page: the store's facts plus the engine's dates.
+         */
+        CustomerInvoice: {
+            /** Accepted Amount */
+            accepted_amount: string;
+            /** Accepted On */
+            accepted_on?: string | null;
+            active_track?: components["schemas"]["CustomerTrack"] | null;
+            /** Case Id */
+            case_id: string;
+            /** Days Open So Far */
+            days_open_so_far?: number | null;
+            /** Days Overdue */
+            days_overdue?: number | null;
+            /** Days To Pay */
+            days_to_pay?: number | null;
+            /** Due Date */
+            due_date?: string | null;
+            /**
+             * Invoice Date
+             * Format: date
+             */
+            invoice_date: string;
+            /** Invoice No */
+            invoice_no: string;
+            /** Last Payment On */
+            last_payment_on?: string | null;
+            /** On Time */
+            on_time?: boolean | null;
+            /** Outstanding */
+            outstanding: string;
+            /** Status */
+            status: string;
+        };
+        /**
+         * CustomerKind
+         * @description A customer identified by a PAN, or provisional until a PAN is known.
+         * @enum {string}
+         */
+        CustomerKind: "PAN" | "PROVISIONAL";
+        /**
+         * CustomerListEntry
+         * @description One line of `GET /customers`: a customer, or a group that replaces its members.
+         */
+        CustomerListEntry: {
+            customer?: components["schemas"]["CustomerRow"] | null;
+            /** Display Name */
+            display_name: string;
+            group?: components["schemas"]["CustomerGroupRow"] | null;
+            /** Id */
+            id: string;
+            kind: components["schemas"]["CustomerEntryKind"];
+        };
+        /**
+         * CustomerListResponse
+         * @description `GET /api/v1/customers`: the owner's book, sorted the way they asked.
+         *
+         *     Every row is descriptive. Nothing here ranks two buyers against each other,
+         *     and nothing is shared with another owner.
+         */
+        CustomerListResponse: {
+            /**
+             * As Of
+             * Format: date
+             */
+            as_of: string;
+            /**
+             * Count
+             * @default 0
+             */
+            count: number;
+            /** Entries */
+            entries?: components["schemas"]["CustomerListEntry"][];
+            /**
+             * Grouped
+             * @default false
+             */
+            grouped: boolean;
+            /**
+             * Min History
+             * @default 3
+             */
+            min_history: number;
+            /** Note */
+            note: string;
+            sort: components["schemas"]["CustomerSort"];
+        };
+        /**
+         * CustomerProfile
+         * @description The customer page: identity, group, descriptive stats, payments and cases.
+         */
+        CustomerProfile: {
+            buyer_cost_summary?: components["schemas"]["BuyerCostSummary"] | null;
+            /** Cases */
+            cases?: components["schemas"]["CaseSummary"][];
+            customer: components["schemas"]["Customer"];
+            group?: components["schemas"]["CustomerGroupRow"] | null;
+            /** Gstins */
+            gstins?: string[];
+            /** Invoices */
+            invoices?: components["schemas"]["CustomerInvoice"][];
+            /** Payments */
+            payments?: components["schemas"]["Payment"][];
+            /** Series */
+            series?: components["schemas"]["CustomerSeriesPoint"][];
+            stats: components["schemas"]["CustomerStats"];
+            /** Suggested Next Actions */
+            suggested_next_actions?: components["schemas"]["SuggestedAction"][];
+            /** Suggestions */
+            suggestions?: components["schemas"]["Suggestion"][];
+            /**
+             * Timeline
+             * @description Audit events for this customer's cases, newest first.
+             */
+            timeline?: components["schemas"]["Event"][];
+        };
+        /**
+         * CustomerRow
+         * @description One row of the customer list. Descriptive totals, never a score.
+         *
+         *     The flat fields predate the CB3-CB5 routes and are kept for compatibility;
+         *     `customer`, `gstins`, `stats` and `active_tracks` carry the same facts in
+         *     the nested shape the list screen reads.
+         */
+        CustomerRow: {
+            /** Active Tracks */
+            active_tracks?: components["schemas"]["CustomerTrack"][];
+            customer?: components["schemas"]["Customer"] | null;
+            /** Display Name */
+            display_name: string;
+            /** Group Id */
+            group_id?: string | null;
+            /** Group Label */
+            group_label?: string | null;
+            /**
+             * Gstin Count
+             * @default 0
+             */
+            gstin_count: number;
+            /** Gstins */
+            gstins?: string[];
+            /** Id */
+            id: string;
+            /**
+             * Invoice Count
+             * @default 0
+             */
+            invoice_count: number;
+            kind: components["schemas"]["CustomerKind"];
+            /** Last Payment On */
+            last_payment_on?: string | null;
+            /** Oldest Overdue Days */
+            oldest_overdue_days?: number | null;
+            /** Outstanding Total */
+            outstanding_total: string;
+            /** Overdue Total */
+            overdue_total: string;
+            /** Pan */
+            pan?: string | null;
+            stats?: components["schemas"]["CustomerStats"] | null;
+            /**
+             * Suggestion Count
+             * @default 0
+             */
+            suggestion_count: number;
+        };
+        /**
+         * CustomerSeriesPoint
+         * @description One invoice of the customer's chart.
+         *
+         *     `days_to_pay` is set only for a fully paid invoice; an open invoice carries
+         *     `days_open_so_far`. `legal_due_days` is `due_date - acceptance_date` from the
+         *     engine, never a recomputed statutory period.
+         */
+        CustomerSeriesPoint: {
+            /** Accepted On */
+            accepted_on?: string | null;
+            /**
+             * Based On
+             * @default 1
+             */
+            based_on: number;
+            /** Case Id */
+            case_id: string;
+            /** Days Open So Far */
+            days_open_so_far?: number | null;
+            /** Days Overdue */
+            days_overdue?: number | null;
+            /** Days To Pay */
+            days_to_pay?: number | null;
+            /** Due Date */
+            due_date?: string | null;
+            /** Invoice No */
+            invoice_no: string;
+            /** Legal Due Days */
+            legal_due_days?: number | null;
+            /** On Time */
+            on_time?: boolean | null;
+            /** Outstanding */
+            outstanding: string;
+            /**
+             * Status
+             * @description PAID, OVERDUE, NOT_DUE or NO_DUE_DATE
+             */
+            status: string;
+        };
+        /**
+         * CustomerSort
+         * @description The `sort` values `GET /api/v1/customers` accepts.
+         *
+         *     Money and day sorts are largest-first; `name` is A-Z. A customer or group
+         *     with no figure (an average held back for too little history) sorts last.
+         * @enum {string}
+         */
+        CustomerSort: "outstanding" | "overdue" | "avg_days" | "name";
+        /**
+         * CustomerStats
+         * @description Descriptive payment history for one customer.
+         *
+         *     `avg_days_to_pay` and `on_time_pct` are null when there is too little
+         *     history; `*_reason` then says why, and `based_on` / `min_history` make the
+         *     sample size explicit. Days are measured from the engine's day of acceptance
+         *     to the payment date, never from the invoice date; "on time" means paid by
+         *     the engine's legal due date.
+         *
+         *     `paid_total` is the sum of the owner-recorded, non-voided payments for this
+         *     customer's invoices. It is a record of money received, not a computed claim.
+         */
+        CustomerStats: {
+            /**
+             * As Of
+             * Format: date
+             */
+            as_of: string;
+            /** Avg Days To Pay */
+            avg_days_to_pay?: string | null;
+            /** Avg Days To Pay Reason */
+            avg_days_to_pay_reason?: string | null;
+            /**
+             * Based On
+             * @default 0
+             */
+            based_on: number;
+            /**
+             * Cash In Estimate
+             * @description An estimate, not a promise; see cash_in_estimate_note.
+             */
+            cash_in_estimate?: string | null;
+            /** Cash In Estimate Note */
+            cash_in_estimate_note?: string | null;
+            /**
+             * Interest Accrued Now
+             * @description Sum of the engine's accrued interest across this customer's invoices.
+             * @default 0.00
+             */
+            interest_accrued_now: string;
+            /**
+             * Invoice Count
+             * @default 0
+             */
+            invoice_count: number;
+            /** Last Payment On */
+            last_payment_on?: string | null;
+            /** Median Days To Pay */
+            median_days_to_pay?: string | null;
+            /**
+             * Min History
+             * @default 3
+             */
+            min_history: number;
+            /** Oldest Overdue Days */
+            oldest_overdue_days?: number | null;
+            /**
+             * On Time Count
+             * @default 0
+             */
+            on_time_count: number;
+            /**
+             * On Time Pct
+             * @description Percentage of fully paid invoices paid by the engine's legal due date.
+             */
+            on_time_pct?: string | null;
+            /** On Time Pct Reason */
+            on_time_pct_reason?: string | null;
+            /**
+             * On Time Text
+             * @description Plain count, e.g. '3 of 5 on time'. A count, not an average.
+             */
+            on_time_text?: string | null;
+            /** Outstanding Total */
+            outstanding_total: string;
+            /** Overdue Total */
+            overdue_total: string;
+            /**
+             * Paid Count
+             * @default 0
+             */
+            paid_count: number;
+            /**
+             * Paid Invoice Count
+             * @default 0
+             */
+            paid_invoice_count: number;
+            /** Paid Total */
+            paid_total: string;
+            /** Worst Days To Pay */
+            worst_days_to_pay?: string | null;
+        };
+        /**
+         * CustomerTrack
+         * @description One open v4 track on one of the customer's invoices.
+         *
+         *     Descriptive state only: the state machine's own names, with no legal
+         *     conclusion drawn from them.
+         */
+        CustomerTrack: {
+            /** Case Id */
+            case_id: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Kind
+             * @description FINANCING or RECOVERY
+             */
+            kind: string;
+            /**
+             * Stage
+             * @description Recovery stage 1-4 when the state names one.
+             */
+            stage?: number | null;
+            /** State */
+            state: string;
+            /**
+             * Version
+             * @default 1
+             */
+            version: number;
         };
         /** Defense */
         Defense: {
@@ -1389,6 +2427,265 @@ export interface components {
             detail?: components["schemas"]["ValidationError"][];
         };
         /**
+         * ImportCommitResponse
+         * @description `POST /api/v1/import/invoices?mode=commit`: the cases and payments it created.
+         */
+        ImportCommitResponse: {
+            /**
+             * As Of
+             * Format: date
+             */
+            as_of: string;
+            /** Created Case Ids */
+            created_case_ids?: string[];
+            /** Filename */
+            filename: string;
+            /** Import Token */
+            import_token: string;
+            /**
+             * Mode
+             * @default commit
+             */
+            mode: string;
+            /** Note */
+            note: string;
+            /** Payment Ids */
+            payment_ids?: string[];
+            /** Rows */
+            rows?: components["schemas"]["ImportRowResult"][];
+            /** Skipped */
+            skipped?: string[];
+            summary: components["schemas"]["ImportSummary"];
+        };
+        /**
+         * ImportCustomerMatch
+         * @description The customer the row would land on, decided by the CB1 resolver (read only).
+         */
+        ImportCustomerMatch: {
+            /** Customer Id */
+            customer_id?: string | null;
+            /** Display Name */
+            display_name?: string | null;
+            /**
+             * Matched On
+             * @description GSTIN, PAN, NAME or NEW
+             */
+            matched_on: string;
+            /** Warnings */
+            warnings?: string[];
+            /**
+             * Would Create
+             * @default false
+             */
+            would_create: boolean;
+        };
+        /**
+         * ImportParsedRow
+         * @description One CSV row after parsing. Money and dates are typed, never floats.
+         */
+        ImportParsedRow: {
+            /** Agreed Credit Days */
+            agreed_credit_days?: number | null;
+            /** Amount */
+            amount: string;
+            /** Buyer Gstin */
+            buyer_gstin?: string | null;
+            /** Buyer Name */
+            buyer_name: string;
+            /**
+             * Delivery Date
+             * Format: date
+             */
+            delivery_date: string;
+            /**
+             * Invoice Date
+             * Format: date
+             */
+            invoice_date: string;
+            /** Invoice No */
+            invoice_no: string;
+            /** Notes */
+            notes?: string | null;
+            /** Paid Amount */
+            paid_amount?: string | null;
+            /** Paid On */
+            paid_on?: string | null;
+        };
+        /**
+         * ImportPreview
+         * @description A dry-run view of a CSV import. Nothing is written until the owner confirms.
+         */
+        ImportPreview: {
+            /** Columns */
+            columns?: string[];
+            /** Errors */
+            errors?: string[];
+            /** Filename */
+            filename: string;
+            /** Invalid Rows */
+            invalid_rows: number;
+            /** Preview Id */
+            preview_id: string;
+            /**
+             * Requires Confirmation
+             * @default true
+             */
+            requires_confirmation: boolean;
+            /** Sample Rows */
+            sample_rows?: {
+                [key: string]: string;
+            }[];
+            /** Total Rows */
+            total_rows: number;
+            /** Valid Rows */
+            valid_rows: number;
+            /** Warnings */
+            warnings?: string[];
+        };
+        /**
+         * ImportPreviewResponse
+         * @description `POST /api/v1/import/invoices?mode=preview`: parse and check, store nothing.
+         */
+        ImportPreviewResponse: {
+            /**
+             * As Of
+             * Format: date
+             */
+            as_of: string;
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+            /** Filename */
+            filename: string;
+            /** Import Token */
+            import_token: string;
+            /**
+             * Mode
+             * @default preview
+             */
+            mode: string;
+            /** Note */
+            note: string;
+            /** Rows */
+            rows?: components["schemas"]["ImportRowResult"][];
+            summary: components["schemas"]["ImportSummary"];
+        };
+        /**
+         * ImportResult
+         * @description The outcome of an owner-confirmed CSV import.
+         */
+        ImportResult: {
+            /** Case Ids */
+            case_ids?: string[];
+            /**
+             * Customers Created
+             * @default 0
+             */
+            customers_created: number;
+            /**
+             * Customers Matched
+             * @default 0
+             */
+            customers_matched: number;
+            /** Errors */
+            errors?: string[];
+            /** Failed */
+            failed: number;
+            /**
+             * Gstins Attached
+             * @default 0
+             */
+            gstins_attached: number;
+            /** Imported */
+            imported: number;
+            /** Preview Id */
+            preview_id: string;
+            /** Skipped */
+            skipped: number;
+            /** Warnings */
+            warnings?: string[];
+        };
+        /**
+         * ImportRowResult
+         * @description One row's verdict: what was read, which customer, and what is wrong with it.
+         */
+        ImportRowResult: {
+            /** Case Id */
+            case_id?: string | null;
+            customer_match?: components["schemas"]["ImportCustomerMatch"] | null;
+            /** Errors */
+            errors?: string[];
+            parsed?: components["schemas"]["ImportParsedRow"] | null;
+            /** Payment Id */
+            payment_id?: string | null;
+            /**
+             * Row No
+             * @description The CSV line number; the header is row 1.
+             */
+            row_no: number;
+            /**
+             * Status
+             * @description VALID, INVALID, DUPLICATE for a preview; CREATED, SKIPPED or FAILED for a commit.
+             */
+            status: string;
+            /** Warnings */
+            warnings?: string[];
+        };
+        /**
+         * ImportSummary
+         * @description Counts for the whole file, so a screen can say what happened in one line.
+         */
+        ImportSummary: {
+            /**
+             * Created Rows
+             * @default 0
+             */
+            created_rows: number;
+            /**
+             * Date Format
+             * @description The one date format detected for the whole file.
+             */
+            date_format: string;
+            /**
+             * Duplicate Rows
+             * @default 0
+             */
+            duplicate_rows: number;
+            /** Errors */
+            errors?: string[];
+            /**
+             * Failed Rows
+             * @default 0
+             */
+            failed_rows: number;
+            /**
+             * Invalid Rows
+             * @default 0
+             */
+            invalid_rows: number;
+            /**
+             * Payments Created
+             * @default 0
+             */
+            payments_created: number;
+            /**
+             * Skipped Rows
+             * @default 0
+             */
+            skipped_rows: number;
+            /** Total Rows */
+            total_rows: number;
+            /**
+             * Valid Rows
+             * @default 0
+             */
+            valid_rows: number;
+            /** Warnings */
+            warnings?: string[];
+        };
+        /**
          * IndicativeFinancing
          * @description The indicative numbers on the Option 1 column.
          *
@@ -1587,10 +2884,74 @@ export interface components {
             reference?: string | null;
         };
         /**
+         * Payment
+         * @description One payment the owner recorded. A voided payment stays in the history.
+         */
+        Payment: {
+            /** Amount */
+            amount: string;
+            /** Case Id */
+            case_id: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Id */
+            id: string;
+            method: components["schemas"]["PaymentMethod"];
+            /** Note */
+            note?: string | null;
+            /**
+             * Paid On
+             * Format: date
+             */
+            paid_on: string;
+            /** Voided At */
+            voided_at?: string | null;
+        };
+        /**
          * PaymentBoundaryConvention
          * @enum {string}
          */
         PaymentBoundaryConvention: "PAYMENT_DATE_IS_REST_BOUNDARY";
+        /**
+         * PaymentCreateRequest
+         * @description `POST /cases/{id}/payments`: one payment the owner received.
+         */
+        PaymentCreateRequest: {
+            /**
+             * Amount
+             * @description Must be greater than zero.
+             */
+            amount: string;
+            method: components["schemas"]["PaymentMethod"];
+            /** Note */
+            note?: string | null;
+            /**
+             * Paid On
+             * Format: date
+             */
+            paid_on: string;
+        };
+        /**
+         * PaymentListResponse
+         * @description `GET /cases/{id}/payments`: the case's payment history, including voided rows.
+         */
+        PaymentListResponse: {
+            /** Case Id */
+            case_id: string;
+            /** Count */
+            count: number;
+            /** Payments */
+            payments?: components["schemas"]["Payment"][];
+        };
+        /**
+         * PaymentMethod
+         * @description How the buyer paid. Matches `backend/store/models.py` Payment.method.
+         * @enum {string}
+         */
+        PaymentMethod: "bank" | "upi" | "cheque" | "cash" | "other";
         /**
          * PayoutState
          * @enum {string}
@@ -1629,6 +2990,110 @@ export interface components {
             interest_non_deductible: string;
             /** Pretax Equivalent Rate Pct */
             pretax_equivalent_rate_pct: string;
+        };
+        /**
+         * PortfolioInsights
+         * @description Descriptive portfolio totals for the owner's own book.
+         *
+         *     There is no buyer score, ranking or prediction. `cash_in_estimate` is the
+         *     single estimate and is labelled as one. `top_customer_share_pct` and
+         *     `concentration_note` describe concentration from the owner's data; they do
+         *     not label a buyer as risky.
+         */
+        PortfolioInsights: {
+            /**
+             * As Of
+             * Format: date
+             */
+            as_of: string;
+            /** Assumptions */
+            assumptions?: string[];
+            /** Avg Days To Pay */
+            avg_days_to_pay?: string | null;
+            /** Avg Days To Pay Reason */
+            avg_days_to_pay_reason?: string | null;
+            /**
+             * Based On
+             * @default 0
+             */
+            based_on: number;
+            /** Before March */
+            before_march?: components["schemas"]["BeforeMarchHint"][];
+            /** Cash In Estimate */
+            cash_in_estimate?: string | null;
+            /** Cash In Estimate Note */
+            cash_in_estimate_note?: string | null;
+            /** Cash In Reason */
+            cash_in_reason?: string | null;
+            /** Cash In Weeks */
+            cash_in_weeks?: components["schemas"]["CashInWeekHint"][];
+            /** Collections By Month */
+            collections_by_month?: components["schemas"]["ChartSeriesPoint"][];
+            /**
+             * Concentration Flag
+             * @default false
+             */
+            concentration_flag: boolean;
+            /** Concentration Note */
+            concentration_note?: string | null;
+            /** Concentration Reason */
+            concentration_reason?: string | null;
+            /**
+             * Customer Count
+             * @default 0
+             */
+            customer_count: number;
+            /** History Reason */
+            history_reason?: string | null;
+            /**
+             * Interest Accrued Now
+             * @default 0.00
+             */
+            interest_accrued_now: string;
+            /**
+             * Invoice Count
+             * @default 0
+             */
+            invoice_count: number;
+            /** Median Days To Pay */
+            median_days_to_pay?: string | null;
+            /**
+             * Min History
+             * @default 3
+             */
+            min_history: number;
+            /**
+             * On Time Count
+             * @default 0
+             */
+            on_time_count: number;
+            /** On Time Pct */
+            on_time_pct?: string | null;
+            /** On Time Pct Reason */
+            on_time_pct_reason?: string | null;
+            /** On Time Text */
+            on_time_text?: string | null;
+            /** Outstanding By Customer */
+            outstanding_by_customer?: components["schemas"]["ChartSeriesPoint"][];
+            /** Outstanding Total */
+            outstanding_total: string;
+            /** Overdue Total */
+            overdue_total: string;
+            /**
+             * Paid Count
+             * @default 0
+             */
+            paid_count: number;
+            /** Paid Total */
+            paid_total: string;
+            /** Terms Flags */
+            terms_flags?: components["schemas"]["TermsFlagHint"][];
+            /** Top Customer Id */
+            top_customer_id?: string | null;
+            /** Top Customer Share Pct */
+            top_customer_share_pct?: string | null;
+            /** Worst Days To Pay */
+            worst_days_to_pay?: string | null;
         };
         /** RateBand */
         RateBand: {
@@ -1837,6 +3302,111 @@ export interface components {
          * @enum {string}
          */
         SourceKind: "WHATSAPP_EXPORT" | "DOCUMENT_TEXT";
+        /**
+         * SuggestedAction
+         * @description A next step for one open invoice, taken from the existing workflow guidance.
+         */
+        SuggestedAction: {
+            /**
+             * Action
+             * @description An action code from the workflow transition table.
+             */
+            action: string;
+            /** Case Id */
+            case_id: string;
+            /** Invoice No */
+            invoice_no: string;
+            /** Label */
+            label: string;
+            /** Reason */
+            reason: string;
+            /**
+             * Source
+             * @description WORKFLOW: the action comes from the case's workflow transition table.
+             */
+            source: string;
+        };
+        /**
+         * Suggestion
+         * @description A name-match suggestion. It is never applied automatically.
+         *
+         *     `ATTACH`: `a` is a PROVISIONAL customer that could be attached to the PAN
+         *     customer `b`. `LINK_AS_GROUP`: `a` and `b` are different PANs that the owner
+         *     may link as a group; they are never merged.
+         */
+        Suggestion: {
+            /** A */
+            a: string;
+            /** B */
+            b: string;
+            kind: components["schemas"]["SuggestionKind"];
+            /** Reason */
+            reason: string;
+            /**
+             * Similarity
+             * @description Normalised-name similarity between 0 and 1, as a decimal string.
+             */
+            similarity: string;
+        };
+        /**
+         * SuggestionDismissRequest
+         * @description `POST /customers/suggestions/dismiss`: the owner says "not the same buyer".
+         */
+        SuggestionDismissRequest: {
+            /** A */
+            a: string;
+            /** B */
+            b: string;
+            /** Reason */
+            reason?: string | null;
+        };
+        /**
+         * SuggestionDismissResponse
+         * @description A dismissed pair is excluded from later suggestions and stays dismissible.
+         */
+        SuggestionDismissResponse: {
+            /** A */
+            a: string;
+            /** B */
+            b: string;
+            /** Dismissed */
+            dismissed: boolean;
+            /** Dismissed At */
+            dismissed_at?: string | null;
+            /** Note */
+            note: string;
+        };
+        /**
+         * SuggestionKind
+         * @description Owner actions only. Nothing here merges automatically.
+         * @enum {string}
+         */
+        SuggestionKind: "ATTACH" | "LINK_AS_GROUP";
+        /**
+         * SuggestionListResponse
+         * @description `GET /api/v1/customers/suggestions`: owner actions the book could use.
+         *
+         *     Nothing is applied. The threshold is the configured product setting (not
+         *     law), shown so the owner can see why a pair was suggested.
+         */
+        SuggestionListResponse: {
+            /**
+             * Count
+             * @default 0
+             */
+            count: number;
+            /**
+             * Min History
+             * @default 3
+             */
+            min_history: number;
+            /** Note */
+            note: string;
+            /** Suggestions */
+            suggestions?: components["schemas"]["Suggestion"][];
+            /** Threshold */
+            threshold: string;
+        };
         /** Supplier */
         Supplier: {
             activity: components["schemas"]["Activity"];
@@ -1853,6 +3423,27 @@ export interface components {
             udyam_number?: string | null;
             /** Udyam Registration Date */
             udyam_registration_date?: string | null;
+        };
+        /**
+         * TermsFlagHint
+         * @description A customer whose observed payment timing exceeds the engine's credit cap.
+         */
+        TermsFlagHint: {
+            /** Avg Days To Pay */
+            avg_days_to_pay: string;
+            /**
+             * Based On
+             * @default 0
+             */
+            based_on: number;
+            /** Credit Cap Days */
+            credit_cap_days: number;
+            /** Customer Id */
+            customer_id: string;
+            /** Customer Name */
+            customer_name: string;
+            /** Text */
+            text: string;
         };
         /** Timeline */
         Timeline: {
@@ -2372,6 +3963,106 @@ export interface operations {
             };
         };
     };
+    list_case_payments_api_v1_cases__case_id__payments_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                case_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaymentListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_case_payment_api_v1_cases__case_id__payments_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+            };
+            path: {
+                case_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PaymentCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CaseDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    void_case_payment_api_v1_cases__case_id__payments__payment_id__void_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                case_id: string;
+                payment_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CaseDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     prepare_recovery_api_v1_cases__case_id__recovery_post: {
         parameters: {
             query?: never;
@@ -2535,6 +4226,412 @@ export interface operations {
             };
         };
     };
+    create_customer_group_api_v1_customer_groups_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CustomerGroupCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CustomerGroupRow"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_group_member_api_v1_customer_groups__group_id__members_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+            };
+            path: {
+                group_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CustomerGroupMemberRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CustomerGroupMembershipResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    remove_group_member_api_v1_customer_groups__group_id__members__customer_id__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+            };
+            path: {
+                group_id: string;
+                customer_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CustomerGroupMembershipResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_customers_api_v1_customers_get: {
+        parameters: {
+            query?: {
+                /** @description outstanding | overdue | avg_days | name. Money and days sort largest first. */
+                sort?: components["schemas"]["CustomerSort"];
+                /** @description Collapse customers linked by the owner into one row with totals. */
+                group?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CustomerListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_customer_suggestions_api_v1_customers_suggestions_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuggestionListResponse"];
+                };
+            };
+        };
+    };
+    dismiss_customer_suggestion_api_v1_customers_suggestions_dismiss_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SuggestionDismissRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuggestionDismissResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    undo_dismiss_customer_suggestion_api_v1_customers_suggestions_undo_dismiss_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SuggestionDismissRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuggestionDismissResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_customer_api_v1_customers__customer_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                customer_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CustomerProfile"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    attach_customer_api_v1_customers__customer_id__attach_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+            };
+            path: {
+                customer_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CustomerAttachRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CustomerAttachResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    detach_customer_api_v1_customers__customer_id__detach_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+            };
+            path: {
+                customer_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CustomerDetachRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CustomerDetachResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_customer_gstin_api_v1_customers__customer_id__gstins_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+            };
+            path: {
+                customer_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CustomerGstinRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Customer"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    remove_customer_gstin_api_v1_customers__customer_id__gstins__gstin__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+            };
+            path: {
+                customer_id: string;
+                gstin: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Customer"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     evaluate_case_api_v1_evaluate_case_post: {
         parameters: {
             query?: never;
@@ -2652,6 +4749,64 @@ export interface operations {
                     "application/json": {
                         [key: string]: string;
                     };
+                };
+            };
+        };
+    };
+    import_invoices_api_v1_import_invoices_post: {
+        parameters: {
+            query?: {
+                mode?: string;
+                import_token?: string | null;
+            };
+            header?: {
+                "X-Import-Token"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_import_invoices_api_v1_import_invoices_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportPreviewResponse"] | components["schemas"]["ImportCommitResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_insights_api_v1_insights_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PortfolioInsights"];
                 };
             };
         };

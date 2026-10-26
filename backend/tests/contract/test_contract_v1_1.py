@@ -206,6 +206,27 @@ def test_v1_1_adds_cases_routes_without_touching_a_v1_0_path():
         "/api/v1/cases/{case_id}/recovery",
         "/api/v1/cases/{case_id}/recovery/mark-sent",
         "/api/v1/cases/{case_id}/recovery/odr-filed",
+        # v1.2 payment routes are additive; the v1.0 path fingerprints above
+        # still prove no existing operation moved.
+        "/api/v1/cases/{case_id}/payments",
+        "/api/v1/cases/{case_id}/payments/{payment_id}/void",
+        # v1.2 customer-book routes (CB3-CB5), additive in the same way. The
+        # exact set is pinned in tests/contract/test_contract_v1_2.py.
+        "/api/v1/customers",
+        "/api/v1/customers/suggestions",
+        "/api/v1/customers/suggestions/dismiss",
+        "/api/v1/customers/{customer_id}",
+        "/api/v1/customers/{customer_id}/attach",
+        "/api/v1/customers/{customer_id}/detach",
+        "/api/v1/customers/{customer_id}/gstins",
+        "/api/v1/customers/{customer_id}/gstins/{gstin}",
+        "/api/v1/customers/suggestions/undo-dismiss",
+        "/api/v1/customer-groups",
+        "/api/v1/customer-groups/{group_id}/members",
+        "/api/v1/customer-groups/{group_id}/members/{customer_id}",
+        "/api/v1/insights",
+        # CB7: the CSV invoice-history import.
+        "/api/v1/import/invoices",
     }, f"unexpected new paths in contract v1.1: {sorted(added_paths)}"
     assert set(base["paths"]) <= set(live["paths"]), "a v1.0 path disappeared"
     added = set(live["components"]["schemas"]) - set(base["components"])

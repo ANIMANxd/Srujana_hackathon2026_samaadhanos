@@ -1,4 +1,5 @@
-﻿"""SQLModel tables for the v4 two-option model (architecture_v4 section 4).
+﻿"""SQLModel tables for the v4 two-option model (architecture_v4 section 4) and
+the v5 customer book.
 
 Money is TEXT. `DecimalText` is the only column type money may use: it rejects
 `float` loudly on write and returns `Decimal` on read, so a rupee amount can
@@ -16,7 +17,16 @@ from datetime import date, datetime
 from decimal import Decimal
 from typing import Any
 
-from sqlalchemy import JSON, Column, Index, Text, TypeDecorator, UniqueConstraint, text
+from sqlalchemy import (
+    JSON,
+    CheckConstraint,
+    Column,
+    Index,
+    Text,
+    TypeDecorator,
+    UniqueConstraint,
+    text,
+)
 from sqlmodel import Field, SQLModel
 
 
@@ -82,6 +92,122 @@ def canonical_json(payload: Any) -> str:
 # ---------------------------------------------------------------- tables ----
 
 
+class Customer(SQLModel, table=True):
+    """One buyer the supplier sells to, as seen in the owner's own invoices.
+
+    Identity is a PAN where the data gives one: two GSTINs that carry the same
+    PAN are the same legal entity and group automatically (AGENTS.md rule 23).
+    Without a PAN the row is PROVISIONAL and holds one GSTIN, or a normalised
+    name when the invoice has no GSTIN at all. Different PANs are never merged
+    here; the owner links them into a `CustomerGroup` instead.
+
+    `pan` is unique only for PAN-kind rows, via a partial index. Provisional
+    rows keep `pan` NULL, so any number of them can coexist.
+    """
+
+    __tablename__ = "customers"
+    __table_args__ = (
+        CheckConstraint("kind IN ('PAN', 'PROVISIONAL')", name="ck_customers_kind"),
+        CheckConstraint(
+            "(kind = 'PAN' AND pan IS NOT NULL) OR (kind = 'PROVISIONAL' AND pan IS NULL)",
+            name="ck_customers_pan_kind",
+        ),
+        # Partial unique index on SQLite (the demo database). On Postgres the
+        # same Index renders as a plain unique index over `pan`; equivalent,
+        # because a PROVISIONAL row always has `pan` NULL and Postgres allows
+        # many NULLs in a unique index.
+        Index("ux_customers_pan", "pan", unique=True, sqlite_where=text("kind = 'PAN'")),
+    )
+
+    id: str = Field(primary_key=True, max_length=26)
+    kind: str = Field(max_length=11, description="PAN or PROVISIONAL")
+    pan: str | None = Field(default=None, max_length=10)
+    display_name: str
+    normalized_name: str = Field(default="", index=True)
+    created_at: datetime = Field(default_factory=utc_now)
+
+
+class CustomerGstin(SQLModel, table=True):
+    """A GSTIN seen on an invoice, attached to exactly one customer."""
+
+    __tablename__ = "customer_gstins"
+
+    gstin: str = Field(primary_key=True, max_length=20)
+    customer_id: str = Field(foreign_key="customers.id", index=True)
+    state_code: str = Field(default="", max_length=2)
+    first_seen_at: datetime = Field(default_factory=utc_now)
+
+
+class CustomerGroup(SQLModel, table=True):
+    """An owner-made link between customers that are not the same PAN.
+
+    A group is descriptive only: it never changes a legal calculation, and every
+    invoice keeps its own customer and its own legal entity (AGENTS.md rule 23).
+    """
+
+    __tablename__ = "customer_groups"
+
+    id: str = Field(primary_key=True, max_length=26)
+    label: str
+    created_by: str = Field(default="owner")
+    created_at: datetime = Field(default_factory=utc_now)
+
+
+class CustomerGroupMember(SQLModel, table=True):
+    """Group membership. The unique customer_id keeps a customer in one group."""
+
+    __tablename__ = "customer_group_members"
+    __table_args__ = (
+        UniqueConstraint("customer_id", name="ux_customer_group_members_customer"),
+    )
+
+    group_id: str = Field(primary_key=True, foreign_key="customer_groups.id")
+    customer_id: str = Field(primary_key=True, foreign_key="customers.id", index=True)
+
+
+class MergeDismissal(SQLModel, table=True):
+    """A merge suggestion the owner dismissed, so it is not suggested again.
+
+    The pair is stored in ascending id order, which makes a duplicate dismissal
+    of (A, B) and (B, A) the same row.
+    """
+
+    __tablename__ = "merge_dismissals"
+    __table_args__ = (
+        CheckConstraint("customer_a < customer_b", name="ck_merge_dismissals_order"),
+    )
+
+    customer_a: str = Field(primary_key=True, foreign_key="customers.id", max_length=26)
+    customer_b: str = Field(primary_key=True, foreign_key="customers.id", max_length=26)
+    dismissed_at: datetime = Field(default_factory=utc_now)
+
+
+class Payment(SQLModel, table=True):
+    """Money the buyer actually paid, recorded by the owner.
+
+    Payments are voided, never deleted: `voided_at` plus a `payment.voided`
+    audit event keeps the history explainable. `amount` is TEXT decimal.
+    """
+
+    __tablename__ = "payments"
+    __table_args__ = (
+        CheckConstraint(
+            "method IN ('bank', 'upi', 'cheque', 'cash', 'other')",
+            name="ck_payments_method",
+        ),
+        Index("ix_payments_case_paid_on", "case_id", "paid_on"),
+    )
+
+    id: str = Field(primary_key=True, max_length=26)
+    case_id: str = Field(foreign_key="cases.id", index=True)
+    amount: Decimal = Field(sa_column=Column(DecimalText, nullable=False))
+    paid_on: date
+    method: str = Field(max_length=10)
+    note: str | None = None
+    created_at: datetime = Field(default_factory=utc_now)
+    voided_at: datetime | None = None
+
+
 class Case(SQLModel, table=True):
     """The engine input stored verbatim, so any stored result is reproducible."""
 
@@ -89,6 +215,7 @@ class Case(SQLModel, table=True):
 
     id: str = Field(primary_key=True, max_length=26)
     supplier_ref: str
+    customer_id: str | None = Field(default=None, foreign_key="customers.id", index=True)
     buyer_gstin: str | None = None
     invoice_no: str
     invoice_date: date
@@ -245,7 +372,13 @@ class WebhookInbox(SQLModel, table=True):
 
 # Tables in dependency order, for `create_all` and for seeding diagnostics.
 ALL_TABLES: tuple[type[SQLModel], ...] = (
+    Customer,
+    CustomerGstin,
+    CustomerGroup,
+    CustomerGroupMember,
+    MergeDismissal,
     Case,
+    Payment,
     Evaluation,
     Track,
     FinancingRequest,

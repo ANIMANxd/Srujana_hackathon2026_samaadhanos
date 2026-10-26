@@ -1,0 +1,21 @@
+{
+  "_fixture": {
+    "schema": "ChartSeriesPoint",
+    "contract_version": "1.2",
+    "synthetic": true,
+    "placeholder": true,
+    "placeholder_fields": [
+      "value",
+      "count"
+    ],
+    "why": "Hand-shaped chart point; no chart series route exists yet.",
+    "regenerate_with": "pending CB2-CB6; after CB6 use the seeded-DB v5 fixture exporter (the v4 pattern is backend/app/export_v4_fixtures.py)"
+  },
+  "payload": {
+    "label": "2026-10",
+    "value": "450000.00",
+    "count": 2,
+    "period_start": "2026-10-01",
+    "period_end": "2026-10-31"
+  }
+}

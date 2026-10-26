@@ -10,11 +10,13 @@ temporary file with `configure(...)` instead of re-importing the package.
 from __future__ import annotations
 
 import os
+import threading
 from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
 
 from sqlalchemy.engine import Engine
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import sessionmaker
 from sqlmodel import Session, SQLModel, create_engine
 
@@ -26,6 +28,12 @@ from backend.store import models as _models  # noqa: E402,F401  (side effect: ta
 _engine: Engine | None = None
 _session_factory: sessionmaker[Session] | None = None
 _url_in_use: str | None = None
+
+# Startup does DDL and a data backfill. Two app lifespans can run at once (the
+# workflow suite starts two TestClients in parallel), and both would otherwise
+# see the same case as "no customer" and insert the same GSTIN. The lock makes
+# in-process startup sequential; the backfill retry below covers a second process.
+_INIT_LOCK = threading.Lock()
 
 
 def database_url() -> str:
@@ -89,11 +97,56 @@ def session_scope() -> Iterator[Session]:
         session.close()
 
 
-def init_db(url: str | None = None) -> Engine:
-    """Create every table if it does not exist. Safe to call on every startup."""
-    engine = configure(url)
-    SQLModel.metadata.create_all(engine)
-    return engine
+def _refresh_customer_names() -> None:
+    """Recompute normalised names before resolving any case (v5 normaliser)."""
+    from backend.store import customers
+
+    with session_scope() as session:
+        customers.refresh_normalized_names(session)
+
+
+def _backfill_existing_cases() -> None:
+    """Run the customer backfill, retrying once if another process won a race.
+
+    A unique-GSTIN violation means a concurrent startup inserted the same buyer
+    first. The whole transaction is rolled back and re-run: the retry sees the
+    committed link and assigns the case to it. The backfill is idempotent, so a
+    retry cannot double-write.
+    """
+    from backend.store import customers
+
+    attempts = 3
+    for attempt in range(1, attempts + 1):
+        try:
+            with session_scope() as session:
+                customers.backfill_case_customers(session)
+            return
+        except IntegrityError:
+            if attempt == attempts:
+                raise
+
+
+def init_db(url: str | None = None, *, backfill: bool = True) -> Engine:
+    """Create every table, apply additive migrations, assign missing customers.
+
+    Safe to call on every startup. New tables are created by `create_all`; the
+    one column-level v5 change is applied by `migrations.migrate_schema`; then
+    every case without a customer is resolved and attached, with an audit event
+    on its own chain (`backend/store/customers.py`). The backfill is idempotent,
+    so a second call writes nothing.
+    """
+    with _INIT_LOCK:
+        engine = configure(url)
+        SQLModel.metadata.create_all(engine)
+
+        from backend.store.migrations import migrate_schema
+
+        migrate_schema(engine)
+
+        if backfill:
+            _refresh_customer_names()
+            _backfill_existing_cases()
+        return engine
 
 
 def reset_db(url: str | None = None) -> Engine:
@@ -101,6 +154,10 @@ def reset_db(url: str | None = None) -> Engine:
     engine = configure(url)
     SQLModel.metadata.drop_all(engine)
     SQLModel.metadata.create_all(engine)
+
+    from backend.store.migrations import migrate_schema
+
+    migrate_schema(engine)
     return engine
 
 

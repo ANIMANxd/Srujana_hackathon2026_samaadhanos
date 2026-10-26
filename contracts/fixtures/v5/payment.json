@@ -1,0 +1,24 @@
+{
+  "_fixture": {
+    "schema": "Payment",
+    "contract_version": "1.2",
+    "synthetic": true,
+    "placeholder": true,
+    "placeholder_fields": [
+      "amount",
+      "paid_on"
+    ],
+    "why": "Hand-shaped payment; CB5 records real payments, none exist in the demo yet.",
+    "regenerate_with": "pending CB2-CB6; after CB6 use the seeded-DB v5 fixture exporter (the v4 pattern is backend/app/export_v4_fixtures.py)"
+  },
+  "payload": {
+    "id": "01JAV5PAY0000000000000001",
+    "case_id": "01JAV5CASE0000000000000001",
+    "amount": "300000.00",
+    "paid_on": "2026-09-30",
+    "method": "bank",
+    "note": "NEFT (synthetic)",
+    "created_at": "2026-09-30T10:00:00Z",
+    "voided_at": null
+  }
+}

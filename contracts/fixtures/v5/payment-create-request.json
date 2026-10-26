@@ -1,0 +1,17 @@
+{
+  "_fixture": {
+    "schema": "PaymentCreateRequest",
+    "contract_version": "1.2",
+    "synthetic": true,
+    "placeholder": true,
+    "placeholder_fields": ["amount", "paid_on"],
+    "why": "Hand-shaped request body for the v1.2 payment route; no seeded payment exists yet in the demo export.",
+    "regenerate_with": "pending CB6; the route tests exercise the real request model"
+  },
+  "payload": {
+    "amount": "1000.00",
+    "paid_on": "2026-10-01",
+    "method": "bank",
+    "note": "NEFT (synthetic)"
+  }
+}

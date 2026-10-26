@@ -61,6 +61,24 @@ export type PayoutStatus = S["PayoutStatus"];
 export type AuditEvent = S["Event"];
 export type ChainVerifyResult = S["ChainVerifyResult"];
 
+// Contract v1.2 (customer book). Descriptive figures from the owner's own data only.
+export type Customer = S["Customer"];
+export type CustomerKind = S["CustomerKind"];
+export type CustomerRow = S["CustomerRow"];
+export type CustomerGroupRow = S["CustomerGroupRow"];
+export type CustomerProfile = S["CustomerProfile"];
+export type CustomerStats = S["CustomerStats"];
+export type ChartSeriesPoint = S["ChartSeriesPoint"];
+export type Payment = S["Payment"];
+export type PaymentMethod = S["PaymentMethod"];
+export type PaymentCreateRequest = S["PaymentCreateRequest"];
+export type PaymentListResponse = S["PaymentListResponse"];
+export type Suggestion = S["Suggestion"];
+export type SuggestionKind = S["SuggestionKind"];
+export type ImportPreview = S["ImportPreview"];
+export type ImportResult = S["ImportResult"];
+export type PortfolioInsights = S["PortfolioInsights"];
+
 export type ConfigEntry = {
   value: unknown;
   source_ref: string;

@@ -98,7 +98,7 @@ def seed_presets(session: Session, *, replace: bool = True) -> list[Case]:
     chain" meaningful for demo data: a preset-shaped case should not look like it
     appeared from nowhere.
     """
-    from backend.store import audit
+    from backend.store import audit, customers as customer_book
 
     seeded: list[Case] = []
     for path in preset_files():
@@ -127,13 +127,32 @@ def seed_presets(session: Session, *, replace: bool = True) -> list[Case]:
             actor="SYSTEM",
             created_at=case.created_at,
         )
+        customer_book.attach_case_to_customer(
+            session,
+            case,
+            at=case.created_at,
+            source="preset",
+            actor="SYSTEM",
+        )
         seeded.append(case)
     session.flush()
     return seeded
 
 
 def reset_and_seed(url: str | None = None) -> list[Case]:
-    """Delete the database file, recreate every table, and seed the presets."""
+    """Delete the database file, recreate every table, and seed the presets.
+
+    The customer-book backfill runs after seeding too. Seeding already attaches
+    each preset as it inserts it; the backfill is the same idempotent pass the
+    API runs on an existing database, so `make db-reset` exercises that path and
+    every seeded case is guaranteed to have a customer.
+
+    The deterministic 12-month customer history is **not** seeded here: this
+    function owns the v4 presets only. `main()` runs `history.seed_history()`
+    after it, which is what makes `make db-reset` produce the v5 book as well.
+    """
+    from backend.store import customers as customer_book
+
     target = url or _db.database_url()
     _db.dispose()
 
@@ -143,7 +162,9 @@ def reset_and_seed(url: str | None = None) -> list[Case]:
 
     _db.init_db(target)
     with _db.session_scope() as session:
-        return seed_presets(session)
+        seeded = seed_presets(session)
+        customer_book.backfill_case_customers(session)
+        return seeded
 
 
 def seeded_case_ids(url: str | None = None) -> dict[str, str]:
@@ -162,8 +183,8 @@ def seeded_case_ids(url: str | None = None) -> dict[str, str]:
 
 
 def main() -> int:
-    """`make db-reset`: delete the database, recreate it, seed the presets."""
-    import sys
+    """`make db-reset`: delete the database, recreate it, seed presets + history."""
+    from backend.store import history
 
     target = _db.database_url()
     cases = reset_and_seed(target)
@@ -173,7 +194,14 @@ def main() -> int:
     print(f"seeded {len(cases)} preset case(s):")
     for case in sorted(cases, key=lambda c: c.created_at):
         print(f"  {case.id}  {case.invoice_no:14}  {case.accepted_amount:>14}  {case.input_json.get('case_id', '')}")
-    return 0
+
+    report = history.seed_history(url=target)
+    print(
+        f"customer history: {report.rows} CSV row(s) through the import -> "
+        f"{report.created_cases} case(s), {report.payments} payment(s)"
+    )
+    print(f"customer book: {report.customers} customer(s) (presets included)")
+    return 0 if report.invalid == 0 else 1
 
 
 if __name__ == "__main__":

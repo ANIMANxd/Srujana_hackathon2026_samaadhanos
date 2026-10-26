@@ -7,6 +7,7 @@ import { useSendLog } from "@/lib/caseStore";
 import { isNotCovered, isPlaceholder } from "@/lib/derive";
 import { useT } from "@/lib/i18n";
 import { useHref, useUrlState } from "@/lib/params";
+import { paidSummary, usePayments } from "@/lib/payments";
 import { useConfig } from "@/lib/useConfig";
 import { useEvaluation } from "@/lib/useEvaluation";
 import { Drawer } from "../common/Drawer";
@@ -29,6 +30,7 @@ import { EscalationLadder } from "./EscalationLadder";
 import { GuidanceCard } from "./GuidanceCard";
 import { LimitationCard } from "./LimitationCard";
 import { MoneyCard } from "./MoneyCard";
+import { PaymentsCard } from "../payments/PaymentsCard";
 import { NotCovered } from "./NotCovered";
 import { StatuteTimeline } from "./StatuteTimeline";
 
@@ -41,6 +43,7 @@ export function CaseScreen({ caseId }: { caseId: string }) {
   const ev = useEvaluation(caseId);
   const cfg = useConfig();
   const log = useSendLog(caseId);
+  const payments = usePayments(caseId, Boolean(ev.tracking));
 
   const judge = judgeCase(ev);
   const [detailsOpen, setDetailsOpen] = useState(false);
@@ -140,10 +143,22 @@ export function CaseScreen({ caseId }: { caseId: string }) {
                 <NotCovered request={ev.request} response={res} />
               ) : (
                 <>
-                  <GuidanceCard caseId={caseId} response={res} config={cfg.config} placeholder={placeholder} />
+                  <GuidanceCard caseId={caseId} response={res} config={cfg.config} placeholder={placeholder} paid={paidSummary(res, payments.data)} />
                   <StatuteTimeline response={res} />
                   <div className="grid gap-4 lg:grid-cols-[3fr_2fr]">
-                    <MoneyCard response={res} placeholder={placeholder} />
+                    <div className="flex flex-col gap-4">
+                      <MoneyCard response={res} placeholder={placeholder} />
+                      {ev.tracking && (
+                        <PaymentsCard
+                          caseId={caseId}
+                          payments={payments.data}
+                          offline={ev.tracking.source !== "live"}
+                          refresh={async () => {
+                            await Promise.all([ev.tracking?.refresh(), payments.refresh()]);
+                          }}
+                        />
+                      )}
+                    </div>
                     <div className="flex flex-col gap-4">
                       <LimitationCard limitation={res.limitation} />
                       <AssumptionsDrawer response={res} config={cfg.config} configLoading={cfg.loading} configIsStub={cfg.isStub} />

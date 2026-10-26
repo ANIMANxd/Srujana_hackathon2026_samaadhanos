@@ -52,12 +52,25 @@ export function pct(value: string | null | undefined): string {
   return `${value}%`;
 }
 
+/** A 0-1 ratio string as a whole percent: "0.94" -> "94". Display only. */
+export function ratioPct(value: string | null | undefined): string {
+  const n = Number(value);
+  return value === null || value === undefined || !Number.isFinite(n) ? "—" : count(Math.round(n * 100));
+}
+
 /** "2026-01-10" -> "10 Jan 2026". Parsed as text, so no timezone shifts. */
 export function date(value: string | null | undefined): string {
   if (!value) return "—";
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
   if (!m) return value;
   return `${Number(m[3])} ${MONTHS[Number(m[2]) - 1] ?? m[2]} ${m[1]}`;
+}
+
+/** A server day count such as "48.67" shown as "49" next to a "~". Days, never money. */
+export function approxDays(value: string | null | undefined): string {
+  if (value === null || value === undefined) return "—";
+  const n = Number(value);
+  return Number.isFinite(n) ? count(Math.round(n)) : value;
 }
 
 /** Plain integer with Indian grouping (counts, days). */

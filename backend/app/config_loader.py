@@ -8,10 +8,20 @@ or unparseable file yields a clearly-labelled stub instead of a crash.
 """
 
 import json
+from dataclasses import dataclass
+from decimal import Decimal
 from pathlib import Path
 from typing import Any
 
+from backend.insights.identity import DEFAULT_NAME_MATCH_THRESHOLD
+from backend.insights.stats import InsightsConfig
+
 CONFIG_PATH = Path(__file__).resolve().parent.parent / "config" / "statute_config.json"
+
+# The documented fallback for `insights.min_history` (AGENTS.md rule 25). The
+# config entry overrides it; this is only what the app uses when the file is
+# absent, so a missing config never turns into an invented number.
+DEFAULT_MIN_HISTORY = 3
 
 # A stub, not law. Every key from architecture.md section 5 is present so the
 # frontend assumptions drawer can render, but nothing here is verified and
@@ -38,6 +48,15 @@ _STUB: dict[str, Any] = {
     "day_count_fraction_days": None,
     "tax_presets": [],
     "gated_features": {"gst_itc_180d": False, "msme1_return": False, "s19_deposit": False},
+    "insights": {
+        "value": {
+            "name_match_threshold": DEFAULT_NAME_MATCH_THRESHOLD,
+            "min_history": DEFAULT_MIN_HISTORY,
+        },
+        "source_ref": "product setting, not law",
+        "verified": False,
+        "note": "Stub product settings; no customer book is seeded without the config file.",
+    },
 }
 
 
@@ -75,3 +94,120 @@ def objection_window(config: dict[str, Any]) -> tuple[int | None, str | None, bo
             source = entry.get("source_ref")
             return value, (str(source) if source else None), bool(entry.get("verified"))
     return None, None, False
+
+
+@dataclass(frozen=True)
+class IdentitySettings:
+    """The v5 product settings that shape customer suggestions.
+
+    `verified` is always false for these: they are product choices, not law
+    (AGENTS.md rule 27). The source ref says so in plain English.
+    """
+
+    name_match_threshold: float
+    min_history: int
+    source_ref: str | None
+    verified: bool
+
+
+def identity_settings(config: dict[str, Any]) -> IdentitySettings:
+    """Read `insights` from the config, with documented fallbacks only.
+
+    A missing or malformed entry must not crash a read-only customer-book screen
+    and must not silently become a different threshold. The fallbacks are the
+    documented product defaults (0.90 similarity, 3 invoices), and `verified`
+    stays false so the UI can label them as product settings.
+    """
+    entry = config.get("insights")
+    value = entry.get("value") if isinstance(entry, dict) else None
+    source = entry.get("source_ref") if isinstance(entry, dict) else None
+    verified = bool(entry.get("verified")) if isinstance(entry, dict) else False
+
+    threshold = DEFAULT_NAME_MATCH_THRESHOLD
+    min_history = DEFAULT_MIN_HISTORY
+    if isinstance(value, dict):
+        raw_threshold = value.get("name_match_threshold")
+        if (
+            isinstance(raw_threshold, (int, float))
+            and not isinstance(raw_threshold, bool)
+            and 0 <= float(raw_threshold) <= 1
+        ):
+            threshold = float(raw_threshold)
+        raw_history = value.get("min_history")
+        if (
+            isinstance(raw_history, int)
+            and not isinstance(raw_history, bool)
+            and raw_history >= 1
+        ):
+            min_history = raw_history
+
+    return IdentitySettings(
+        name_match_threshold=threshold,
+        min_history=min_history,
+        source_ref=str(source) if source else None,
+        verified=verified,
+    )
+
+
+def insights_config(config: dict[str, Any]) -> InsightsConfig:
+    """Build the pure stats config from the `insights` product settings.
+
+    The defaults are the documented product defaults (3 fully paid invoices, 40%
+    concentration, cash-in off). `credit_cap_days` comes from the engine's
+    `credit_cap_days` entry, because the terms flag quotes the cap the engine
+    already uses. A missing or malformed value falls back rather than taking a
+    read-only customer screen down; the config entry itself ships with
+    `verified=false` and "product setting, not law".
+    """
+    defaults = InsightsConfig()
+    min_history = defaults.min_history
+    concentration = defaults.concentration_flag_pct
+    enabled = defaults.cash_in_estimate_enabled
+
+    entry = config.get("insights")
+    value = entry.get("value") if isinstance(entry, dict) else None
+    if isinstance(value, dict):
+        raw_history = value.get("min_history")
+        if (
+            isinstance(raw_history, int)
+            and not isinstance(raw_history, bool)
+            and raw_history >= 1
+        ):
+            min_history = raw_history
+
+        raw_pct = value.get("concentration_flag_pct")
+        if isinstance(raw_pct, (int, float, str, Decimal)) and not isinstance(
+            raw_pct, bool
+        ):
+            try:
+                candidate = Decimal(str(raw_pct))
+            except Exception:  # noqa: BLE001 - malformed config falls back
+                candidate = None
+            if (
+                candidate is not None
+                and candidate.is_finite()
+                and 0 <= candidate <= 100
+            ):
+                concentration = candidate
+
+        raw_enabled = value.get("cash_in_estimate_enabled")
+        if isinstance(raw_enabled, bool):
+            enabled = raw_enabled
+
+    credit_cap_days = None
+    credit_entry = config.get("credit_cap_days")
+    if isinstance(credit_entry, dict):
+        raw_credit = credit_entry.get("value")
+        if (
+            isinstance(raw_credit, int)
+            and not isinstance(raw_credit, bool)
+            and raw_credit >= 0
+        ):
+            credit_cap_days = raw_credit
+
+    return InsightsConfig(
+        min_history=min_history,
+        concentration_flag_pct=concentration,
+        credit_cap_days=credit_cap_days,
+        cash_in_estimate_enabled=enabled,
+    )

@@ -164,5 +164,16 @@
     "source_ref": "illustrative",
     "verified": false,
     "note": "Illustrative demo values only, taken from the abridged example in architecture_v4_two_options.md section 9 (8.00-12.00% band, 0.10% fee). No market data was collected. These seed the mock bid engine; discount, fee and net amount are computed by backend/finance/ and never by the mock (trap: mock introduces maths bugs)."
+  },
+  "insights": {
+    "value": {
+      "name_match_threshold": 0.9,
+      "min_history": 3,
+      "concentration_flag_pct": 40,
+      "cash_in_estimate_enabled": false
+    },
+    "source_ref": "product setting, not law",
+    "verified": false,
+    "note": "Product settings, not statutory values (AGENTS.md rule 27). name_match_threshold is the normalised-name similarity (0-1) above which a customer attach or group link is suggested; min_history is the fewest fully paid invoices before an average may be shown; concentration_flag_pct is the share of total outstanding at or above which the top customer is flagged; cash_in_estimate_enabled turns on the labelled stretch forecast. All are descriptive product choices, not law."
   }
 }

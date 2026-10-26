@@ -1,0 +1,26 @@
+{
+  "_fixture": {
+    "schema": "Customer",
+    "contract_version": "1.2",
+    "synthetic": true,
+    "placeholder": true,
+    "placeholder_fields": [
+      "display_name",
+      "gstins",
+      "created_at"
+    ],
+    "why": "Hand-shaped customer identity; no CB3 customer route exists yet.",
+    "regenerate_with": "pending CB2-CB6; after CB6 use the seeded-DB v5 fixture exporter (the v4 pattern is backend/app/export_v4_fixtures.py)"
+  },
+  "payload": {
+    "id": "01JAV5CST0000000000000001",
+    "kind": "PAN",
+    "pan": "ABCDE1234F",
+    "display_name": "Acme Industries Private Limited (synthetic)",
+    "gstins": [
+      "27ABCDE1234F1Z5",
+      "29ABCDE1234F1Z9"
+    ],
+    "created_at": "2026-10-26T09:00:00Z"
+  }
+}

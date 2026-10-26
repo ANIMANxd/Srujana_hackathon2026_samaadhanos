@@ -1,0 +1,276 @@
+{
+  "_fixture": {
+    "schema": "CustomerProfile",
+    "contract_version": "1.2",
+    "synthetic": true,
+    "placeholder": true,
+    "placeholder_fields": [
+      "stats",
+      "payments",
+      "series",
+      "invoices",
+      "timeline",
+      "buyer_cost_summary",
+      "suggested_next_actions"
+    ],
+    "why": "Hand-shaped profile assembling the component shapes; the route fills every block from the store and backend/insights.",
+    "regenerate_with": "pending CB2-CB6; after CB6 use the seeded-DB v5 fixture exporter (the v4 pattern is backend/app/export_v4_fixtures.py)"
+  },
+  "payload": {
+    "customer": {
+      "id": "01JAV5CST0000000000000001",
+      "kind": "PAN",
+      "pan": "ABCDE1234F",
+      "display_name": "Acme Industries Private Limited (synthetic)",
+      "gstins": [
+        "27ABCDE1234F1Z5",
+        "29ABCDE1234F1Z9"
+      ],
+      "created_at": "2026-10-26T09:00:00Z"
+    },
+    "group": {
+      "id": "01JAV5GRP0000000000000001",
+      "label": "Acme group (synthetic)",
+      "created_by": "owner",
+      "created_at": "2026-10-26T09:00:00Z",
+      "member_count": 2,
+      "members": [
+        {
+          "id": "01JAV5CST0000000000000001",
+          "display_name": "Acme Industries Private Limited (synthetic)",
+          "kind": "PAN",
+          "pan": "ABCDE1234F",
+          "gstin_count": 2,
+          "group_id": null,
+          "group_label": null,
+          "invoice_count": 4,
+          "outstanding_total": "1250000.00",
+          "overdue_total": "450000.00",
+          "oldest_overdue_days": 62,
+          "last_payment_on": "2026-09-30",
+          "suggestion_count": 1
+        },
+        {
+          "id": "01JAV5CST0000000000000002",
+          "display_name": "Acme Industries Pvt. Ltd. (synthetic)",
+          "kind": "PROVISIONAL",
+          "pan": null,
+          "gstin_count": 0,
+          "group_id": null,
+          "group_label": null,
+          "invoice_count": 1,
+          "outstanding_total": "180000.00",
+          "overdue_total": "0.00",
+          "oldest_overdue_days": null,
+          "last_payment_on": null,
+          "suggestion_count": 1
+        }
+      ],
+      "gstins": [
+        "27ABCDE1234F1Z5",
+        "29ABCDE1234F1Z9"
+      ],
+      "stats": {
+        "as_of": "2026-10-26",
+        "invoice_count": 5,
+        "paid_invoice_count": 2,
+        "based_on": 2,
+        "min_history": 3,
+        "avg_days_to_pay": null,
+        "avg_days_to_pay_reason": "Totals only: money and counts add up, averages do not. Expand the group to see each member's average and the number of invoices behind it.",
+        "on_time_pct": null,
+        "on_time_pct_reason": "Totals only: money and counts add up, averages do not. Expand the group to see each member's average and the number of invoices behind it.",
+        "outstanding_total": "1430000.00",
+        "overdue_total": "450000.00",
+        "paid_total": "600000.00",
+        "oldest_overdue_days": 62,
+        "last_payment_on": "2026-09-30",
+        "cash_in_estimate": null,
+        "cash_in_estimate_note": "The cash-in estimate is a portfolio figure; see GET /api/v1/insights.",
+        "interest_accrued_now": "62000.00",
+        "median_days_to_pay": null,
+        "worst_days_to_pay": null,
+        "on_time_count": 1,
+        "paid_count": 2,
+        "on_time_text": "1 of 2 on time"
+      },
+      "totals_note": "Totals only: money and counts add up, averages do not. Expand the group to see each member's average and the number of invoices behind it."
+    },
+    "stats": {
+      "as_of": "2026-10-26",
+      "invoice_count": 4,
+      "paid_invoice_count": 2,
+      "based_on": 2,
+      "min_history": 3,
+      "avg_days_to_pay": null,
+      "avg_days_to_pay_reason": "Not enough history: 2 fully paid invoices, 3 needed.",
+      "on_time_pct": null,
+      "on_time_pct_reason": "Not enough history: 2 fully paid invoices, 3 needed.",
+      "outstanding_total": "1250000.00",
+      "overdue_total": "450000.00",
+      "paid_total": "600000.00",
+      "oldest_overdue_days": 62,
+      "last_payment_on": "2026-09-30",
+      "cash_in_estimate": null,
+      "cash_in_estimate_note": "The cash-in estimate is a portfolio figure; see GET /api/v1/insights.",
+      "interest_accrued_now": "62000.00",
+      "median_days_to_pay": null,
+      "worst_days_to_pay": null,
+      "on_time_count": 1,
+      "paid_count": 2,
+      "on_time_text": "1 of 2 on time"
+    },
+    "payments": [
+      {
+        "id": "01JAV5PAY0000000000000001",
+        "case_id": "01JAV5CASE0000000000000001",
+        "amount": "300000.00",
+        "paid_on": "2026-09-30",
+        "method": "bank",
+        "note": "NEFT (synthetic)",
+        "created_at": "2026-09-30T10:00:00Z",
+        "voided_at": null
+      }
+    ],
+    "suggestions": [
+      {
+        "a": "01JAV5CST0000000000000002",
+        "b": "01JAV5CST0000000000000001",
+        "kind": "ATTACH",
+        "similarity": "1.00",
+        "reason": "The provisional name matches the PAN customer; attaching it keeps the PAN as the legal identity. Suggestion only."
+      }
+    ],
+    "cases": [
+      {
+        "id": "01JAV5CASE0000000000000001",
+        "invoice_no": "SYN-1001",
+        "buyer_gstin": "27ABCDE1234F1Z5",
+        "supplier_ref": "SUP-SYN-0001",
+        "accepted_amount": "1250000.00",
+        "due_date": "2026-08-01",
+        "days_overdue": 62,
+        "calculation_date": "2026-10-26",
+        "active_track": null,
+        "state": "NEW",
+        "stage": null,
+        "available_actions": []
+      }
+    ],
+    "gstins": [
+      "27ABCDE1234F1Z5",
+      "29ABCDE1234F1Z9"
+    ],
+    "series": [
+      {
+        "case_id": "01JAV5CASE0000000000000001",
+        "invoice_no": "SYN-1001",
+        "accepted_on": "2026-06-01",
+        "due_date": "2026-07-16",
+        "legal_due_days": 45,
+        "days_to_pay": null,
+        "days_open_so_far": 147,
+        "days_overdue": 102,
+        "status": "OVERDUE",
+        "outstanding": "450000.00",
+        "on_time": null,
+        "based_on": 1
+      }
+    ],
+    "invoices": [
+      {
+        "case_id": "01JAV5CASE0000000000000001",
+        "invoice_no": "SYN-1001",
+        "invoice_date": "2026-05-28",
+        "accepted_amount": "1250000.00",
+        "accepted_on": "2026-06-01",
+        "due_date": "2026-07-16",
+        "days_overdue": 102,
+        "days_to_pay": null,
+        "days_open_so_far": 147,
+        "outstanding": "450000.00",
+        "status": "OVERDUE",
+        "on_time": null,
+        "last_payment_on": "2026-09-30",
+        "active_track": {
+          "case_id": "01JAV5CASE0000000000000001",
+          "kind": "RECOVERY",
+          "state": "STAGE_1_PREPARED",
+          "stage": 1,
+          "version": 2,
+          "created_at": "2026-10-20T09:00:00Z"
+        }
+      }
+    ],
+    "timeline": [
+      {
+        "seq": 2,
+        "case_id": "01JAV5CASE0000000000000001",
+        "track_id": null,
+        "type": "customer.attach",
+        "payload_json": {
+          "from_customer_id": "01JAV5CST0000000000000002",
+          "to_customer_id": "01JAV5CST0000000000000001",
+          "case_ids": [
+            "01JAV5CASE0000000000000001"
+          ],
+          "gstins": [],
+          "source": "api.customers.attach"
+        },
+        "actor": "USER",
+        "created_at": "2026-10-26T09:05:00Z",
+        "prev_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+        "hash": "1111111111111111111111111111111111111111111111111111111111111111"
+      }
+    ],
+    "buyer_cost_summary": {
+      "as_of": "2026-10-26",
+      "lines": [
+        {
+          "id": "PERMANENT_LOSS",
+          "label": "Interest the buyer cannot deduct (permanent loss)",
+          "amount": "62000.00",
+          "case_count": 1,
+          "case_ids": [
+            "01JAV5CASE0000000000000001"
+          ],
+          "items": [],
+          "note": "Interest accrued on the late payment, from the engine's own buyer-cost block."
+        },
+        {
+          "id": "DEFERRAL",
+          "label": "Tax-timing deferral cost",
+          "amount": null,
+          "case_count": 0,
+          "case_ids": [],
+          "items": [],
+          "note": "No invoice reaches a 31 March checkpoint with the engine's current inputs."
+        },
+        {
+          "id": "DISCLOSURE",
+          "label": "Disclosure the buyer has to make",
+          "amount": null,
+          "case_count": 1,
+          "case_ids": [
+            "01JAV5CASE0000000000000001"
+          ],
+          "items": [
+            "s.22 disclosure in the audited accounts"
+          ],
+          "note": "Disclosure flags are not money, so this line carries no amount."
+        }
+      ],
+      "note": "Three separate lines about the buyer's position. They are never added together (AGENTS.md rule 8)."
+    },
+    "suggested_next_actions": [
+      {
+        "case_id": "01JAV5CASE0000000000000001",
+        "invoice_no": "SYN-1001",
+        "action": "mark_sent",
+        "label": "Record that you sent this stage",
+        "reason": "Taken from this invoice's current workflow state.",
+        "source": "WORKFLOW"
+      }
+    ]
+  }
+}

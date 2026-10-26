@@ -38,6 +38,7 @@ from backend.extraction.extract import extract_evidence as run_extraction
 from backend.extraction.llm import settings_from_env
 from backend.extraction.text import ExtractionInputError
 from backend.app.schemas_v4 import component_schemas as v1_1_component_schemas
+from backend.app.schemas_v5 import component_schemas as v1_2_component_schemas
 from backend.app import deps
 from backend.store.db import init_db as init_store
 
@@ -64,8 +65,8 @@ app = FastAPI(
     description=(
         "MSME payment-rights evaluation API. Contract v1.0; frozen and "
         "additive-only after the contract-v1 tag (architecture.md section 9). "
-        "The v1.1 shapes for the v4 two-option model are published as "
-        "unreferenced components until their routes land."
+        "The v1.1 v4 routes, the v1.2 payment routes and the v1.2 customer-book "
+        "routes are live."
     ),
 )
 
@@ -83,12 +84,18 @@ async def _simulation_header(request: Request, call_next):
     return response
 
 
-# ------------------------------------------------------ contract v1.1 ----
-# The v1.1 schemas ship before their routes (architecture_v4 section 9). They
-# are registered as components only, so `paths` is untouched and every v1.0
-# operation stays byte-identical. A v1.1 model may never shadow a v1.0 name.
+# ------------------------------------------- additive contracts v1.1/v1.2 ----
+# The v1.1 and v1.2 schemas ship before their routes (architecture_v4 section 9).
+# They are registered as components only, so `paths` is untouched and every
+# published operation keeps its frozen shape. An additive model may never
+# shadow an existing component with a different shape.
 
 _BASE_OPENAPI = app.openapi
+
+_ADDITIVE_PROVIDERS = (
+    ("v1.1", v1_1_component_schemas),
+    ("v1.2", v1_2_component_schemas),
+)
 
 
 def _shape(schema: dict) -> tuple:
@@ -101,30 +108,36 @@ def _shape(schema: dict) -> tuple:
     )
 
 
-def _openapi_with_v1_1() -> dict:
-    if app.openapi_schema is not None:
-        return app.openapi_schema
-    schema = _BASE_OPENAPI()
+def _inject_components(schema: dict, *, label: str, provider) -> None:
     components = schema.setdefault("components", {}).setdefault("schemas", {})
-    v1_1, authored = v1_1_component_schemas()
-    for name, sub in v1_1.items():
+    models, _authored = provider()
+    for name, sub in models.items():
         existing = components.get(name)
         if existing is not None:
-            # FastAPI already emitted this model, either because a v1.1 route reaches
-            # it or because it is a v1.0 model pulled in by reference. Cosmetic
-            # differences (`default: null`) are fine; a different *shape* is not.
+            # FastAPI already emitted this model, either because a route reaches
+            # it or because an earlier contract model pulled it in by reference.
+            # Cosmetic differences (`default: null`) are fine; a different
+            # *shape* is not.
             if _shape(existing) != _shape(sub):
                 raise RuntimeError(
-                    f"contract v1.1 schema {name!r} would change the frozen shape "
+                    f"contract {label} schema {name!r} would change the frozen shape "
                     f"{_shape(existing)} -> {_shape(sub)}"
                 )
             continue
         components[name] = sub
+
+
+def _openapi_with_additive_contracts() -> dict:
+    if app.openapi_schema is not None:
+        return app.openapi_schema
+    schema = _BASE_OPENAPI()
+    for label, provider in _ADDITIVE_PROVIDERS:
+        _inject_components(schema, label=label, provider=provider)
     app.openapi_schema = schema
     return schema
 
 
-app.openapi = _openapi_with_v1_1
+app.openapi = _openapi_with_additive_contracts
 
 
 # Contract v1.1 routes. Included after the openapi wrapper so the published document
@@ -136,6 +149,8 @@ from backend.app.routes.events import router as events_router  # noqa: E402
 from backend.app.routes.options import router as options_router  # noqa: E402
 from backend.app.routes.mock import router as mock_router  # noqa: E402
 from backend.app.routes.recovery import router as recovery_router  # noqa: E402
+from backend.app.routes.customers import router as customers_router  # noqa: E402
+from backend.app.routes.imports import router as imports_router  # noqa: E402
 
 app.include_router(cases_router)
 app.include_router(financing_router)
@@ -144,6 +159,8 @@ app.include_router(events_router)
 app.include_router(options_router)
 app.include_router(mock_router)
 app.include_router(recovery_router)
+app.include_router(customers_router)
+app.include_router(imports_router)
 
 
 # ------------------------------------------------------------- errors ----

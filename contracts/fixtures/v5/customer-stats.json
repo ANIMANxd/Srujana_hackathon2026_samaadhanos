@@ -1,0 +1,42 @@
+{
+  "_fixture": {
+    "schema": "CustomerStats",
+    "contract_version": "1.2",
+    "synthetic": true,
+    "placeholder": true,
+    "placeholder_fields": [
+      "avg_days_to_pay",
+      "on_time_pct",
+      "outstanding_total",
+      "overdue_total",
+      "paid_total",
+      "interest_accrued_now"
+    ],
+    "why": "Hand-shaped descriptive stats. The averages are deliberately null with a reason to prove the 'not enough history' shape; the route now fills the same fields from backend/insights.",
+    "regenerate_with": "pending CB6; after CB6 use the seeded-DB v5 fixture exporter (the v4 pattern is backend/app/export_v4_fixtures.py)"
+  },
+  "payload": {
+    "as_of": "2026-10-26",
+    "invoice_count": 4,
+    "paid_invoice_count": 2,
+    "based_on": 2,
+    "min_history": 3,
+    "avg_days_to_pay": null,
+    "avg_days_to_pay_reason": "Not enough history: 2 fully paid invoices, 3 needed.",
+    "on_time_pct": null,
+    "on_time_pct_reason": "Not enough history: 2 fully paid invoices, 3 needed.",
+    "outstanding_total": "1250000.00",
+    "overdue_total": "450000.00",
+    "paid_total": "600000.00",
+    "oldest_overdue_days": 62,
+    "last_payment_on": "2026-09-30",
+    "cash_in_estimate": null,
+    "cash_in_estimate_note": "The cash-in estimate is a portfolio figure; see GET /api/v1/insights.",
+    "interest_accrued_now": "62000.00",
+    "median_days_to_pay": null,
+    "worst_days_to_pay": null,
+    "on_time_count": 1,
+    "paid_count": 2,
+    "on_time_text": "1 of 2 on time"
+  }
+}

@@ -12,13 +12,14 @@ from datetime import UTC, date, datetime, time
 from pathlib import Path
 from types import SimpleNamespace
 
-import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import text
+from sqlmodel import select
 
 from backend.app import deps
 from backend.store import db as store_db
-from backend.store.models import Track
+from backend.store.models import Case as CaseRow
+from backend.store.models import Customer, CustomerGstin, Track
 from backend.store.ids import new_ulid
 from backend.workflow.transitions import available_actions
 
@@ -75,10 +76,70 @@ def test_the_client_cannot_choose_the_case_id(client):
 def test_create_records_a_case_created_event(client):
     body = _create(client)
     events = client.get(f"/api/v1/cases/{body['case']['id']}/events").json()
-    assert [event["type"] for event in events] == ["case.created"]
+    # The case opens the chain, then v5 records the customer identity decision.
+    assert [event["type"] for event in events] == [
+        "case.created",
+        "customer.created",
+        "customer.attached",
+    ]
     assert events[0]["seq"] == 1
     assert events[0]["actor"] == "USER"
     assert events[0]["prev_hash"] == "0" * 64
+    assert events[1]["payload_json"]["customer_id"] == events[2]["payload_json"]["customer_id"]
+
+
+def test_create_persists_the_buyer_gstin_under_the_customer(client):
+    """The API create path must leave the buyer in the customer book.
+
+    The preset GSTIN is a 16-character synthetic value, so it is invalid by the
+    format check. The case still gets a provisional customer, the GSTIN is kept,
+    and the audit payload carries the format warning rather than dropping it.
+    """
+    body = _create(client)
+
+    with store_db.session_scope() as session:
+        case = session.get(CaseRow, body["case"]["id"])
+        assert case is not None and case.customer_id
+        customer = session.get(Customer, case.customer_id)
+        assert customer is not None
+        assert customer.kind == "PROVISIONAL"
+        assert customer.normalized_name == "SAMPLE BUYER CORP SYNTHETIC"
+        link = session.get(CustomerGstin, "29SYN000000000Z1")
+        assert link is not None and link.customer_id == customer.id
+
+    events = client.get(f"/api/v1/cases/{body['case']['id']}/events").json()
+    assert events[-1]["type"] == "customer.attached"
+    assert events[-1]["payload_json"]["warnings"], "the format warning is recorded"
+
+
+def test_two_state_gstins_with_the_same_pan_share_one_customer(client):
+    """A valid GSTIN is the legal identity; two states are one PAN customer."""
+    buyer = {
+        **PRESET["buyer"],
+        "name": "Acme Industries Pvt. Ltd.",
+        "gstin": "27ABCDE1234F1Z5",
+    }
+    first = _create(client, buyer=buyer)
+    second = _create(
+        client, buyer={**buyer, "gstin": "29ABCDE1234F1Z9"}
+    )
+
+    with store_db.session_scope() as session:
+        first_case = session.get(CaseRow, first["case"]["id"])
+        second_case = session.get(CaseRow, second["case"]["id"])
+        assert first_case.customer_id == second_case.customer_id
+        customer = session.get(Customer, first_case.customer_id)
+        assert customer.kind == "PAN"
+        assert customer.pan == "ABCDE1234F"
+        links = {
+            row.gstin
+            for row in session.exec(
+                select(CustomerGstin).where(
+                    CustomerGstin.customer_id == customer.id
+                )
+            ).all()
+        }
+        assert links == {"27ABCDE1234F1Z5", "29ABCDE1234F1Z9"}
 
 
 def test_create_returns_a_location_header(client):
@@ -187,7 +248,8 @@ def test_the_chain_verifies(client):
     body = _create(client)
     case_id = body["case"]["id"]
     result = client.get(f"/api/v1/cases/{case_id}/events/verify").json()
-    assert result == {"valid": True, "checked": 1, "first_bad_seq": None}
+    # case.created + customer.created + customer.attached
+    assert result == {"valid": True, "checked": 3, "first_bad_seq": None}
 
 
 def test_tampering_is_reported_by_the_verify_route(client):

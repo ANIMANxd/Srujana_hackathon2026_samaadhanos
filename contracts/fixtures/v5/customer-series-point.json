@@ -1,0 +1,29 @@
+{
+  "_fixture": {
+    "schema": "CustomerSeriesPoint",
+    "contract_version": "1.2",
+    "synthetic": true,
+    "placeholder": true,
+    "placeholder_fields": [
+      "days_open_so_far",
+      "days_overdue",
+      "outstanding"
+    ],
+    "why": "Hand-shaped chart point; the route maps backend.insights series rows here.",
+    "regenerate_with": "pending CB6; after CB6 use the seeded-DB v5 fixture exporter (the v4 pattern is backend/app/export_v4_fixtures.py)"
+  },
+  "payload": {
+    "case_id": "01JAV5CASE0000000000000001",
+    "invoice_no": "SYN-1001",
+    "accepted_on": "2026-06-01",
+    "due_date": "2026-07-16",
+    "legal_due_days": 45,
+    "days_to_pay": null,
+    "days_open_so_far": 147,
+    "days_overdue": 102,
+    "status": "OVERDUE",
+    "outstanding": "450000.00",
+    "on_time": null,
+    "based_on": 1
+  }
+}
