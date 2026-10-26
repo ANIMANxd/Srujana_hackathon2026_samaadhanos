@@ -1,0 +1,32 @@
+{
+  "_fixture": {
+    "schema": "CustomerRow",
+    "contract_version": "1.2",
+    "synthetic": true,
+    "placeholder": true,
+    "placeholder_fields": [
+      "invoice_count",
+      "outstanding_total",
+      "overdue_total",
+      "oldest_overdue_days",
+      "suggestion_count"
+    ],
+    "why": "Hand-shaped list row; the totals need the CB4/CB6 seeded-DB read model.",
+    "regenerate_with": "pending CB2-CB6; after CB6 use the seeded-DB v5 fixture exporter (the v4 pattern is backend/app/export_v4_fixtures.py)"
+  },
+  "payload": {
+    "id": "01JAV5CST0000000000000001",
+    "display_name": "Acme Industries Private Limited (synthetic)",
+    "kind": "PAN",
+    "pan": "ABCDE1234F",
+    "gstin_count": 2,
+    "group_id": null,
+    "group_label": null,
+    "invoice_count": 4,
+    "outstanding_total": "1250000.00",
+    "overdue_total": "450000.00",
+    "oldest_overdue_days": 62,
+    "last_payment_on": "2026-09-30",
+    "suggestion_count": 1
+  }
+}

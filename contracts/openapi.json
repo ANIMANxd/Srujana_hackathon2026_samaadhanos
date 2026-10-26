@@ -861,6 +861,63 @@
         "title": "ChainVerifyResult",
         "type": "object"
       },
+      "ChartSeriesPoint": {
+        "description": "One point in a chart series. `value` is a decimal string, never a float.",
+        "properties": {
+          "count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Count"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "period_end": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Period End"
+          },
+          "period_start": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Period Start"
+          },
+          "value": {
+            "title": "Value",
+            "type": "string"
+          }
+        },
+        "required": [
+          "label",
+          "value"
+        ],
+        "title": "ChartSeriesPoint",
+        "type": "object"
+      },
       "Citation": {
         "properties": {
           "config_key": {
@@ -1069,6 +1126,413 @@
           "sha256"
         ],
         "title": "ConsentDocument",
+        "type": "object"
+      },
+      "Customer": {
+        "description": "A buyer in the owner's book, as stored in `customers`.\n\n`kind=\"PAN\"` means the legal identity is known. `kind=\"PROVISIONAL\"` means\nthe owner has not confirmed a PAN yet; the record is grouped by GSTIN or by\nnormalised name, and any match is a suggestion, never an automatic merge.",
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "gstins": {
+            "description": "GSTINs seen for this customer, including invalid demo values.",
+            "items": {
+              "type": "string"
+            },
+            "title": "Gstins",
+            "type": "array"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/CustomerKind"
+          },
+          "pan": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Pan"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "display_name",
+          "created_at"
+        ],
+        "title": "Customer",
+        "type": "object"
+      },
+      "CustomerGroupRow": {
+        "description": "An owner-made link between different PANs. It is not a merge.",
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "created_by": {
+            "title": "Created By",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "member_count": {
+            "title": "Member Count",
+            "type": "integer"
+          },
+          "members": {
+            "items": {
+              "$ref": "#/components/schemas/CustomerRow"
+            },
+            "title": "Members",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "label",
+          "created_by",
+          "created_at",
+          "member_count"
+        ],
+        "title": "CustomerGroupRow",
+        "type": "object"
+      },
+      "CustomerKind": {
+        "description": "A customer identified by a PAN, or provisional until a PAN is known.",
+        "enum": [
+          "PAN",
+          "PROVISIONAL"
+        ],
+        "title": "CustomerKind",
+        "type": "string"
+      },
+      "CustomerProfile": {
+        "description": "The customer page: identity, group, descriptive stats, payments and cases.",
+        "properties": {
+          "cases": {
+            "items": {
+              "$ref": "#/components/schemas/CaseSummary"
+            },
+            "title": "Cases",
+            "type": "array"
+          },
+          "customer": {
+            "$ref": "#/components/schemas/Customer"
+          },
+          "group": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CustomerGroupRow"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "payments": {
+            "items": {
+              "$ref": "#/components/schemas/Payment"
+            },
+            "title": "Payments",
+            "type": "array"
+          },
+          "stats": {
+            "$ref": "#/components/schemas/CustomerStats"
+          },
+          "suggestions": {
+            "items": {
+              "$ref": "#/components/schemas/Suggestion"
+            },
+            "title": "Suggestions",
+            "type": "array"
+          }
+        },
+        "required": [
+          "customer",
+          "stats"
+        ],
+        "title": "CustomerProfile",
+        "type": "object"
+      },
+      "CustomerRow": {
+        "description": "One row of the customer list. Descriptive totals, never a score.",
+        "properties": {
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "group_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Group Id"
+          },
+          "group_label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Group Label"
+          },
+          "gstin_count": {
+            "default": 0,
+            "title": "Gstin Count",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "invoice_count": {
+            "default": 0,
+            "title": "Invoice Count",
+            "type": "integer"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/CustomerKind"
+          },
+          "last_payment_on": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Last Payment On"
+          },
+          "oldest_overdue_days": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Oldest Overdue Days"
+          },
+          "outstanding_total": {
+            "title": "Outstanding Total",
+            "type": "string"
+          },
+          "overdue_total": {
+            "title": "Overdue Total",
+            "type": "string"
+          },
+          "pan": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Pan"
+          },
+          "suggestion_count": {
+            "default": 0,
+            "title": "Suggestion Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "display_name",
+          "kind",
+          "outstanding_total",
+          "overdue_total"
+        ],
+        "title": "CustomerRow",
+        "type": "object"
+      },
+      "CustomerStats": {
+        "description": "Descriptive payment history for one customer.\n\n`avg_days_to_pay` and `on_time_pct` are null when there is too little\nhistory; `*_reason` then says why, and `based_on` / `min_history` make the\nsample size explicit. Days are measured from the engine's day of acceptance\nto the payment date, never from the invoice date; \"on time\" means paid by\nthe engine's legal due date.",
+        "properties": {
+          "as_of": {
+            "format": "date",
+            "title": "As Of",
+            "type": "string"
+          },
+          "avg_days_to_pay": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Avg Days To Pay"
+          },
+          "avg_days_to_pay_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Avg Days To Pay Reason"
+          },
+          "based_on": {
+            "default": 0,
+            "title": "Based On",
+            "type": "integer"
+          },
+          "cash_in_estimate": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "An estimate, not a promise; see cash_in_estimate_note.",
+            "title": "Cash In Estimate"
+          },
+          "cash_in_estimate_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Cash In Estimate Note"
+          },
+          "invoice_count": {
+            "default": 0,
+            "title": "Invoice Count",
+            "type": "integer"
+          },
+          "last_payment_on": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Last Payment On"
+          },
+          "min_history": {
+            "default": 3,
+            "title": "Min History",
+            "type": "integer"
+          },
+          "oldest_overdue_days": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Oldest Overdue Days"
+          },
+          "on_time_pct": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Percentage of fully paid invoices paid by the engine's legal due date.",
+            "title": "On Time Pct"
+          },
+          "on_time_pct_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "On Time Pct Reason"
+          },
+          "outstanding_total": {
+            "title": "Outstanding Total",
+            "type": "string"
+          },
+          "overdue_total": {
+            "title": "Overdue Total",
+            "type": "string"
+          },
+          "paid_invoice_count": {
+            "default": 0,
+            "title": "Paid Invoice Count",
+            "type": "integer"
+          },
+          "paid_total": {
+            "title": "Paid Total",
+            "type": "string"
+          }
+        },
+        "required": [
+          "as_of",
+          "outstanding_total",
+          "overdue_total",
+          "paid_total"
+        ],
+        "title": "CustomerStats",
         "type": "object"
       },
       "Defense": {
@@ -2010,6 +2474,141 @@
         "title": "HTTPValidationError",
         "type": "object"
       },
+      "ImportPreview": {
+        "description": "A dry-run view of a CSV import. Nothing is written until the owner confirms.",
+        "properties": {
+          "columns": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Columns",
+            "type": "array"
+          },
+          "errors": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Errors",
+            "type": "array"
+          },
+          "filename": {
+            "title": "Filename",
+            "type": "string"
+          },
+          "invalid_rows": {
+            "title": "Invalid Rows",
+            "type": "integer"
+          },
+          "preview_id": {
+            "title": "Preview Id",
+            "type": "string"
+          },
+          "requires_confirmation": {
+            "default": true,
+            "title": "Requires Confirmation",
+            "type": "boolean"
+          },
+          "sample_rows": {
+            "items": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            "title": "Sample Rows",
+            "type": "array"
+          },
+          "total_rows": {
+            "title": "Total Rows",
+            "type": "integer"
+          },
+          "valid_rows": {
+            "title": "Valid Rows",
+            "type": "integer"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "preview_id",
+          "filename",
+          "total_rows",
+          "valid_rows",
+          "invalid_rows"
+        ],
+        "title": "ImportPreview",
+        "type": "object"
+      },
+      "ImportResult": {
+        "description": "The outcome of an owner-confirmed CSV import.",
+        "properties": {
+          "case_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Case Ids",
+            "type": "array"
+          },
+          "customers_created": {
+            "default": 0,
+            "title": "Customers Created",
+            "type": "integer"
+          },
+          "customers_matched": {
+            "default": 0,
+            "title": "Customers Matched",
+            "type": "integer"
+          },
+          "errors": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Errors",
+            "type": "array"
+          },
+          "failed": {
+            "title": "Failed",
+            "type": "integer"
+          },
+          "gstins_attached": {
+            "default": 0,
+            "title": "Gstins Attached",
+            "type": "integer"
+          },
+          "imported": {
+            "title": "Imported",
+            "type": "integer"
+          },
+          "preview_id": {
+            "title": "Preview Id",
+            "type": "string"
+          },
+          "skipped": {
+            "title": "Skipped",
+            "type": "integer"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "preview_id",
+          "imported",
+          "skipped",
+          "failed"
+        ],
+        "title": "ImportResult",
+        "type": "object"
+      },
       "IndicativeFinancing": {
         "description": "The indicative numbers on the Option 1 column.\n\nUntil `backend/finance/` exists these are placeholders and every fixture\ncarries `_fixture.placeholder: true` (golden rule 7).",
         "properties": {
@@ -2480,11 +3079,88 @@
         "title": "PartPayment",
         "type": "object"
       },
+      "Payment": {
+        "description": "One payment the owner recorded. A voided payment stays in the history.",
+        "properties": {
+          "amount": {
+            "title": "Amount",
+            "type": "string"
+          },
+          "case_id": {
+            "title": "Case Id",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "method": {
+            "$ref": "#/components/schemas/PaymentMethod"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Note"
+          },
+          "paid_on": {
+            "format": "date",
+            "title": "Paid On",
+            "type": "string"
+          },
+          "voided_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Voided At"
+          }
+        },
+        "required": [
+          "id",
+          "case_id",
+          "amount",
+          "paid_on",
+          "method",
+          "created_at"
+        ],
+        "title": "Payment",
+        "type": "object"
+      },
       "PaymentBoundaryConvention": {
         "enum": [
           "PAYMENT_DATE_IS_REST_BOUNDARY"
         ],
         "title": "PaymentBoundaryConvention",
+        "type": "string"
+      },
+      "PaymentMethod": {
+        "description": "How the buyer paid. Matches `backend/store/models.py` Payment.method.",
+        "enum": [
+          "bank",
+          "upi",
+          "cheque",
+          "cash",
+          "other"
+        ],
+        "title": "PaymentMethod",
         "type": "string"
       },
       "PayoutState": {
@@ -2565,6 +3241,178 @@
           "pretax_equivalent_rate_pct"
         ],
         "title": "PermanentLoss",
+        "type": "object"
+      },
+      "PortfolioInsights": {
+        "description": "Descriptive portfolio totals for the owner's own book.\n\nThere is no buyer score, ranking or prediction. `cash_in_estimate` is the\nsingle estimate and is labelled as one. `top_customer_share_pct` and\n`concentration_note` describe concentration from the owner's data; they do\nnot label a buyer as risky.",
+        "properties": {
+          "as_of": {
+            "format": "date",
+            "title": "As Of",
+            "type": "string"
+          },
+          "avg_days_to_pay": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Avg Days To Pay"
+          },
+          "avg_days_to_pay_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Avg Days To Pay Reason"
+          },
+          "based_on": {
+            "default": 0,
+            "title": "Based On",
+            "type": "integer"
+          },
+          "cash_in_estimate": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Cash In Estimate"
+          },
+          "cash_in_estimate_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Cash In Estimate Note"
+          },
+          "collections_by_month": {
+            "items": {
+              "$ref": "#/components/schemas/ChartSeriesPoint"
+            },
+            "title": "Collections By Month",
+            "type": "array"
+          },
+          "concentration_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Concentration Note"
+          },
+          "customer_count": {
+            "default": 0,
+            "title": "Customer Count",
+            "type": "integer"
+          },
+          "invoice_count": {
+            "default": 0,
+            "title": "Invoice Count",
+            "type": "integer"
+          },
+          "min_history": {
+            "default": 3,
+            "title": "Min History",
+            "type": "integer"
+          },
+          "on_time_pct": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "On Time Pct"
+          },
+          "on_time_pct_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "On Time Pct Reason"
+          },
+          "outstanding_by_customer": {
+            "items": {
+              "$ref": "#/components/schemas/ChartSeriesPoint"
+            },
+            "title": "Outstanding By Customer",
+            "type": "array"
+          },
+          "outstanding_total": {
+            "title": "Outstanding Total",
+            "type": "string"
+          },
+          "overdue_total": {
+            "title": "Overdue Total",
+            "type": "string"
+          },
+          "paid_total": {
+            "title": "Paid Total",
+            "type": "string"
+          },
+          "top_customer_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Top Customer Id"
+          },
+          "top_customer_share_pct": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Top Customer Share Pct"
+          }
+        },
+        "required": [
+          "as_of",
+          "outstanding_total",
+          "overdue_total",
+          "paid_total"
+        ],
+        "title": "PortfolioInsights",
         "type": "object"
       },
       "RateBand": {
@@ -3084,6 +3932,49 @@
         "title": "SourceKind",
         "type": "string"
       },
+      "Suggestion": {
+        "description": "A name-match suggestion. It is never applied automatically.\n\n`ATTACH`: `a` is a PROVISIONAL customer that could be attached to the PAN\ncustomer `b`. `LINK_AS_GROUP`: `a` and `b` are different PANs that the owner\nmay link as a group; they are never merged.",
+        "properties": {
+          "a": {
+            "title": "A",
+            "type": "string"
+          },
+          "b": {
+            "title": "B",
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/SuggestionKind"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "similarity": {
+            "description": "Normalised-name similarity between 0 and 1, as a decimal string.",
+            "title": "Similarity",
+            "type": "string"
+          }
+        },
+        "required": [
+          "a",
+          "b",
+          "kind",
+          "similarity",
+          "reason"
+        ],
+        "title": "Suggestion",
+        "type": "object"
+      },
+      "SuggestionKind": {
+        "description": "Owner actions only. Nothing here merges automatically.",
+        "enum": [
+          "ATTACH",
+          "LINK_AS_GROUP"
+        ],
+        "title": "SuggestionKind",
+        "type": "string"
+      },
       "Supplier": {
         "properties": {
           "activity": {
@@ -3589,7 +4480,7 @@
     }
   },
   "info": {
-    "description": "MSME payment-rights evaluation API. Contract v1.0; frozen and additive-only after the contract-v1 tag (architecture.md section 9). The v1.1 shapes for the v4 two-option model are published as unreferenced components until their routes land.",
+    "description": "MSME payment-rights evaluation API. Contract v1.0; frozen and additive-only after the contract-v1 tag (architecture.md section 9). The v1.1 and v1.2 shapes for the v4 two-option model and the v5 customer book are published as unreferenced components until their routes land.",
     "title": "SamadhaanOS API",
     "version": "1.0"
   },

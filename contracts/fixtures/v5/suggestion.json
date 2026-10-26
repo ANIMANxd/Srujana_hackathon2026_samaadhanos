@@ -1,0 +1,20 @@
+{
+  "_fixture": {
+    "schema": "Suggestion",
+    "contract_version": "1.2",
+    "synthetic": true,
+    "placeholder": true,
+    "placeholder_fields": [
+      "similarity"
+    ],
+    "why": "Hand-shaped suggestion; the pure resolver exists, the suggestions route does not.",
+    "regenerate_with": "pending CB2-CB6; after CB6 use the seeded-DB v5 fixture exporter (the v4 pattern is backend/app/export_v4_fixtures.py)"
+  },
+  "payload": {
+    "a": "01JAV5CST0000000000000002",
+    "b": "01JAV5CST0000000000000001",
+    "kind": "ATTACH",
+    "similarity": "1.00",
+    "reason": "The provisional name matches the PAN customer; attaching it keeps the PAN as the legal identity. Suggestion only."
+  }
+}

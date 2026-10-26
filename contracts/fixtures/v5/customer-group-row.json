@@ -1,0 +1,53 @@
+{
+  "_fixture": {
+    "schema": "CustomerGroupRow",
+    "contract_version": "1.2",
+    "synthetic": true,
+    "placeholder": true,
+    "placeholder_fields": [
+      "members",
+      "member_count"
+    ],
+    "why": "Hand-shaped group; group endpoints are not built yet.",
+    "regenerate_with": "pending CB2-CB6; after CB6 use the seeded-DB v5 fixture exporter (the v4 pattern is backend/app/export_v4_fixtures.py)"
+  },
+  "payload": {
+    "id": "01JAV5GRP0000000000000001",
+    "label": "Acme group (synthetic)",
+    "created_by": "owner",
+    "created_at": "2026-10-26T09:00:00Z",
+    "member_count": 2,
+    "members": [
+      {
+        "id": "01JAV5CST0000000000000001",
+        "display_name": "Acme Industries Private Limited (synthetic)",
+        "kind": "PAN",
+        "pan": "ABCDE1234F",
+        "gstin_count": 2,
+        "group_id": null,
+        "group_label": null,
+        "invoice_count": 4,
+        "outstanding_total": "1250000.00",
+        "overdue_total": "450000.00",
+        "oldest_overdue_days": 62,
+        "last_payment_on": "2026-09-30",
+        "suggestion_count": 1
+      },
+      {
+        "id": "01JAV5CST0000000000000002",
+        "display_name": "Acme Industries Pvt. Ltd. (synthetic)",
+        "kind": "PROVISIONAL",
+        "pan": null,
+        "gstin_count": 0,
+        "group_id": null,
+        "group_label": null,
+        "invoice_count": 1,
+        "outstanding_total": "180000.00",
+        "overdue_total": "0.00",
+        "oldest_overdue_days": null,
+        "last_payment_on": null,
+        "suggestion_count": 1
+      }
+    ]
+  }
+}

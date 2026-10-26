@@ -944,6 +944,31 @@ export interface components {
             /** Valid */
             valid: boolean;
         };
+        /**
+         * ChartSeriesPoint
+         * @description One point in a chart series. `value` is a decimal string, never a float.
+         */
+        ChartSeriesPoint: {
+            /**
+             * Count
+             * @default null
+             */
+            count: number | null;
+            /** Label */
+            label: string;
+            /**
+             * Period End
+             * @default null
+             */
+            period_end: string | null;
+            /**
+             * Period Start
+             * @default null
+             */
+            period_start: string | null;
+            /** Value */
+            value: string;
+        };
         /** Citation */
         Citation: {
             /** Config Key */
@@ -1020,6 +1045,219 @@ export interface components {
              * @default TEMPLATE
              */
             watermark: string;
+        };
+        /**
+         * Customer
+         * @description A buyer in the owner's book, as stored in `customers`.
+         *
+         *     `kind="PAN"` means the legal identity is known. `kind="PROVISIONAL"` means
+         *     the owner has not confirmed a PAN yet; the record is grouped by GSTIN or by
+         *     normalised name, and any match is a suggestion, never an automatic merge.
+         */
+        Customer: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Display Name */
+            display_name: string;
+            /**
+             * Gstins
+             * @description GSTINs seen for this customer, including invalid demo values.
+             */
+            gstins?: string[];
+            /** Id */
+            id: string;
+            kind: components["schemas"]["CustomerKind"];
+            /**
+             * Pan
+             * @default null
+             */
+            pan: string | null;
+        };
+        /**
+         * CustomerGroupRow
+         * @description An owner-made link between different PANs. It is not a merge.
+         */
+        CustomerGroupRow: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Created By */
+            created_by: string;
+            /** Id */
+            id: string;
+            /** Label */
+            label: string;
+            /** Member Count */
+            member_count: number;
+            /** Members */
+            members?: components["schemas"]["CustomerRow"][];
+        };
+        /**
+         * CustomerKind
+         * @description A customer identified by a PAN, or provisional until a PAN is known.
+         * @enum {string}
+         */
+        CustomerKind: "PAN" | "PROVISIONAL";
+        /**
+         * CustomerProfile
+         * @description The customer page: identity, group, descriptive stats, payments and cases.
+         */
+        CustomerProfile: {
+            /** Cases */
+            cases?: components["schemas"]["CaseSummary"][];
+            customer: components["schemas"]["Customer"];
+            /** @default null */
+            group: components["schemas"]["CustomerGroupRow"] | null;
+            /** Payments */
+            payments?: components["schemas"]["Payment"][];
+            stats: components["schemas"]["CustomerStats"];
+            /** Suggestions */
+            suggestions?: components["schemas"]["Suggestion"][];
+        };
+        /**
+         * CustomerRow
+         * @description One row of the customer list. Descriptive totals, never a score.
+         */
+        CustomerRow: {
+            /** Display Name */
+            display_name: string;
+            /**
+             * Group Id
+             * @default null
+             */
+            group_id: string | null;
+            /**
+             * Group Label
+             * @default null
+             */
+            group_label: string | null;
+            /**
+             * Gstin Count
+             * @default 0
+             */
+            gstin_count: number;
+            /** Id */
+            id: string;
+            /**
+             * Invoice Count
+             * @default 0
+             */
+            invoice_count: number;
+            kind: components["schemas"]["CustomerKind"];
+            /**
+             * Last Payment On
+             * @default null
+             */
+            last_payment_on: string | null;
+            /**
+             * Oldest Overdue Days
+             * @default null
+             */
+            oldest_overdue_days: number | null;
+            /** Outstanding Total */
+            outstanding_total: string;
+            /** Overdue Total */
+            overdue_total: string;
+            /**
+             * Pan
+             * @default null
+             */
+            pan: string | null;
+            /**
+             * Suggestion Count
+             * @default 0
+             */
+            suggestion_count: number;
+        };
+        /**
+         * CustomerStats
+         * @description Descriptive payment history for one customer.
+         *
+         *     `avg_days_to_pay` and `on_time_pct` are null when there is too little
+         *     history; `*_reason` then says why, and `based_on` / `min_history` make the
+         *     sample size explicit. Days are measured from the engine's day of acceptance
+         *     to the payment date, never from the invoice date; "on time" means paid by
+         *     the engine's legal due date.
+         */
+        CustomerStats: {
+            /**
+             * As Of
+             * Format: date
+             */
+            as_of: string;
+            /**
+             * Avg Days To Pay
+             * @default null
+             */
+            avg_days_to_pay: string | null;
+            /**
+             * Avg Days To Pay Reason
+             * @default null
+             */
+            avg_days_to_pay_reason: string | null;
+            /**
+             * Based On
+             * @default 0
+             */
+            based_on: number;
+            /**
+             * Cash In Estimate
+             * @description An estimate, not a promise; see cash_in_estimate_note.
+             * @default null
+             */
+            cash_in_estimate: string | null;
+            /**
+             * Cash In Estimate Note
+             * @default null
+             */
+            cash_in_estimate_note: string | null;
+            /**
+             * Invoice Count
+             * @default 0
+             */
+            invoice_count: number;
+            /**
+             * Last Payment On
+             * @default null
+             */
+            last_payment_on: string | null;
+            /**
+             * Min History
+             * @default 3
+             */
+            min_history: number;
+            /**
+             * Oldest Overdue Days
+             * @default null
+             */
+            oldest_overdue_days: number | null;
+            /**
+             * On Time Pct
+             * @description Percentage of fully paid invoices paid by the engine's legal due date.
+             * @default null
+             */
+            on_time_pct: string | null;
+            /**
+             * On Time Pct Reason
+             * @default null
+             */
+            on_time_pct_reason: string | null;
+            /** Outstanding Total */
+            outstanding_total: string;
+            /** Overdue Total */
+            overdue_total: string;
+            /**
+             * Paid Invoice Count
+             * @default 0
+             */
+            paid_invoice_count: number;
+            /** Paid Total */
+            paid_total: string;
         };
         /** Defense */
         Defense: {
@@ -1389,6 +1627,72 @@ export interface components {
             detail?: components["schemas"]["ValidationError"][];
         };
         /**
+         * ImportPreview
+         * @description A dry-run view of a CSV import. Nothing is written until the owner confirms.
+         */
+        ImportPreview: {
+            /** Columns */
+            columns?: string[];
+            /** Errors */
+            errors?: string[];
+            /** Filename */
+            filename: string;
+            /** Invalid Rows */
+            invalid_rows: number;
+            /** Preview Id */
+            preview_id: string;
+            /**
+             * Requires Confirmation
+             * @default true
+             */
+            requires_confirmation: boolean;
+            /** Sample Rows */
+            sample_rows?: {
+                [key: string]: string;
+            }[];
+            /** Total Rows */
+            total_rows: number;
+            /** Valid Rows */
+            valid_rows: number;
+            /** Warnings */
+            warnings?: string[];
+        };
+        /**
+         * ImportResult
+         * @description The outcome of an owner-confirmed CSV import.
+         */
+        ImportResult: {
+            /** Case Ids */
+            case_ids?: string[];
+            /**
+             * Customers Created
+             * @default 0
+             */
+            customers_created: number;
+            /**
+             * Customers Matched
+             * @default 0
+             */
+            customers_matched: number;
+            /** Errors */
+            errors?: string[];
+            /** Failed */
+            failed: number;
+            /**
+             * Gstins Attached
+             * @default 0
+             */
+            gstins_attached: number;
+            /** Imported */
+            imported: number;
+            /** Preview Id */
+            preview_id: string;
+            /** Skipped */
+            skipped: number;
+            /** Warnings */
+            warnings?: string[];
+        };
+        /**
          * IndicativeFinancing
          * @description The indicative numbers on the Option 1 column.
          *
@@ -1587,10 +1891,49 @@ export interface components {
             reference?: string | null;
         };
         /**
+         * Payment
+         * @description One payment the owner recorded. A voided payment stays in the history.
+         */
+        Payment: {
+            /** Amount */
+            amount: string;
+            /** Case Id */
+            case_id: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Id */
+            id: string;
+            method: components["schemas"]["PaymentMethod"];
+            /**
+             * Note
+             * @default null
+             */
+            note: string | null;
+            /**
+             * Paid On
+             * Format: date
+             */
+            paid_on: string;
+            /**
+             * Voided At
+             * @default null
+             */
+            voided_at: string | null;
+        };
+        /**
          * PaymentBoundaryConvention
          * @enum {string}
          */
         PaymentBoundaryConvention: "PAYMENT_DATE_IS_REST_BOUNDARY";
+        /**
+         * PaymentMethod
+         * @description How the buyer paid. Matches `backend/store/models.py` Payment.method.
+         * @enum {string}
+         */
+        PaymentMethod: "bank" | "upi" | "cheque" | "cash" | "other";
         /**
          * PayoutState
          * @enum {string}
@@ -1629,6 +1972,97 @@ export interface components {
             interest_non_deductible: string;
             /** Pretax Equivalent Rate Pct */
             pretax_equivalent_rate_pct: string;
+        };
+        /**
+         * PortfolioInsights
+         * @description Descriptive portfolio totals for the owner's own book.
+         *
+         *     There is no buyer score, ranking or prediction. `cash_in_estimate` is the
+         *     single estimate and is labelled as one. `top_customer_share_pct` and
+         *     `concentration_note` describe concentration from the owner's data; they do
+         *     not label a buyer as risky.
+         */
+        PortfolioInsights: {
+            /**
+             * As Of
+             * Format: date
+             */
+            as_of: string;
+            /**
+             * Avg Days To Pay
+             * @default null
+             */
+            avg_days_to_pay: string | null;
+            /**
+             * Avg Days To Pay Reason
+             * @default null
+             */
+            avg_days_to_pay_reason: string | null;
+            /**
+             * Based On
+             * @default 0
+             */
+            based_on: number;
+            /**
+             * Cash In Estimate
+             * @default null
+             */
+            cash_in_estimate: string | null;
+            /**
+             * Cash In Estimate Note
+             * @default null
+             */
+            cash_in_estimate_note: string | null;
+            /** Collections By Month */
+            collections_by_month?: components["schemas"]["ChartSeriesPoint"][];
+            /**
+             * Concentration Note
+             * @default null
+             */
+            concentration_note: string | null;
+            /**
+             * Customer Count
+             * @default 0
+             */
+            customer_count: number;
+            /**
+             * Invoice Count
+             * @default 0
+             */
+            invoice_count: number;
+            /**
+             * Min History
+             * @default 3
+             */
+            min_history: number;
+            /**
+             * On Time Pct
+             * @default null
+             */
+            on_time_pct: string | null;
+            /**
+             * On Time Pct Reason
+             * @default null
+             */
+            on_time_pct_reason: string | null;
+            /** Outstanding By Customer */
+            outstanding_by_customer?: components["schemas"]["ChartSeriesPoint"][];
+            /** Outstanding Total */
+            outstanding_total: string;
+            /** Overdue Total */
+            overdue_total: string;
+            /** Paid Total */
+            paid_total: string;
+            /**
+             * Top Customer Id
+             * @default null
+             */
+            top_customer_id: string | null;
+            /**
+             * Top Customer Share Pct
+             * @default null
+             */
+            top_customer_share_pct: string | null;
         };
         /** RateBand */
         RateBand: {
@@ -1837,6 +2271,34 @@ export interface components {
          * @enum {string}
          */
         SourceKind: "WHATSAPP_EXPORT" | "DOCUMENT_TEXT";
+        /**
+         * Suggestion
+         * @description A name-match suggestion. It is never applied automatically.
+         *
+         *     `ATTACH`: `a` is a PROVISIONAL customer that could be attached to the PAN
+         *     customer `b`. `LINK_AS_GROUP`: `a` and `b` are different PANs that the owner
+         *     may link as a group; they are never merged.
+         */
+        Suggestion: {
+            /** A */
+            a: string;
+            /** B */
+            b: string;
+            kind: components["schemas"]["SuggestionKind"];
+            /** Reason */
+            reason: string;
+            /**
+             * Similarity
+             * @description Normalised-name similarity between 0 and 1, as a decimal string.
+             */
+            similarity: string;
+        };
+        /**
+         * SuggestionKind
+         * @description Owner actions only. Nothing here merges automatically.
+         * @enum {string}
+         */
+        SuggestionKind: "ATTACH" | "LINK_AS_GROUP";
         /** Supplier */
         Supplier: {
             activity: components["schemas"]["Activity"];

@@ -1,0 +1,123 @@
+{
+  "_fixture": {
+    "schema": "CustomerProfile",
+    "contract_version": "1.2",
+    "synthetic": true,
+    "placeholder": true,
+    "placeholder_fields": [
+      "stats",
+      "payments",
+      "suggestions",
+      "cases"
+    ],
+    "why": "Hand-shaped profile assembling the component shapes; no CB3 profile route yet.",
+    "regenerate_with": "pending CB2-CB6; after CB6 use the seeded-DB v5 fixture exporter (the v4 pattern is backend/app/export_v4_fixtures.py)"
+  },
+  "payload": {
+    "customer": {
+      "id": "01JAV5CST0000000000000001",
+      "kind": "PAN",
+      "pan": "ABCDE1234F",
+      "display_name": "Acme Industries Private Limited (synthetic)",
+      "gstins": [
+        "27ABCDE1234F1Z5",
+        "29ABCDE1234F1Z9"
+      ],
+      "created_at": "2026-10-26T09:00:00Z"
+    },
+    "group": {
+      "id": "01JAV5GRP0000000000000001",
+      "label": "Acme group (synthetic)",
+      "created_by": "owner",
+      "created_at": "2026-10-26T09:00:00Z",
+      "member_count": 2,
+      "members": [
+        {
+          "id": "01JAV5CST0000000000000001",
+          "display_name": "Acme Industries Private Limited (synthetic)",
+          "kind": "PAN",
+          "pan": "ABCDE1234F",
+          "gstin_count": 2,
+          "group_id": null,
+          "group_label": null,
+          "invoice_count": 4,
+          "outstanding_total": "1250000.00",
+          "overdue_total": "450000.00",
+          "oldest_overdue_days": 62,
+          "last_payment_on": "2026-09-30",
+          "suggestion_count": 1
+        },
+        {
+          "id": "01JAV5CST0000000000000002",
+          "display_name": "Acme Industries Pvt. Ltd. (synthetic)",
+          "kind": "PROVISIONAL",
+          "pan": null,
+          "gstin_count": 0,
+          "group_id": null,
+          "group_label": null,
+          "invoice_count": 1,
+          "outstanding_total": "180000.00",
+          "overdue_total": "0.00",
+          "oldest_overdue_days": null,
+          "last_payment_on": null,
+          "suggestion_count": 1
+        }
+      ]
+    },
+    "stats": {
+      "as_of": "2026-10-26",
+      "invoice_count": 4,
+      "paid_invoice_count": 2,
+      "based_on": 2,
+      "min_history": 3,
+      "avg_days_to_pay": null,
+      "avg_days_to_pay_reason": "Not enough history: 2 fully paid invoices, 3 needed.",
+      "on_time_pct": null,
+      "on_time_pct_reason": "Not enough history: 2 fully paid invoices, 3 needed.",
+      "outstanding_total": "1250000.00",
+      "overdue_total": "450000.00",
+      "paid_total": "600000.00",
+      "oldest_overdue_days": 62,
+      "last_payment_on": "2026-09-30",
+      "cash_in_estimate": "1700000.00",
+      "cash_in_estimate_note": "Estimate only: assumes the engine's legal due dates are paid in full; not a promise."
+    },
+    "payments": [
+      {
+        "id": "01JAV5PAY0000000000000001",
+        "case_id": "01JAV5CASE0000000000000001",
+        "amount": "300000.00",
+        "paid_on": "2026-09-30",
+        "method": "bank",
+        "note": "NEFT (synthetic)",
+        "created_at": "2026-09-30T10:00:00Z",
+        "voided_at": null
+      }
+    ],
+    "suggestions": [
+      {
+        "a": "01JAV5CST0000000000000002",
+        "b": "01JAV5CST0000000000000001",
+        "kind": "ATTACH",
+        "similarity": "1.00",
+        "reason": "The provisional name matches the PAN customer; attaching it keeps the PAN as the legal identity. Suggestion only."
+      }
+    ],
+    "cases": [
+      {
+        "id": "01JAV5CASE0000000000000001",
+        "invoice_no": "SYN-1001",
+        "buyer_gstin": "27ABCDE1234F1Z5",
+        "supplier_ref": "SUP-SYN-0001",
+        "accepted_amount": "1250000.00",
+        "due_date": "2026-08-01",
+        "days_overdue": 62,
+        "calculation_date": "2026-10-26",
+        "active_track": null,
+        "state": "NEW",
+        "stage": null,
+        "available_actions": []
+      }
+    ]
+  }
+}

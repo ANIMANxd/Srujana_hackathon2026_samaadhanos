@@ -1,0 +1,58 @@
+{
+  "_fixture": {
+    "schema": "PortfolioInsights",
+    "contract_version": "1.2",
+    "synthetic": true,
+    "placeholder": true,
+    "placeholder_fields": [
+      "outstanding_total",
+      "overdue_total",
+      "paid_total",
+      "avg_days_to_pay",
+      "on_time_pct",
+      "cash_in_estimate",
+      "top_customer_share_pct",
+      "outstanding_by_customer",
+      "collections_by_month"
+    ],
+    "why": "Hand-shaped portfolio totals; CB5/CB6 will compute them from the seeded DB.",
+    "regenerate_with": "pending CB2-CB6; after CB6 use the seeded-DB v5 fixture exporter (the v4 pattern is backend/app/export_v4_fixtures.py)"
+  },
+  "payload": {
+    "as_of": "2026-10-26",
+    "customer_count": 6,
+    "invoice_count": 10,
+    "outstanding_total": "5250000.00",
+    "overdue_total": "1800000.00",
+    "paid_total": "2400000.00",
+    "based_on": 3,
+    "min_history": 3,
+    "avg_days_to_pay": "48.67",
+    "avg_days_to_pay_reason": null,
+    "on_time_pct": "33.33",
+    "on_time_pct_reason": null,
+    "cash_in_estimate": "5250000.00",
+    "cash_in_estimate_note": "Estimate only: assumes the engine's legal due dates are paid in full; not a promise.",
+    "top_customer_share_pct": "34.29",
+    "top_customer_id": "01JAV5CST0000000000000001",
+    "concentration_note": "Descriptive share of outstanding from the owner's own book; not a risk score.",
+    "outstanding_by_customer": [
+      {
+        "label": "2026-10",
+        "value": "450000.00",
+        "count": 2,
+        "period_start": "2026-10-01",
+        "period_end": "2026-10-31"
+      }
+    ],
+    "collections_by_month": [
+      {
+        "label": "2026-10",
+        "value": "450000.00",
+        "count": 2,
+        "period_start": "2026-10-01",
+        "period_end": "2026-10-31"
+      }
+    ]
+  }
+}
