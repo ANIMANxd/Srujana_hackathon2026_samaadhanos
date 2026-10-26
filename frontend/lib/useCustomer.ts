@@ -22,13 +22,16 @@ export type HistoryFigure =
  * (or when the server sent no figure) the average is withheld even if present.
  */
 export function historyFigure(
-  value: string | null,
-  reason: string | null,
+  value: string | null | undefined,
+  reason: string | null | undefined,
   basedOn: number,
   minHistory: number | null | undefined,
 ): HistoryFigure {
   const min = minHistory ?? DEFAULT_MIN_HISTORY;
-  if (value === null || basedOn < min) return { kind: "not_enough", basedOn, min, reason };
+  // A field the generated types mark optional is absent, not zero: that is the
+  // same "not enough history" state as an explicit null.
+  if (value === null || value === undefined || basedOn < min)
+    return { kind: "not_enough", basedOn, min, reason: reason ?? null };
   return { kind: "value", value, basedOn };
 }
 

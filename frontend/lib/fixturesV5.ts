@@ -75,9 +75,9 @@ export function sortSampleRows(rows: CustomerRow[], sort: CustomerSort, dir: Sor
       case "overdue_total":
         return toPaise(r[sort]);
       case "oldest_overdue_days":
-        return r.oldest_overdue_days;
+        return r.oldest_overdue_days ?? null;
       case "last_payment_on":
-        return r.last_payment_on;
+        return r.last_payment_on ?? null;
       case "display_name":
         return r.display_name.toLocaleLowerCase();
       default:
