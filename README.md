@@ -157,6 +157,10 @@ evidence → [extraction + human confirm] → [statute config + engine]
    speaker's review.
 7. **Not covered:** medium-enterprise suppliers, traders, actual filing, legal
    representation.
+8. **GSTIN validation is format only.** The 15-character pattern is checked; the
+   check digit is not verified and no GST portal lookup is made. A GSTIN that
+   fails the pattern becomes a provisional customer with a warning; it is never
+   silently dropped or treated as a legal identity.
 
 ---
 

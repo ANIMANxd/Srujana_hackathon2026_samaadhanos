@@ -19,3 +19,6 @@ sqlmodel>=0.0.48
 # HTTP client for the mock provider adapters (backend/adapters/mock/) and the
 # health probe. Also the transport behind starlette's TestClient.
 httpx>=0.27
+# v5 customer book: normalised-name similarity for attach/group suggestions
+# (backend/insights/identity.py). Pure maths, no I/O or network.
+rapidfuzz>=3.9

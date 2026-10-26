@@ -89,6 +89,8 @@ def test_prepare_mark_sent_then_next_stage(client):
     types = [event["type"] for event in client.get(f"/api/v1/cases/{case_id}/events").json()]
     assert types == [
         "case.created",
+        "customer.created",
+        "customer.attached",
         "track.created",
         "recovery.prepare",
         "recovery.mark_sent",

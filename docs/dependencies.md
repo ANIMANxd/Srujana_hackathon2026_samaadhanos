@@ -17,6 +17,12 @@ The authoritative list of *installed* packages is `requirements.txt`; this file 
 |---|---|---|---|
 | `httpx` | `>=0.27` | HTTP client for the mock provider service (`backend/adapters/mock/client.py`) and the `/health` reachability probe. | Mock-only: the live adapters are stubs that raise `NotImplementedError`. 5 s timeout, retries on **connect errors only** (never a timeout or a 5xx, which could double-book), `X-Correlation-Id` forwarded. `httpx` was already present as starlette's TestClient transport; it is now an explicit dependency because production code imports it. |
 
+## Added by the v5 insights maths (backend/insights/)
+
+| Library | Version | Why it is here | Constraints |
+|---|---|---|---|
+| `rapidfuzz` | `>=3.9` (3.14.6 tested) | `fuzz.token_sort_ratio` scores normalised customer names in `backend/insights/identity.py`; the score decides whether an ATTACH or LINK_AS_GROUP suggestion is shown. | Pure function only: no I/O, no network, no clock. A suggestion never merges or attaches anything by itself. The threshold comes from `insights.name_match_threshold`, a product setting, not law. Similarity is a ratio, not money, so a float is acceptable here; money remains `Decimal`/TEXT. |
+
 ## Development-only tools (sample_data/)
 
 | Library | Version | Why it is here | Constraints |

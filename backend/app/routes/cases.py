@@ -40,6 +40,7 @@ from backend.app.schemas_v4 import (
 from backend.engine.config import StatuteConfig
 from backend.engine.evaluate import evaluate_case as evaluate_case_engine
 from backend.store import audit
+from backend.store import customers as customer_book
 from backend.store.db import session_scope
 from backend.store.ids import new_ulid
 from backend.store.models import Case as CaseRow
@@ -241,6 +242,18 @@ def create_case(
             case_id=case.id,
             type="case.created",
             payload={"invoice_no": case.invoice_no, "source": "api.cases.create"},
+            actor=EventActor.USER.value,
+            created_at=case.created_at,
+        )
+        # Customer identity is decided by the pure resolver in
+        # backend/insights/identity.py; the store applies it and persists the
+        # buyer's GSTIN under that customer. This runs after case.created so the
+        # chain always opens with the case itself.
+        customer_book.attach_case_to_customer(
+            session,
+            case,
+            at=case.created_at,
+            source="api.cases.create",
             actor=EventActor.USER.value,
         )
 

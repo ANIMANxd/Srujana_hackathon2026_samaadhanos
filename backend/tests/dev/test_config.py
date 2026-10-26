@@ -87,25 +87,25 @@ def test_every_required_key_is_present_in_the_real_config():
     """The shipped statute_config.json must carry every documented key.
 
     Extra sections are allowed only when they are declared below, so a typo in a
-    key name or a stray hand-edit still fails loudly. The v4 sections are read by
-    the API layer (`GET /api/v1/config`) rather than `StatuteConfig`, whose
-    REQUIRED_KEYS stays the engine's own set (documents/architecture_v4_two_options.md
-    section 9).
+    key name or a stray hand-edit still fails loudly. The API-level sections (v4
+    provider settings and the v5 `insights` product settings) are read by the API
+    layer (`GET /api/v1/config`) rather than `StatuteConfig`, whose REQUIRED_KEYS
+    stays the engine's own set (documents/architecture_v4_two_options.md section 9).
     """
     import json
     from pathlib import Path
 
-    v4_sections = {"treds", "financing", "mock_financing"}
+    api_sections = {"treds", "financing", "mock_financing", "insights"}
 
     path = Path(__file__).resolve().parents[2] / "config" / "statute_config.json"
     data = json.loads(path.read_text(encoding="utf-8"))
     real_keys = {k for k in data if not k.startswith("_")}
     assert set(REQUIRED_KEYS) <= real_keys, f"missing: {set(REQUIRED_KEYS) - real_keys}"
-    unexpected = real_keys - set(REQUIRED_KEYS) - v4_sections
+    unexpected = real_keys - set(REQUIRED_KEYS) - api_sections
     assert not unexpected, f"undocumented config sections: {sorted(unexpected)}"
 
-    # The v4 sections the file does carry must still look like config entries.
-    for key in sorted(real_keys & v4_sections):
+    # The API-level sections the file does carry must still look like config entries.
+    for key in sorted(real_keys & api_sections):
         entry = data[key]
         assert set(entry) == {"value", "source_ref", "verified", "note"}, (
             f"{key} must be a {{value, source_ref, verified, note}} entry, got {sorted(entry)}"
