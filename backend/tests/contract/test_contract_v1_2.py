@@ -147,6 +147,8 @@ def test_v1_2_adds_the_payment_and_customer_book_routes():
         "/api/v1/customer-groups/{group_id}/members",
         "/api/v1/customer-groups/{group_id}/members/{customer_id}",
         "/api/v1/insights",
+        # CB7: the CSV invoice-history import.
+        "/api/v1/import/invoices",
     }, f"unexpected v1.2 paths: {sorted(added)}"
     assert baseline <= live, f"a v1.1 path disappeared: {sorted(baseline - live)}"
 

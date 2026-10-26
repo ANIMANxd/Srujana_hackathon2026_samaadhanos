@@ -282,6 +282,21 @@
         "title": "Body_extract_evidence_api_v1_extract_evidence_post",
         "type": "object"
       },
+      "Body_import_invoices_api_v1_import_invoices_post": {
+        "properties": {
+          "file": {
+            "contentMediaType": "application/octet-stream",
+            "description": "UTF-8 CSV, header row required, max 2 MB / 2,000 rows.",
+            "title": "File",
+            "type": "string"
+          }
+        },
+        "required": [
+          "file"
+        ],
+        "title": "Body_import_invoices_api_v1_import_invoices_post",
+        "type": "object"
+      },
       "Buyer": {
         "properties": {
           "cost_of_capital_pct": {
@@ -3415,6 +3430,214 @@
         "title": "HTTPValidationError",
         "type": "object"
       },
+      "ImportCommitResponse": {
+        "description": "`POST /api/v1/import/invoices?mode=commit`: the cases and payments it created.",
+        "properties": {
+          "as_of": {
+            "format": "date",
+            "title": "As Of",
+            "type": "string"
+          },
+          "created_case_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Created Case Ids",
+            "type": "array"
+          },
+          "filename": {
+            "title": "Filename",
+            "type": "string"
+          },
+          "import_token": {
+            "title": "Import Token",
+            "type": "string"
+          },
+          "mode": {
+            "default": "commit",
+            "title": "Mode",
+            "type": "string"
+          },
+          "note": {
+            "title": "Note",
+            "type": "string"
+          },
+          "payment_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Payment Ids",
+            "type": "array"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/ImportRowResult"
+            },
+            "title": "Rows",
+            "type": "array"
+          },
+          "skipped": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Skipped",
+            "type": "array"
+          },
+          "summary": {
+            "$ref": "#/components/schemas/ImportSummary"
+          }
+        },
+        "required": [
+          "as_of",
+          "filename",
+          "import_token",
+          "summary",
+          "note"
+        ],
+        "title": "ImportCommitResponse",
+        "type": "object"
+      },
+      "ImportCustomerMatch": {
+        "description": "The customer the row would land on, decided by the CB1 resolver (read only).",
+        "properties": {
+          "customer_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Customer Id"
+          },
+          "display_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Name"
+          },
+          "matched_on": {
+            "description": "GSTIN, PAN, NAME or NEW",
+            "title": "Matched On",
+            "type": "string"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          },
+          "would_create": {
+            "default": false,
+            "title": "Would Create",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "matched_on"
+        ],
+        "title": "ImportCustomerMatch",
+        "type": "object"
+      },
+      "ImportParsedRow": {
+        "description": "One CSV row after parsing. Money and dates are typed, never floats.",
+        "properties": {
+          "agreed_credit_days": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Agreed Credit Days"
+          },
+          "amount": {
+            "title": "Amount",
+            "type": "string"
+          },
+          "buyer_gstin": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Buyer Gstin"
+          },
+          "buyer_name": {
+            "title": "Buyer Name",
+            "type": "string"
+          },
+          "delivery_date": {
+            "format": "date",
+            "title": "Delivery Date",
+            "type": "string"
+          },
+          "invoice_date": {
+            "format": "date",
+            "title": "Invoice Date",
+            "type": "string"
+          },
+          "invoice_no": {
+            "title": "Invoice No",
+            "type": "string"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "paid_amount": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Paid Amount"
+          },
+          "paid_on": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Paid On"
+          }
+        },
+        "required": [
+          "invoice_no",
+          "invoice_date",
+          "delivery_date",
+          "amount",
+          "buyer_name"
+        ],
+        "title": "ImportParsedRow",
+        "type": "object"
+      },
       "ImportPreview": {
         "description": "A dry-run view of a CSV import. Nothing is written until the owner confirms.",
         "properties": {
@@ -3485,6 +3708,58 @@
         "title": "ImportPreview",
         "type": "object"
       },
+      "ImportPreviewResponse": {
+        "description": "`POST /api/v1/import/invoices?mode=preview`: parse and check, store nothing.",
+        "properties": {
+          "as_of": {
+            "format": "date",
+            "title": "As Of",
+            "type": "string"
+          },
+          "expires_at": {
+            "format": "date-time",
+            "title": "Expires At",
+            "type": "string"
+          },
+          "filename": {
+            "title": "Filename",
+            "type": "string"
+          },
+          "import_token": {
+            "title": "Import Token",
+            "type": "string"
+          },
+          "mode": {
+            "default": "preview",
+            "title": "Mode",
+            "type": "string"
+          },
+          "note": {
+            "title": "Note",
+            "type": "string"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/ImportRowResult"
+            },
+            "title": "Rows",
+            "type": "array"
+          },
+          "summary": {
+            "$ref": "#/components/schemas/ImportSummary"
+          }
+        },
+        "required": [
+          "as_of",
+          "filename",
+          "import_token",
+          "expires_at",
+          "summary",
+          "note"
+        ],
+        "title": "ImportPreviewResponse",
+        "type": "object"
+      },
       "ImportResult": {
         "description": "The outcome of an owner-confirmed CSV import.",
         "properties": {
@@ -3548,6 +3823,152 @@
           "failed"
         ],
         "title": "ImportResult",
+        "type": "object"
+      },
+      "ImportRowResult": {
+        "description": "One row's verdict: what was read, which customer, and what is wrong with it.",
+        "properties": {
+          "case_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Case Id"
+          },
+          "customer_match": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ImportCustomerMatch"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "errors": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Errors",
+            "type": "array"
+          },
+          "parsed": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ImportParsedRow"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "payment_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Payment Id"
+          },
+          "row_no": {
+            "description": "The CSV line number; the header is row 1.",
+            "title": "Row No",
+            "type": "integer"
+          },
+          "status": {
+            "description": "VALID, INVALID, DUPLICATE for a preview; CREATED, SKIPPED or FAILED for a commit.",
+            "title": "Status",
+            "type": "string"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "row_no",
+          "status"
+        ],
+        "title": "ImportRowResult",
+        "type": "object"
+      },
+      "ImportSummary": {
+        "description": "Counts for the whole file, so a screen can say what happened in one line.",
+        "properties": {
+          "created_rows": {
+            "default": 0,
+            "title": "Created Rows",
+            "type": "integer"
+          },
+          "date_format": {
+            "description": "The one date format detected for the whole file.",
+            "title": "Date Format",
+            "type": "string"
+          },
+          "duplicate_rows": {
+            "default": 0,
+            "title": "Duplicate Rows",
+            "type": "integer"
+          },
+          "errors": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Errors",
+            "type": "array"
+          },
+          "failed_rows": {
+            "default": 0,
+            "title": "Failed Rows",
+            "type": "integer"
+          },
+          "invalid_rows": {
+            "default": 0,
+            "title": "Invalid Rows",
+            "type": "integer"
+          },
+          "payments_created": {
+            "default": 0,
+            "title": "Payments Created",
+            "type": "integer"
+          },
+          "skipped_rows": {
+            "default": 0,
+            "title": "Skipped Rows",
+            "type": "integer"
+          },
+          "total_rows": {
+            "title": "Total Rows",
+            "type": "integer"
+          },
+          "valid_rows": {
+            "default": 0,
+            "title": "Valid Rows",
+            "type": "integer"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "total_rows",
+          "date_format"
+        ],
+        "title": "ImportSummary",
         "type": "object"
       },
       "IndicativeFinancing": {
@@ -7554,6 +7975,101 @@
           }
         },
         "summary": "Health"
+      }
+    },
+    "/api/v1/import/invoices": {
+      "post": {
+        "description": "Preview an invoice-history CSV, or commit the file you previewed.\n\nColumns: `invoice_no*, invoice_date*, delivery_date*, amount*, buyer_name*,\nbuyer_gstin, agreed_credit_days, paid_on, paid_amount, notes`. Dates are\n`YYYY-MM-DD` or `DD-MM-YYYY` for the whole file; amounts may use Indian\ngrouping (`1,25,000.00`). A cell starting with `=`, `+`, `-` or `@` is\nrefused (CSV injection guard). Every error says which row and which column,\nin plain English.\n\n`preview` stores nothing at all. `commit` requires the token it returned plus\nthe same bytes, creates each case through the same function `POST /cases`\nuses (so the engine runs per row and the customer is attached), records a\npayment when `paid_on` and `paid_amount` are present, and skips an invoice\nthat is already in the book.",
+        "operationId": "import_invoices_api_v1_import_invoices_post",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "mode",
+            "required": false,
+            "schema": {
+              "default": "preview",
+              "pattern": "^(preview|commit)$",
+              "title": "Mode",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "import_token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Import Token"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Import-Token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Import-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_import_invoices_api_v1_import_invoices_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ImportPreviewResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ImportCommitResponse"
+                    }
+                  ],
+                  "title": "Response Import Invoices Api V1 Import Invoices Post"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Import Invoices",
+        "tags": [
+          "imports"
+        ]
       }
     },
     "/api/v1/insights": {

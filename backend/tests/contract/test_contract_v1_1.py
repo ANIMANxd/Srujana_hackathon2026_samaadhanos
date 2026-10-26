@@ -222,6 +222,8 @@ def test_v1_1_adds_cases_routes_without_touching_a_v1_0_path():
         "/api/v1/customer-groups/{group_id}/members",
         "/api/v1/customer-groups/{group_id}/members/{customer_id}",
         "/api/v1/insights",
+        # CB7: the CSV invoice-history import.
+        "/api/v1/import/invoices",
     }, f"unexpected new paths in contract v1.1: {sorted(added_paths)}"
     assert set(base["paths"]) <= set(live["paths"]), "a v1.0 path disappeared"
     added = set(live["components"]["schemas"]) - set(base["components"])

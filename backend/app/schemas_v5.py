@@ -538,6 +538,90 @@ class ImportResult(ContractModel):
     warnings: list[str] = Field(default_factory=list)
 
 
+class ImportCustomerMatch(ContractModel):
+    """The customer the row would land on, decided by the CB1 resolver (read only)."""
+
+    customer_id: str | None = None
+    display_name: str | None = None
+    matched_on: str = Field(description="GSTIN, PAN, NAME or NEW")
+    would_create: bool = False
+    warnings: list[str] = Field(default_factory=list)
+
+
+class ImportParsedRow(ContractModel):
+    """One CSV row after parsing. Money and dates are typed, never floats."""
+
+    invoice_no: str
+    invoice_date: date
+    delivery_date: date
+    amount: DecStr
+    buyer_name: str
+    buyer_gstin: str | None = None
+    agreed_credit_days: int | None = None
+    paid_on: date | None = None
+    paid_amount: DecStr | None = None
+    notes: str | None = None
+
+
+class ImportRowResult(ContractModel):
+    """One row's verdict: what was read, which customer, and what is wrong with it."""
+
+    row_no: int = Field(description="The CSV line number; the header is row 1.")
+    status: str = Field(
+        description="VALID, INVALID, DUPLICATE for a preview; CREATED, SKIPPED or FAILED for a commit."
+    )
+    parsed: ImportParsedRow | None = None
+    customer_match: ImportCustomerMatch | None = None
+    errors: list[str] = Field(default_factory=list)
+    warnings: list[str] = Field(default_factory=list)
+    case_id: str | None = None
+    payment_id: str | None = None
+
+
+class ImportSummary(ContractModel):
+    """Counts for the whole file, so a screen can say what happened in one line."""
+
+    total_rows: int
+    valid_rows: int = 0
+    invalid_rows: int = 0
+    duplicate_rows: int = 0
+    created_rows: int = 0
+    skipped_rows: int = 0
+    failed_rows: int = 0
+    payments_created: int = 0
+    date_format: str = Field(description="The one date format detected for the whole file.")
+    errors: list[str] = Field(default_factory=list)
+    warnings: list[str] = Field(default_factory=list)
+
+
+class ImportPreviewResponse(ContractModel):
+    """`POST /api/v1/import/invoices?mode=preview`: parse and check, store nothing."""
+
+    mode: str = "preview"
+    as_of: date
+    filename: str
+    import_token: str
+    expires_at: datetime
+    rows: list[ImportRowResult] = Field(default_factory=list)
+    summary: ImportSummary
+    note: str
+
+
+class ImportCommitResponse(ContractModel):
+    """`POST /api/v1/import/invoices?mode=commit`: the cases and payments it created."""
+
+    mode: str = "commit"
+    as_of: date
+    filename: str
+    import_token: str
+    rows: list[ImportRowResult] = Field(default_factory=list)
+    summary: ImportSummary
+    created_case_ids: list[str] = Field(default_factory=list)
+    payment_ids: list[str] = Field(default_factory=list)
+    skipped: list[str] = Field(default_factory=list)
+    note: str
+
+
 # ------------------------------------------------------------- portfolio ----
 
 
@@ -673,6 +757,12 @@ V1_2_MODELS: tuple[type[ContractModel], ...] = (
     CustomerGroupMembershipResponse,
     ImportPreview,
     ImportResult,
+    ImportCustomerMatch,
+    ImportParsedRow,
+    ImportRowResult,
+    ImportSummary,
+    ImportPreviewResponse,
+    ImportCommitResponse,
     BeforeMarchHint,
     TermsFlagHint,
     CashInWeekHint,

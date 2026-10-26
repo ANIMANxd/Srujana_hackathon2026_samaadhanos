@@ -724,6 +724,39 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/import/invoices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Import Invoices
+         * @description Preview an invoice-history CSV, or commit the file you previewed.
+         *
+         *     Columns: `invoice_no*, invoice_date*, delivery_date*, amount*, buyer_name*,
+         *     buyer_gstin, agreed_credit_days, paid_on, paid_amount, notes`. Dates are
+         *     `YYYY-MM-DD` or `DD-MM-YYYY` for the whole file; amounts may use Indian
+         *     grouping (`1,25,000.00`). A cell starting with `=`, `+`, `-` or `@` is
+         *     refused (CSV injection guard). Every error says which row and which column,
+         *     in plain English.
+         *
+         *     `preview` stores nothing at all. `commit` requires the token it returned plus
+         *     the same bytes, creates each case through the same function `POST /cases`
+         *     uses (so the engine runs per row and the customer is attached), records a
+         *     payment when `paid_on` and `paid_amount` are present, and skips an invoice
+         *     that is already in the book.
+         */
+        post: operations["import_invoices_api_v1_import_invoices_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/insights": {
         parameters: {
             query?: never;
@@ -1032,6 +1065,14 @@ export interface components {
         /** Body_extract_evidence_api_v1_extract_evidence_post */
         Body_extract_evidence_api_v1_extract_evidence_post: {
             /** File */
+            file: string;
+        };
+        /** Body_import_invoices_api_v1_import_invoices_post */
+        Body_import_invoices_api_v1_import_invoices_post: {
+            /**
+             * File
+             * @description UTF-8 CSV, header row required, max 2 MB / 2,000 rows.
+             */
             file: string;
         };
         /** Buyer */
@@ -2304,6 +2345,91 @@ export interface components {
             detail?: components["schemas"]["ValidationError"][];
         };
         /**
+         * ImportCommitResponse
+         * @description `POST /api/v1/import/invoices?mode=commit`: the cases and payments it created.
+         */
+        ImportCommitResponse: {
+            /**
+             * As Of
+             * Format: date
+             */
+            as_of: string;
+            /** Created Case Ids */
+            created_case_ids?: string[];
+            /** Filename */
+            filename: string;
+            /** Import Token */
+            import_token: string;
+            /**
+             * Mode
+             * @default commit
+             */
+            mode: string;
+            /** Note */
+            note: string;
+            /** Payment Ids */
+            payment_ids?: string[];
+            /** Rows */
+            rows?: components["schemas"]["ImportRowResult"][];
+            /** Skipped */
+            skipped?: string[];
+            summary: components["schemas"]["ImportSummary"];
+        };
+        /**
+         * ImportCustomerMatch
+         * @description The customer the row would land on, decided by the CB1 resolver (read only).
+         */
+        ImportCustomerMatch: {
+            /** Customer Id */
+            customer_id?: string | null;
+            /** Display Name */
+            display_name?: string | null;
+            /**
+             * Matched On
+             * @description GSTIN, PAN, NAME or NEW
+             */
+            matched_on: string;
+            /** Warnings */
+            warnings?: string[];
+            /**
+             * Would Create
+             * @default false
+             */
+            would_create: boolean;
+        };
+        /**
+         * ImportParsedRow
+         * @description One CSV row after parsing. Money and dates are typed, never floats.
+         */
+        ImportParsedRow: {
+            /** Agreed Credit Days */
+            agreed_credit_days?: number | null;
+            /** Amount */
+            amount: string;
+            /** Buyer Gstin */
+            buyer_gstin?: string | null;
+            /** Buyer Name */
+            buyer_name: string;
+            /**
+             * Delivery Date
+             * Format: date
+             */
+            delivery_date: string;
+            /**
+             * Invoice Date
+             * Format: date
+             */
+            invoice_date: string;
+            /** Invoice No */
+            invoice_no: string;
+            /** Notes */
+            notes?: string | null;
+            /** Paid Amount */
+            paid_amount?: string | null;
+            /** Paid On */
+            paid_on?: string | null;
+        };
+        /**
          * ImportPreview
          * @description A dry-run view of a CSV import. Nothing is written until the owner confirms.
          */
@@ -2333,6 +2459,36 @@ export interface components {
             valid_rows: number;
             /** Warnings */
             warnings?: string[];
+        };
+        /**
+         * ImportPreviewResponse
+         * @description `POST /api/v1/import/invoices?mode=preview`: parse and check, store nothing.
+         */
+        ImportPreviewResponse: {
+            /**
+             * As Of
+             * Format: date
+             */
+            as_of: string;
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+            /** Filename */
+            filename: string;
+            /** Import Token */
+            import_token: string;
+            /**
+             * Mode
+             * @default preview
+             */
+            mode: string;
+            /** Note */
+            note: string;
+            /** Rows */
+            rows?: components["schemas"]["ImportRowResult"][];
+            summary: components["schemas"]["ImportSummary"];
         };
         /**
          * ImportResult
@@ -2366,6 +2522,84 @@ export interface components {
             preview_id: string;
             /** Skipped */
             skipped: number;
+            /** Warnings */
+            warnings?: string[];
+        };
+        /**
+         * ImportRowResult
+         * @description One row's verdict: what was read, which customer, and what is wrong with it.
+         */
+        ImportRowResult: {
+            /** Case Id */
+            case_id?: string | null;
+            customer_match?: components["schemas"]["ImportCustomerMatch"] | null;
+            /** Errors */
+            errors?: string[];
+            parsed?: components["schemas"]["ImportParsedRow"] | null;
+            /** Payment Id */
+            payment_id?: string | null;
+            /**
+             * Row No
+             * @description The CSV line number; the header is row 1.
+             */
+            row_no: number;
+            /**
+             * Status
+             * @description VALID, INVALID, DUPLICATE for a preview; CREATED, SKIPPED or FAILED for a commit.
+             */
+            status: string;
+            /** Warnings */
+            warnings?: string[];
+        };
+        /**
+         * ImportSummary
+         * @description Counts for the whole file, so a screen can say what happened in one line.
+         */
+        ImportSummary: {
+            /**
+             * Created Rows
+             * @default 0
+             */
+            created_rows: number;
+            /**
+             * Date Format
+             * @description The one date format detected for the whole file.
+             */
+            date_format: string;
+            /**
+             * Duplicate Rows
+             * @default 0
+             */
+            duplicate_rows: number;
+            /** Errors */
+            errors?: string[];
+            /**
+             * Failed Rows
+             * @default 0
+             */
+            failed_rows: number;
+            /**
+             * Invalid Rows
+             * @default 0
+             */
+            invalid_rows: number;
+            /**
+             * Payments Created
+             * @default 0
+             */
+            payments_created: number;
+            /**
+             * Skipped Rows
+             * @default 0
+             */
+            skipped_rows: number;
+            /** Total Rows */
+            total_rows: number;
+            /**
+             * Valid Rows
+             * @default 0
+             */
+            valid_rows: number;
             /** Warnings */
             warnings?: string[];
         };
@@ -4327,6 +4561,44 @@ export interface operations {
                     "application/json": {
                         [key: string]: string;
                     };
+                };
+            };
+        };
+    };
+    import_invoices_api_v1_import_invoices_post: {
+        parameters: {
+            query?: {
+                mode?: string;
+                import_token?: string | null;
+            };
+            header?: {
+                "X-Import-Token"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_import_invoices_api_v1_import_invoices_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportPreviewResponse"] | components["schemas"]["ImportCommitResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

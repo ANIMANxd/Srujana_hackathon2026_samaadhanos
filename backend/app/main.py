@@ -150,6 +150,7 @@ from backend.app.routes.options import router as options_router  # noqa: E402
 from backend.app.routes.mock import router as mock_router  # noqa: E402
 from backend.app.routes.recovery import router as recovery_router  # noqa: E402
 from backend.app.routes.customers import router as customers_router  # noqa: E402
+from backend.app.routes.imports import router as imports_router  # noqa: E402
 
 app.include_router(cases_router)
 app.include_router(financing_router)
@@ -159,6 +160,7 @@ app.include_router(options_router)
 app.include_router(mock_router)
 app.include_router(recovery_router)
 app.include_router(customers_router)
+app.include_router(imports_router)
 
 
 # ------------------------------------------------------------- errors ----

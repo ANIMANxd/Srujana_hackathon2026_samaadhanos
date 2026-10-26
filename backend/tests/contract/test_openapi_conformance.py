@@ -84,6 +84,7 @@ WRITE_PATHS = {
     "/api/v1/customer-groups",
     "/api/v1/customer-groups/{group_id}/members",
     "/api/v1/customer-groups/{group_id}/members/{customer_id}",
+    "/api/v1/import/invoices",
 }
 UPLOAD_PATHS = {"/api/v1/extract-evidence"}
 # `GET /cases/{id}/stream` is an infinite `text/event-stream`. A synchronous client
@@ -431,6 +432,46 @@ def test_customer_book_routes_match_the_contract():
     )
     for point in insights.json()["outstanding_by_customer"]:
         assert isinstance(point["value"], str), "chart money must be a decimal string"
+
+
+def test_import_route_matches_the_contract():
+    """The CSV import is called for real in both modes, on one small file."""
+    header = (
+        "invoice_no,invoice_date,delivery_date,amount,buyer_name,buyer_gstin,"
+        "agreed_credit_days,paid_on,paid_amount,notes\n"
+    )
+    raw = (
+        header
+        + 'CONF-IMP-1,2026-08-03,2026-08-01,"1,25,000.00",Conformance Import Buyer,'
+        + ",45,,\n"
+    ).encode()
+
+    preview = client.post(
+        "/api/v1/import/invoices",
+        params={"mode": "preview"},
+        files={"file": ("invoices.csv", raw, "text/csv")},
+    )
+    assert preview.status_code == 200, preview.text[:400]
+    _assert_matches(
+        _response_pointer("/api/v1/import/invoices", "POST"),
+        preview.json(),
+        "POST /import/invoices?mode=preview",
+    )
+    assert preview.json()["rows"][0]["status"] == "VALID"
+    assert preview.json()["summary"]["date_format"] == "YYYY-MM-DD"
+
+    commit = client.post(
+        "/api/v1/import/invoices",
+        params={"mode": "commit", "import_token": preview.json()["import_token"]},
+        files={"file": ("invoices.csv", raw, "text/csv")},
+    )
+    assert commit.status_code == 200, commit.text[:400]
+    _assert_matches(
+        _response_pointer("/api/v1/import/invoices", "POST"),
+        commit.json(),
+        "POST /import/invoices?mode=commit",
+    )
+    assert commit.json()["summary"]["created_rows"] == 1
 
 
 def test_webhook_routes_match_the_contract(monkeypatch):
