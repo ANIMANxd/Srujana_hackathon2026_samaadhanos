@@ -27,6 +27,7 @@ from referencing import Registry, Resource
 from referencing.jsonschema import DRAFT202012
 
 from backend.app.main import app
+from backend.app import deps
 
 ROOT = Path(__file__).resolve().parents[3]
 FIXTURES = ROOT / "contracts" / "fixtures"
@@ -50,6 +51,7 @@ READ_PATHS = {
     "/api/v1/cases/{case_id}/events/verify",
     "/api/v1/cases/{case_id}/financing/bids",
     "/api/v1/cases/{case_id}/options",
+    "/api/v1/cases/{case_id}/payments",
 }
 WRITE_PATHS = {
     "/api/v1/evaluate-case",
@@ -68,6 +70,8 @@ WRITE_PATHS = {
     "/api/v1/cases/{case_id}/recovery",
     "/api/v1/cases/{case_id}/recovery/mark-sent",
     "/api/v1/cases/{case_id}/recovery/odr-filed",
+    "/api/v1/cases/{case_id}/payments",
+    "/api/v1/cases/{case_id}/payments/{payment_id}/void",
 }
 UPLOAD_PATHS = {"/api/v1/extract-evidence"}
 # `GET /cases/{id}/stream` is an infinite `text/event-stream`. A synchronous client
@@ -144,6 +148,11 @@ def test_read_endpoints_match_the_contract():
             "GET",
             "/api/v1/cases/{case_id}/events/verify",
             client.get(f"/api/v1/cases/{case_id}/events/verify"),
+        ),
+        (
+            "GET",
+            "/api/v1/cases/{case_id}/payments",
+            client.get(f"/api/v1/cases/{case_id}/payments"),
         ),
     ]
     for method, path, response in responses:
@@ -227,6 +236,53 @@ def test_financing_routes_match_the_contract():
         cancel.json(),
         "POST /financing/cancel",
     )
+
+
+def test_payment_routes_match_the_contract():
+    """The v1.2 payment write paths are called for real, including the void."""
+    case_id = _financing_case()
+    today = deps.get_adapters().clock.now().date().isoformat()
+
+    created = client.post(
+        f"/api/v1/cases/{case_id}/payments",
+        json={
+            "amount": "100.00",
+            "paid_on": today,
+            "method": "bank",
+            "note": "conformance (synthetic)",
+        },
+        headers={"Idempotency-Key": "conformance-payment-1"},
+    )
+    assert created.status_code == 200, created.text[:400]
+    _assert_matches(
+        _response_pointer("/api/v1/cases/{case_id}/payments", "POST"),
+        created.json(),
+        "POST /payments",
+    )
+
+    history = client.get(f"/api/v1/cases/{case_id}/payments")
+    assert history.status_code == 200, history.text[:400]
+    _assert_matches(
+        _response_pointer("/api/v1/cases/{case_id}/payments", "GET"),
+        history.json(),
+        "GET /payments",
+    )
+    payment_id = history.json()["payments"][0]["id"]
+
+    voided = client.post(
+        f"/api/v1/cases/{case_id}/payments/{payment_id}/void"
+    )
+    assert voided.status_code == 200, voided.text[:400]
+    _assert_matches(
+        _response_pointer(
+            "/api/v1/cases/{case_id}/payments/{payment_id}/void", "POST"
+        ),
+        voided.json(),
+        "POST /payments/{payment_id}/void",
+    )
+    assert client.get(f"/api/v1/cases/{case_id}/payments").json()["payments"][0][
+        "voided_at"
+    ] is not None
 
 
 def test_webhook_routes_match_the_contract(monkeypatch):

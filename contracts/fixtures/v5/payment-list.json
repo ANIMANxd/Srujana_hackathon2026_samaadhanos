@@ -1,0 +1,27 @@
+{
+  "_fixture": {
+    "schema": "PaymentListResponse",
+    "contract_version": "1.2",
+    "synthetic": true,
+    "placeholder": true,
+    "placeholder_fields": ["payments", "count"],
+    "why": "Hand-shaped payment history for the v1.2 GET route; no seeded payment exists yet in the demo export.",
+    "regenerate_with": "pending CB6; the route tests exercise the real response model"
+  },
+  "payload": {
+    "case_id": "01JAV5CASE0000000000000001",
+    "payments": [
+      {
+        "id": "01JAV5PAY0000000000000001",
+        "case_id": "01JAV5CASE0000000000000001",
+        "amount": "300000.00",
+        "paid_on": "2026-09-30",
+        "method": "bank",
+        "note": "NEFT (synthetic)",
+        "created_at": "2026-09-30T10:00:00Z",
+        "voided_at": null
+      }
+    ],
+    "count": 1
+  }
+}

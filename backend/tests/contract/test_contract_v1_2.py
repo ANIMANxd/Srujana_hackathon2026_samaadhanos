@@ -1,9 +1,9 @@
-"""Contract v1.2 conformance: v1.0/v1.1 are frozen, v1.2 adds shapes only.
+"""Contract v1.2 conformance: v1.0/v1.1 are frozen, v1.2 adds the payment routes.
 
-The v1.2 checkpoint is deliberately components-only: CB2-CB6 routes do not
-exist yet, so no path may move. The v1.1 fingerprint was captured before the
-v1.2 models were injected (contracts/fixtures/v5/v1.1-contract-baseline.json);
-every entry in it must still hash identically.
+The v1.1 fingerprint was captured before the v1.2 models and the first v1.2
+routes were added (contracts/fixtures/v5/v1.1-contract-baseline.json); every
+entry in it must still hash identically. The only new paths allowed are the two
+v1.2 payment paths.
 
 The v5 fixtures are hand-shaped placeholders until the CB6 export exists. They
 must say so, and they must still validate against the models they claim to show.
@@ -33,6 +33,8 @@ from backend.app.schemas_v5 import (
     ImportPreview,
     ImportResult,
     Payment,
+    PaymentCreateRequest,
+    PaymentListResponse,
     PortfolioInsights,
     Suggestion,
 )
@@ -51,6 +53,8 @@ FIXTURE_MODELS: dict[str, Any] = {
     "customer-stats.json": CustomerStats,
     "chart-series-point.json": ChartSeriesPoint,
     "payment.json": Payment,
+    "payment-create-request.json": PaymentCreateRequest,
+    "payment-list.json": PaymentListResponse,
     "suggestion.json": Suggestion,
     "import-preview.json": ImportPreview,
     "import-result.json": ImportResult,
@@ -114,14 +118,16 @@ def test_every_v1_1_path_is_byte_identical():
     assert not changed, f"v1.1 paths changed by v1.2: {sorted(changed)}"
 
 
-def test_v1_2_publishes_no_new_path_until_cb2_cb6_exist():
-    """The checkpoint is shapes only; a stray route here would be unplanned."""
+def test_v1_2_adds_only_the_payment_routes():
+    """v1.2 adds the two payment paths; the v1.1 path set must still be intact."""
     live = set(app.openapi()["paths"])
     baseline = set(_baseline()["paths"])
-    assert live == baseline, (
-        "contract v1.2 added or removed a path before CB2-CB6 declared one: "
-        f"added={sorted(live - baseline)}, removed={sorted(baseline - live)}"
-    )
+    added = live - baseline
+    assert added == {
+        "/api/v1/cases/{case_id}/payments",
+        "/api/v1/cases/{case_id}/payments/{payment_id}/void",
+    }, f"unexpected v1.2 paths: {sorted(added)}"
+    assert baseline <= live, f"a v1.1 path disappeared: {sorted(baseline - live)}"
 
 
 # ------------------------------------------------------ v1.2 is well formed ----
@@ -202,6 +208,8 @@ def test_every_v1_2_model_has_a_placeholder_fixture():
         "customer-stats.json",
         "chart-series-point.json",
         "payment.json",
+        "payment-create-request.json",
+        "payment-list.json",
         "suggestion.json",
         "import-preview.json",
         "import-result.json",

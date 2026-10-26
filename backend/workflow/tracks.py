@@ -286,6 +286,61 @@ def assert_open(track: Track | None) -> Track:
     return track
 
 
+def close_recovery_as_paid(
+    session: Session,
+    track: Track,
+    *,
+    payment_id: str,
+    total_claim: str | None,
+    basis: str = "engine_total_claim",
+    actor: str = "USER",
+) -> Track:
+    """Close an open recovery track because the payment ledger says it is paid.
+
+    A payment can arrive at any stage of the ladder, so this is a payment-driven
+    terminal close, not the user's `mark_paid` transition (which the recovery
+    state machine only allows after ODR filing). It still bumps the optimistic
+    version, closes the row and appends `recovery.paid` with `source: payment`.
+    """
+    if TrackKind(track.kind) is not TrackKind.RECOVERY:
+        raise ValueError("close_recovery_as_paid only accepts a recovery track")
+    if track.closed_at is not None:
+        return track
+
+    previous = track.state
+    result = session.execute(
+        update(Track)
+        .where(Track.id == track.id, Track.version == track.version)
+        .values(
+            state=TrackState.PAID.value,
+            version=track.version + 1,
+            closed_at=datetime.now(tz=None).astimezone(),
+        )
+    )
+    if result.rowcount != 1:
+        session.expire(track)
+        raise StaleVersion(track)
+
+    session.expire(track)
+    session.refresh(track)
+    audit.append_event(
+        session,
+        case_id=track.case_id,
+        track_id=track.id,
+        type="recovery.paid",
+        payload={
+            "from": previous,
+            "to": TrackState.PAID.value,
+            "source": "payment",
+            "payment_id": payment_id,
+            "total_claim": total_claim,
+            "basis": basis,
+        },
+        actor=actor,
+    )
+    return track
+
+
 # --------------------------------------------------------------- pausing ----
 # Section 5.3 says "Recovery ... → Financing: yes, if financeable → recovery is
 # **paused**, not deleted". The schema allows one open track per case, so a pause

@@ -3111,7 +3111,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Note"
           },
           "paid_on": {
@@ -3129,7 +3128,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Voided At"
           }
         },
@@ -3150,6 +3148,68 @@
         ],
         "title": "PaymentBoundaryConvention",
         "type": "string"
+      },
+      "PaymentCreateRequest": {
+        "description": "`POST /cases/{id}/payments`: one payment the owner received.",
+        "properties": {
+          "amount": {
+            "description": "Must be greater than zero.",
+            "title": "Amount",
+            "type": "string"
+          },
+          "method": {
+            "$ref": "#/components/schemas/PaymentMethod"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "paid_on": {
+            "format": "date",
+            "title": "Paid On",
+            "type": "string"
+          }
+        },
+        "required": [
+          "amount",
+          "paid_on",
+          "method"
+        ],
+        "title": "PaymentCreateRequest",
+        "type": "object"
+      },
+      "PaymentListResponse": {
+        "description": "`GET /cases/{id}/payments`: the case's payment history, including voided rows.",
+        "properties": {
+          "case_id": {
+            "title": "Case Id",
+            "type": "string"
+          },
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "payments": {
+            "items": {
+              "$ref": "#/components/schemas/Payment"
+            },
+            "title": "Payments",
+            "type": "array"
+          }
+        },
+        "required": [
+          "case_id",
+          "count"
+        ],
+        "title": "PaymentListResponse",
+        "type": "object"
       },
       "PaymentMethod": {
         "description": "How the buyer paid. Matches `backend/store/models.py` Payment.method.",
@@ -4480,7 +4540,7 @@
     }
   },
   "info": {
-    "description": "MSME payment-rights evaluation API. Contract v1.0; frozen and additive-only after the contract-v1 tag (architecture.md section 9). The v1.1 and v1.2 shapes for the v4 two-option model and the v5 customer book are published as unreferenced components until their routes land.",
+    "description": "MSME payment-rights evaluation API. Contract v1.0; frozen and additive-only after the contract-v1 tag (architecture.md section 9). The v1.1 v4 routes and the first v1.2 payment routes are live; the remaining v1.2 customer-book shapes are published as unreferenced components until their routes land.",
     "title": "SamadhaanOS API",
     "version": "1.0"
   },
@@ -5134,6 +5194,168 @@
         "summary": "Get Options",
         "tags": [
           "options"
+        ]
+      }
+    },
+    "/api/v1/cases/{case_id}/payments": {
+      "get": {
+        "description": "The case's payment history, including voided rows (never deleted).",
+        "operationId": "list_case_payments_api_v1_cases__case_id__payments_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "case_id",
+            "required": true,
+            "schema": {
+              "title": "Case Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Case Payments",
+        "tags": [
+          "cases"
+        ]
+      },
+      "post": {
+        "description": "Record a payment, re-evaluate through the engine, and audit it.\n\nThe engine already has a payment input (`transaction.part_payments`), so a\npayment is appended there with a `v5:<payment_id>` reference and the case is\nre-evaluated. The v5 `payments` row remains the source of truth; voiding\nremoves only the matching engine-input entry and keeps the row.\n\nA payment cannot be future-dated, cannot precede the invoice, and cannot take\nthe total above the engine's remaining claim (invoice amount plus interest\naccrued so far). A financed invoice's receivable belongs to the financier,\nso payments to the supplier are refused with 409.",
+        "operationId": "create_case_payment_api_v1_cases__case_id__payments_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "case_id",
+            "required": true,
+            "schema": {
+              "title": "Case Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PaymentCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaseDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Case Payment",
+        "tags": [
+          "cases"
+        ]
+      }
+    },
+    "/api/v1/cases/{case_id}/payments/{payment_id}/void": {
+      "post": {
+        "description": "Void a payment without deleting it, then re-evaluate through the engine.\n\nThe row keeps its amount and gains `voided_at`; the engine input loses only\nthe matching `v5:<payment_id>` entry. Repeating the call is a no-op and\nwrites no second event.",
+        "operationId": "void_case_payment_api_v1_cases__case_id__payments__payment_id__void_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "case_id",
+            "required": true,
+            "schema": {
+              "title": "Case Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "payment_id",
+            "required": true,
+            "schema": {
+              "title": "Payment Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaseDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Void Case Payment",
+        "tags": [
+          "cases"
         ]
       }
     },

@@ -175,6 +175,23 @@ class Payment(ContractModel):
     voided_at: datetime | None = None
 
 
+class PaymentCreateRequest(ContractModel):
+    """`POST /cases/{id}/payments`: one payment the owner received."""
+
+    amount: DecStr = Field(gt=0, description="Must be greater than zero.")
+    paid_on: date
+    method: PaymentMethod
+    note: str | None = None
+
+
+class PaymentListResponse(ContractModel):
+    """`GET /cases/{id}/payments`: the case's payment history, including voided rows."""
+
+    case_id: str
+    payments: list[Payment] = Field(default_factory=list)
+    count: int
+
+
 class Suggestion(ContractModel):
     """A name-match suggestion. It is never applied automatically.
 
@@ -278,6 +295,8 @@ V1_2_MODELS: tuple[type[ContractModel], ...] = (
     CustomerStats,
     ChartSeriesPoint,
     Payment,
+    PaymentCreateRequest,
+    PaymentListResponse,
     Suggestion,
     ImportPreview,
     ImportResult,

@@ -206,6 +206,10 @@ def test_v1_1_adds_cases_routes_without_touching_a_v1_0_path():
         "/api/v1/cases/{case_id}/recovery",
         "/api/v1/cases/{case_id}/recovery/mark-sent",
         "/api/v1/cases/{case_id}/recovery/odr-filed",
+        # v1.2 payment routes are additive; the v1.0 path fingerprints above
+        # still prove no existing operation moved.
+        "/api/v1/cases/{case_id}/payments",
+        "/api/v1/cases/{case_id}/payments/{payment_id}/void",
     }, f"unexpected new paths in contract v1.1: {sorted(added_paths)}"
     assert set(base["paths"]) <= set(live["paths"]), "a v1.0 path disappeared"
     added = set(live["components"]["schemas"]) - set(base["components"])

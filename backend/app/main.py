@@ -65,9 +65,9 @@ app = FastAPI(
     description=(
         "MSME payment-rights evaluation API. Contract v1.0; frozen and "
         "additive-only after the contract-v1 tag (architecture.md section 9). "
-        "The v1.1 and v1.2 shapes for the v4 two-option model and the v5 "
-        "customer book are published as unreferenced components until their "
-        "routes land."
+        "The v1.1 v4 routes and the first v1.2 payment routes are live; the "
+        "remaining v1.2 customer-book shapes are published as unreferenced "
+        "components until their routes land."
     ),
 )
 

@@ -236,6 +236,64 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/cases/{case_id}/payments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Case Payments
+         * @description The case's payment history, including voided rows (never deleted).
+         */
+        get: operations["list_case_payments_api_v1_cases__case_id__payments_get"];
+        put?: never;
+        /**
+         * Create Case Payment
+         * @description Record a payment, re-evaluate through the engine, and audit it.
+         *
+         *     The engine already has a payment input (`transaction.part_payments`), so a
+         *     payment is appended there with a `v5:<payment_id>` reference and the case is
+         *     re-evaluated. The v5 `payments` row remains the source of truth; voiding
+         *     removes only the matching engine-input entry and keeps the row.
+         *
+         *     A payment cannot be future-dated, cannot precede the invoice, and cannot take
+         *     the total above the engine's remaining claim (invoice amount plus interest
+         *     accrued so far). A financed invoice's receivable belongs to the financier,
+         *     so payments to the supplier are refused with 409.
+         */
+        post: operations["create_case_payment_api_v1_cases__case_id__payments_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cases/{case_id}/payments/{payment_id}/void": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Void Case Payment
+         * @description Void a payment without deleting it, then re-evaluate through the engine.
+         *
+         *     The row keeps its amount and gains `voided_at`; the engine input loses only
+         *     the matching `v5:<payment_id>` entry. Repeating the call is a no-op and
+         *     writes no second event.
+         */
+        post: operations["void_case_payment_api_v1_cases__case_id__payments__payment_id__void_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/cases/{case_id}/recovery": {
         parameters: {
             query?: never;
@@ -1907,27 +1965,52 @@ export interface components {
             /** Id */
             id: string;
             method: components["schemas"]["PaymentMethod"];
-            /**
-             * Note
-             * @default null
-             */
-            note: string | null;
+            /** Note */
+            note?: string | null;
             /**
              * Paid On
              * Format: date
              */
             paid_on: string;
-            /**
-             * Voided At
-             * @default null
-             */
-            voided_at: string | null;
+            /** Voided At */
+            voided_at?: string | null;
         };
         /**
          * PaymentBoundaryConvention
          * @enum {string}
          */
         PaymentBoundaryConvention: "PAYMENT_DATE_IS_REST_BOUNDARY";
+        /**
+         * PaymentCreateRequest
+         * @description `POST /cases/{id}/payments`: one payment the owner received.
+         */
+        PaymentCreateRequest: {
+            /**
+             * Amount
+             * @description Must be greater than zero.
+             */
+            amount: string;
+            method: components["schemas"]["PaymentMethod"];
+            /** Note */
+            note?: string | null;
+            /**
+             * Paid On
+             * Format: date
+             */
+            paid_on: string;
+        };
+        /**
+         * PaymentListResponse
+         * @description `GET /cases/{id}/payments`: the case's payment history, including voided rows.
+         */
+        PaymentListResponse: {
+            /** Case Id */
+            case_id: string;
+            /** Count */
+            count: number;
+            /** Payments */
+            payments?: components["schemas"]["Payment"][];
+        };
         /**
          * PaymentMethod
          * @description How the buyer paid. Matches `backend/store/models.py` Payment.method.
@@ -2821,6 +2904,106 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["OptionsResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_case_payments_api_v1_cases__case_id__payments_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                case_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaymentListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_case_payment_api_v1_cases__case_id__payments_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+            };
+            path: {
+                case_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PaymentCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CaseDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    void_case_payment_api_v1_cases__case_id__payments__payment_id__void_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                case_id: string;
+                payment_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CaseDetail"];
                 };
             };
             /** @description Validation Error */
