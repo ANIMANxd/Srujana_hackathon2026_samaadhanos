@@ -19,6 +19,7 @@ import { EmptyState, ErrorState, Skeleton } from "../common/States";
 import { Banner, DataBanners } from "../shell/Banners";
 import { SuggestionsDrawer } from "../customers/SuggestionsDrawer";
 import { BOOK_GRID, CustomerLine, GroupLine } from "./CustomerBookRow";
+import { InsightsCompact, InsightsSection, usePortfolioViews } from "../insights/InsightCards";
 import { InsightsStrip } from "./InsightsStrip";
 
 /** The sort menu: each entry has the direction that reads naturally for it. */
@@ -41,12 +42,14 @@ export function CustomersView({ demoButton }: { demoButton: ReactNode }) {
   const ids = useMemo(() => (book.rows ?? []).map((r) => r.id), [book.rows]);
   const details = useCustomerDetails(ids, book.source);
   const placeholder = book.placeholder || insights.placeholder;
+  const views = usePortfolioViews(insights, book.rows);
 
   return (
     <div className="flex flex-col gap-5">
       {book.source === "offline" && <Banner tone="warn" icon="lock" message="book.offline_sample" />}
       <DataBanners placeholder={placeholder} />
       <InsightsStrip insights={insights} />
+      <InsightsCompact insights={insights} views={views} />
       <SuggestionsDrawer />
 
       {book.error && !book.rows ? (
@@ -111,6 +114,7 @@ export function CustomersView({ demoButton }: { demoButton: ReactNode }) {
           </p>
         </div>
       )}
+      {book.rows && book.rows.length > 0 && <InsightsSection insights={insights} views={views} />}
     </div>
   );
 }
