@@ -4,7 +4,7 @@
 # make may fall back to cmd.exe, so no sh syntax ($$, [], backslash
 # continuations) and no cmd-only syntax. Logic lives in one-line python.
 
-.PHONY: dev backend frontend mock test test-v4 fixtures demo openapi types contract-fixtures contract db-reset
+.PHONY: dev backend frontend mock test test-v4 fixtures demo openapi types contract-fixtures contract db-reset seed-history
 
 PYTHON ?= python
 
@@ -75,3 +75,11 @@ contract: openapi types contract-fixtures
 # as cases (backend/store/seed.py). Destructive by design: demo data only.
 db-reset:
 	$(PYTHON) -m backend.store
+
+# Rebuild the store with the deterministic 12-month customer history only
+# (backend/store/history.py): six fictional customers generated as a CSV and
+# imported through POST /api/v1/import/invoices, so the real code runs.
+# Destructive by design: demo data only. `make db-reset` keeps the v4 presets and
+# runs the same history seed after them.
+seed-history:
+	$(PYTHON) -m backend.store.history --reset

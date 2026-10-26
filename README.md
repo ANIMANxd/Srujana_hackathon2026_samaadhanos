@@ -69,6 +69,17 @@ make test                    # backend suite
 npm run typecheck && npm run lint && npm run smoke   # frontend, from frontend/
 ```
 
+Two demo books, both destructive by design (demo data only):
+
+```bash
+make seed-history   # the customer book only: 6 fictional buyers, imported through the CSV import
+make db-reset       # the v4 presets too, then the same history seed (16 customers, 51 cases)
+```
+
+`make seed-history` writes nothing by hand: it generates one deterministic CSV and
+runs it through `POST /api/v1/import/invoices`, so the engine, the customer
+resolver and the payment route all run exactly as they do for an owner's upload.
+
 The offline demo sequence is in [`frontend/DEMO.md`](frontend/DEMO.md).
 
 ---
